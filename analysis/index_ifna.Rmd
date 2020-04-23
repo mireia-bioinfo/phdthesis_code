@@ -1,0 +1,17 @@
+---
+title: "IFN-α to model early insulitis in pancreatic β cells"
+author: "Mireia Ramos-Rodríguez"
+---
+
+## Publication
+
+> Colli, M.L., **Ramos-Rodríguez, M.**, Nakayasu, N.S. et al. An integrated multi-omics approach identifies the landscape of interferon-$\alpha$-mediated responses of human pancreatic $\beta$ cells. *Nat Commun.* (2020)
+
+```{r, echo=FALSE, out.width='60%'}
+knitr::include_graphics("../docs/figure/graphical_abstracts/ifn.png")
+```
+
+## Data availability
+
+
+## Index of Results

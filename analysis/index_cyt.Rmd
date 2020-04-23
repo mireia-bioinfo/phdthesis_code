@@ -1,0 +1,38 @@
+---
+title: "IFN-γ + IL-1β to model late insulitis in pancreatic β cells"
+author: "Mireia Ramos-Rodríguez"
+---
+
+## Publication
+
+> **Ramos-Rodríguez, M.**, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. *Nat Genet.* **51**, 1588–1595 (2019) doi:10.1038/s41588-019-0524-6
+
+```{r, echo=FALSE, out.width='60%'}
+knitr::include_graphics("../docs/figure/graphical_abstracts/cyt.png")
+```
+
+
+## Data availability
+
+The different datasets that were used in the publication can be downloaded from GEO with the following accessions: 
+
+
+```{r echo=FALSE}
+ids <- read.delim("../data/geo_ids_cyt.tsv")
+knitr::kable(ids,
+             col.names=c("GEO ID", "Experiment", "Link"))
+```
+
+
+## Data processing
+
+## Index of Results
+
+1. Proinflammatory cytokine exposure causes profound remodeling of the $\beta$-cell regulatory landscape [[GO](cyt_01_remodeling.html)]
+    1. Quality Control
+    2. Differential analyses
+    3. Correlation between experiments
+2. The $\beta$-cell response to pro-inflammatory cytokines unveils neo and primed IREs
+3. Cytokine exposure induces changes in human islet 3D chromatin structure
+4. Cytokine-induced islet reegualtory elements map to T1D-associated regions and guide the identification of functional risk variants
+

@@ -1,0 +1,13 @@
+---
+title: Proinflammatory cytokine exposure causes profound remodeling of the  β-cell
+  regulatory landscape
+author: "Mireia Ramos-Rodríguez"
+---
+
+## Quality control
+
+
+## Differential analysis
+
+
+## Correlation between experiments
