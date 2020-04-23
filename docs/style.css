@@ -1,0 +1,30 @@
+.navbar {
+  background-color:#ffcccc;
+ /* border-color:black; */
+}
+
+ /* h1, #TOC>ul>li {
+  color: green;
+}
+
+h2, #TOC>ul>ul>li {
+  color: brown;
+  font-family:  "Times";
+  font-weight: bold;
+} */
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    background-color: #ff6666;
+}
+
+.dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus, .dropdown-menu.active {
+    background-color: #ff6666;
+ }
+
+ ul.dropdown-menu>li.active>a{
+    background: #ff6666 !important;
+}
+
+a {
+  color: #ff6666;
+}
