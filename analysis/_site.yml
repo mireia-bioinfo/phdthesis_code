@@ -1,7 +1,7 @@
-name: "phdthesis_code"
+name: phdthesis_code
 output_dir: ../docs
 navbar:
-  title: "phdthesis_code"
+  title: phdthesis_code
   left:
   - text: Home
     href: index.html
@@ -9,6 +9,10 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/mireia-bioinfo/phdthesis_code
 output:
   workflowr::wflow_html:
     toc: yes
