@@ -1,10 +1,20 @@
 name: phdthesis_code
 output_dir: ../docs
 navbar:
-  title: phdthesis_code
+  title: β-cells and T1D
   left:
   - text: Home
     href: index.html
+  - text: IFN-α
+    menu:
+      - text: Description
+        href: index_ifna.html
+  - text: IFN-γ + IL-1β
+    menu:
+      - text: Description
+        href: index_cyt.html
+      - text: "1) Induction of chromatin remodeling"
+        href: cyt_01_remodeling.html
   - text: About
     href: about.html
   - text: License
@@ -17,5 +27,8 @@ output:
   workflowr::wflow_html:
     toc: yes
     toc_float: yes
-    theme: cosmo
+    code_folding: hide
+    theme: lumen
     highlight: textmate
+    css: style.css
+    linkcolor: red
