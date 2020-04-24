@@ -433,12 +433,536 @@ div.tocify {
 
 <div id="quality-control" class="section level2">
 <h2>Quality control</h2>
+<div id="atac-seq-specific-qc-measures" class="section level3">
+<h3>ATAC-seq specific QC measures</h3>
+<p>Run Rscript for generating the necessary quality control measures.</p>
+<pre><code>Rscript code/CYT_QC_ATAC.R</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_stats.rda&quot;)
+load(&quot;../data/CYT/ATAC/QC/QC_scores.rda&quot;)
+
+stats &lt;- dplyr::left_join(stats, txt)
+
+lib &lt;-
+  ggplot(stats,
+       aes(&quot;Lib Size&quot;,
+           sampleID)) +
+  geom_tile(aes(fill=total_reads),
+              color=&quot;black&quot;, size=1) +
+  geom_text(aes(label=round(total_reads/1e6, 1))) +
+  scale_fill_gradient(low=&quot;white&quot;,
+                      high=&quot;purple3&quot;,
+                      limits=c(0, max(stats$total_reads)),
+                      breaks=c(0, max(stats$total_reads)),
+                      labels=c(&quot;0&quot;, &quot;Max&quot;),
+                      name=&quot;Library size (x10^6)&quot;) +
+  guides(fill=guide_colourbar(ticks=FALSE,
+                              frame.colour = &quot;black&quot;,
+                              frame.linewidth = 1)) +
+  theme(axis.line.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title = element_blank())
+
+align &lt;-
+  ggplot(stats,
+         aes(&quot;% Align&quot;,
+             sampleID)) + 
+  geom_tile(aes(fill=alignment_rate),
+            color=&quot;black&quot;, size=1) +
+  geom_text(aes(label=round(alignment_rate, 1))) +
+  scale_fill_gradient(low=&quot;white&quot;,
+                      high=&quot;darkorange3&quot;,
+                      limits=c(0, max(stats$alignment_rate)),
+                      breaks=c(0, max(stats$alignment_rate)),
+                      labels=c(0, &quot;Max&quot;),
+                      name=&quot;% alignment&quot;) +
+  guides(fill=guide_colourbar(ticks=FALSE,
+                              frame.colour = &quot;black&quot;,
+                              frame.linewidth = 1)) +
+  theme(axis.text.y=element_blank(),
+        axis.title=element_blank(),
+        axis.line=element_blank(),
+        axis.ticks=element_blank(),
+        plot.margin=margin(0,0,0,0, unit=&#39;pt&#39;))
+  
+mit &lt;- 
+  ggplot(stats,
+       aes(&quot;% Mito&quot;,
+           sampleID)) +
+  geom_tile(aes(fill=chrM_rate),
+            color=&quot;black&quot;, size=1) +
+  geom_text(aes(label=round(chrM_rate, 1))) +
+  scale_fill_gradient(low=&quot;dodgerblue3&quot;,
+                      high=&quot;white&quot;,
+                      limits=c(0, max(stats$chrM_rate)),
+                      breaks=c(0, max(stats$chrM_rate)),
+                      labels=c(&quot;0&quot;, &quot;Max&quot;),
+                      name=&quot;% Mitochondrial&quot;) +
+  guides(fill=guide_colourbar(ticks=FALSE,
+                              frame.colour = &quot;black&quot;,
+                              frame.linewidth = 1)) +
+  theme(axis.text.y=element_blank(),
+        axis.title=element_blank(),
+        axis.line=element_blank(),
+        axis.ticks=element_blank(),
+        plot.margin=margin(0,0,0,0, unit=&#39;pt&#39;))
+
+
+nsc &lt;- 
+  ggplot(stats,
+       aes(&quot;NSC&quot;,
+           sampleID)) +
+  geom_tile(aes(fill=NSC),
+            color=&quot;black&quot;, size=1) +
+  geom_text(aes(label=round(NSC, 1))) +
+  scale_fill_gradient(low=&quot;white&quot;,
+                      high=&quot;indianred4&quot;,
+                      limits=c(1, max(stats$NSC)),
+                      breaks=c(1, max(stats$NSC)),
+                      labels=c(&quot;1&quot;, &quot;Max&quot;),
+                      name=&quot;NSC&quot;) +
+  guides(fill=guide_colourbar(ticks=FALSE,
+                              frame.colour = &quot;black&quot;,
+                              frame.linewidth = 1)) +
+  theme(axis.text.y=element_blank(),
+        axis.title=element_blank(),
+        axis.line=element_blank(),
+        axis.ticks=element_blank(),
+        plot.margin=margin(0,0,0,0, unit=&#39;pt&#39;))
+
+rsc &lt;- 
+  ggplot(stats,
+       aes(&quot;RSC&quot;,
+           sampleID)) +
+  geom_tile(aes(fill=RSC),
+            color=&quot;black&quot;, size=1) +
+  geom_text(aes(label=round(RSC, 1))) +
+  scale_fill_gradient(low=&quot;white&quot;,
+                      high=&quot;turquoise4&quot;,
+                      limits=c(0, max(stats$RSC)),
+                      breaks=c(0, max(stats$RSC)),
+                      labels=c(&quot;0&quot;, &quot;Max&quot;),
+                      name=&quot;RSC&quot;) +
+  guides(fill=guide_colourbar(ticks=FALSE,
+                              frame.colour = &quot;black&quot;,
+                              frame.linewidth = 1)) +
+  theme(axis.text.y=element_blank(),
+        axis.title=element_blank(),
+        axis.line=element_blank(),
+        axis.ticks=element_blank(),
+        plot.margin=margin(0,0,0,0, unit=&#39;pt&#39;))
+
+
+## Get legend -----------------------
+lib.leg &lt;- get_legend(lib)
+al.leg &lt;- get_legend(align)
+mit.leg &lt;- get_legend(mit)
+nsc.leg &lt;- get_legend(nsc)
+rsc.leg &lt;- get_legend(rsc)
+
+
+leg &lt;- plot_grid(lib.leg, 
+                 al.leg,
+                 mit.leg, 
+                 nsc.leg, 
+                 rsc.leg,
+                 nrow=1)
+
+## Create heatmap --------------------------
+
+heat &lt;- plot_grid(lib + theme(legend.position=&quot;none&quot;), 
+                  align + theme(legend.position=&quot;none&quot;),
+          mit + theme(legend.position=&quot;none&quot;), 
+          nsc + theme(legend.position=&quot;none&quot;), 
+          rsc + theme(legend.position=&quot;none&quot;),
+          nrow=1,
+          align=&#39;h&#39;,
+          rel_widths=c(0.30, rep(0.1750, 4))
+          )
+
+
+## Final plot ----------------
+qc &lt;- 
+  plot_grid(heat, leg, nrow=2, rel_heights = c(0.7, 0.3))
+
+qc</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_01_remodeling.Rmd/atac-heatmap-1.png" alt="Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC)." width="672" />
+<p class="caption">
+Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC).
+</p>
+</div>
+<pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_tss_enrichment.rda&quot;)
+
+tss$dataset &lt;- factor(tss$dataset, levels=c(&quot;TSS annotation&quot;, &quot;Random control&quot;))
+tss$group &lt;- gsub(&quot;[[:digit:]]*_&quot;, &quot;_&quot;, tss$sample)
+
+tss &lt;- tss %&gt;% 
+  group_by(dataset, group, Position) %&gt;%
+  summarise(mean=mean(mean))
+
+tss.plot &lt;- 
+  ggplot(tss,
+       aes(Position, mean)) +
+  geom_line(aes(group=dataset, color=dataset), lwd=0.7) +
+  scale_color_manual(values=c(&quot;seagreen4&quot;, &quot;goldenrod3&quot;), name=&quot;Dataset&quot;) +
+  facet_wrap(~group, scales=&quot;free_y&quot;) +
+  theme(legend.position=&quot;top&quot;) +
+  ylab(&quot;Mean ATAC-seq read counts&quot;) + xlab(&quot;Position relative to TSS (bp)&quot;)
+
+tss.plot</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_01_remodeling.Rmd/atac-tss-enrichment-1.png" alt="Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions." width="576" />
+<p class="caption">
+Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions.
+</p>
+</div>
+<pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_noise.rda&quot;)
+
+stats$mean.errorbar &lt;- stats$mean
+stats &lt;- stats[order(rev(stats$Annotation)),]
+
+stats &lt;- stats[stats$Annotation!=&quot;Unassigned&quot;,] %&gt;%
+  group_by(group) %&gt;%
+  mutate(cumsum=cumsum(mean))
+
+noise &lt;- 
+  ggplot(stats[stats$Annotation!=&quot;Unassigned&quot;,],
+       aes(group, mean)) +
+  geom_bar(aes(fill=Annotation), stat=&quot;identity&quot;,
+           position=&quot;stack&quot;,
+           color=&quot;black&quot;, lwd=0.7) +
+  geom_errorbar(aes(ymin=cumsum, ymax=cumsum+sd,
+                    group=Annotation),
+                width=.3, lwd=0.5) +
+  scale_fill_manual(values=c(&quot;violetred&quot;, &quot;dark orange&quot;)) +
+  scale_y_continuous(name=&quot;Percentage of reads in peaks (%)&quot;) +
+  theme(axis.text.x=element_text(angle=30, hjust=1),
+        legend.position=&quot;top&quot;,
+        axis.title.x=element_blank())
+
+noise</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_01_remodeling.Rmd/atac-signal-to-noise-1.png" alt="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks." width="384" />
+<p class="caption">
+Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks.
+</p>
+</div>
+</div>
+<div id="correlation-between-replicates" class="section level3">
+<h3>Correlation between replicates</h3>
+<pre><code>Rscript code/QC_CORR_genome.R data/CYT/ATAC/BAM/ data/CYT/ATAC/QC/
+Rscript code/QC_CORR_genome.R data/CYT/H3K27ac/BAM/ data/CYT/H3K27ac/QC/
+Rscript code/QC_CORR_genome.R data/CYT/RNA/BAM/ data/CYT/RNA/QC/</code></pre>
+<pre class="r"><code> get_upper_tri &lt;- function(cormat){
+    cormat[lower.tri(cormat)]&lt;- NA
+    return(cormat)
+ }
+ 
+  get_lower_tri &lt;- function(cormat){
+    cormat[upper.tri(cormat)]&lt;- NA
+    return(cormat)
+  }</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/COR_10kb_norm.rda&quot;)
+mat &lt;- counts
+
+cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
+ctrl.m &lt;- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+
+c.ctrl.atac &lt;-
+  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    panel.grid.major = element_blank(),
+    legend.position=&quot;none&quot;) +
+  coord_fixed() + 
+  ggtitle(&quot;ATAC-seq genome-wide correlation&quot;)
+
+cor.mat.cyt &lt;- get_upper_tri(cor(mat[,grep(&quot;cyt&quot;, colnames(mat))], method=&quot;pearson&quot;))
+cyt.m &lt;- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
+
+c.cyt.atac &lt;-
+  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.75),
+    legend.direction = &quot;horizontal&quot;,
+    panel.grid.major = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = &quot;top&quot;, title.hjust = 0.5))
+
+
+cor.rep.atac &lt;- plot_grid(c.ctrl.atac, c.cyt.atac)
+cor.rep.atac</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_01_remodeling.Rmd/atac-genome-corr-1.png" alt="ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
+<p class="caption">
+ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+</p>
+</div>
+<pre class="r"><code>load(&quot;../data/CYT/H3K27ac/QC/COR_10kb_norm.rda&quot;)
+mat &lt;- counts
+
+cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
+ctrl.m &lt;- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+
+c.ctrl.H3K27ac &lt;-
+  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    panel.grid.major = element_blank(),
+    legend.position=&quot;none&quot;) +
+  coord_fixed() + 
+  ggtitle(&quot;H3k27ac genome-wide correlation&quot;)
+
+cor.mat.cyt &lt;- get_upper_tri(cor(mat[,grep(&quot;cyt&quot;, colnames(mat))], method=&quot;pearson&quot;))
+cyt.m &lt;- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
+
+c.cyt.H3K27ac &lt;-
+  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.75),
+    legend.direction = &quot;horizontal&quot;,
+    panel.grid.major = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = &quot;top&quot;, title.hjust = 0.5))
+
+
+cor.rep.H3K27ac &lt;- plot_grid(c.ctrl.H3K27ac, c.cyt.H3K27ac)
+cor.rep.H3K27ac</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" alt="H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
+<p class="caption">
+H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+</p>
+</div>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/QC/COR_10kb_norm.rda&quot;)
+
+cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
+ctrl.m &lt;- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+
+c.ctrl.RNA &lt;-
+  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    panel.grid.major = element_blank(),
+    legend.position=&quot;none&quot;) +
+  coord_fixed() + 
+  ggtitle(&quot;RNA-seq genome-wide correlation&quot;)
+
+cor.mat.cyt &lt;- get_upper_tri(cor(mat[,grep(&quot;cyt&quot;, colnames(mat))], method=&quot;pearson&quot;))
+cyt.m &lt;- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
+
+c.cyt.RNA &lt;-
+  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.75),
+    legend.direction = &quot;horizontal&quot;,
+    panel.grid.major = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = &quot;top&quot;, title.hjust = 0.5))
+
+
+cor.rep.RNA &lt;- plot_grid(c.ctrl.RNA, c.cyt.RNA)
+cor.rep.RNA</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_01_remodeling.Rmd/rna-genome-corr-1.png" alt="RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
+<p class="caption">
+RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+</p>
+</div>
+</div>
 </div>
 <div id="differential-analysis" class="section level2">
 <h2>Differential analysis</h2>
+<p>The differential analysis in the different assays is performed using <code>DESeq2</code>.</p>
+<div id="atac-seq" class="section level3">
+<h3>ATAC-seq</h3>
+<pre><code>cd data/CYT/ATAC
+Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e ATAC
+Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e ATAC</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
+
+table(res.gr$type, res.gr$annotation)</code></pre>
+<pre><code>        
+         Distal Promoter
+  gained  12240      267
+  lost      679        9
+  stable 171672    13354</code></pre>
+<pre class="r"><code>volc_ec &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;RE type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;ATAC-seq EndoC-&quot;*beta*H1)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/ATAC/diffAnalysis/ATAC_hi_fc1_padj0.05_GRangesBatch.rda&quot;)
+
+table(res.gr$type, res.gr$annotation)</code></pre>
+<pre><code>        
+         Distal Promoter
+  gained  14505      462
+  lost     4544      115
+  stable 295383    18090</code></pre>
+<pre class="r"><code>volc_hi &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;RE type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;ATAC-seq HI&quot;)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>plot_grid(volc_ec, 
+          volc_hi,
+          ncol=2)</code></pre>
+<p><img src="figure/cyt_01_remodeling.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="h3k27ac" class="section level3">
+<h3>H3K27ac</h3>
+<pre><code>cd data/CYT/H3K27ac
+Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e H3K27ac
+Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e H3K27ac</code></pre>
+</div>
+<div id="rna-seq" class="section level3">
+<h3>RNA-seq</h3>
+<pre><code>cd data/CYT/RNA
+Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s hi
+Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc</code></pre>
+</div>
 </div>
 <div id="correlation-between-experiments" class="section level2">
 <h2>Correlation between experiments</h2>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.3 (2020-02-29)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 18362)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
+[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
+[5] LC_TIME=Spanish_Spain.1252    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] dplyr_0.8.5     cowplot_1.0.0   ggplot2_3.3.0   workflowr_1.6.1
+
+loaded via a namespace (and not attached):
+ [1] Biobase_2.46.0              bit64_0.9-7                
+ [3] splines_3.6.3               Formula_1.2-3              
+ [5] assertthat_0.2.1            highr_0.8                  
+ [7] stats4_3.6.3                latticeExtra_0.6-29        
+ [9] blob_1.2.1                  GenomeInfoDbData_1.2.2     
+[11] yaml_2.2.1                  RSQLite_2.2.0              
+[13] pillar_1.4.3                backports_1.1.5            
+[15] lattice_0.20-40             glue_1.3.2                 
+[17] digest_0.6.25               GenomicRanges_1.38.0       
+[19] RColorBrewer_1.1-2          promises_1.1.0             
+[21] XVector_0.26.0              checkmate_2.0.0            
+[23] colorspace_1.4-1            htmltools_0.4.0            
+[25] httpuv_1.5.2                Matrix_1.2-18              
+[27] plyr_1.8.6                  XML_3.99-0.3               
+[29] DESeq2_1.26.0               pkgconfig_2.0.3            
+[31] genefilter_1.68.0           zlibbioc_1.32.0            
+[33] xtable_1.8-4                purrr_0.3.3                
+[35] scales_1.1.0                jpeg_0.1-8.1               
+[37] later_1.0.0                 BiocParallel_1.20.1        
+[39] annotate_1.64.0             git2r_0.26.1               
+[41] tibble_2.1.3                htmlTable_1.13.3           
+[43] farver_2.0.3                IRanges_2.20.2             
+[45] withr_2.1.2                 SummarizedExperiment_1.16.1
+[47] nnet_7.3-13                 BiocGenerics_0.32.0        
+[49] survival_3.1-11             magrittr_1.5               
+[51] crayon_1.3.4                memoise_1.1.0              
+[53] evaluate_0.14               fs_1.3.2                   
+[55] foreign_0.8-76              tools_3.6.3                
+[57] data.table_1.12.8           lifecycle_0.2.0            
+[59] matrixStats_0.56.0          stringr_1.4.0              
+[61] S4Vectors_0.24.3            locfit_1.5-9.4             
+[63] munsell_0.5.0               cluster_2.1.0              
+[65] DelayedArray_0.12.2         AnnotationDbi_1.48.0       
+[67] compiler_3.6.3              GenomeInfoDb_1.22.0        
+[69] rlang_0.4.5                 grid_3.6.3                 
+[71] RCurl_1.98-1.1              rstudioapi_0.11            
+[73] htmlwidgets_1.5.1           bitops_1.0-6               
+[75] base64enc_0.1-3             labeling_0.3               
+[77] rmarkdown_2.1               gtable_0.3.0               
+[79] DBI_1.1.0                   reshape2_1.4.3             
+[81] R6_2.4.1                    gridExtra_2.3              
+[83] knitr_1.28                  bit_1.1-15.2               
+[85] Hmisc_4.4-0                 rprojroot_1.3-2            
+[87] stringi_1.4.6               parallel_3.6.3             
+[89] Rcpp_1.0.4                  geneplotter_1.64.0         
+[91] vctrs_0.2.4                 rpart_4.1-15               
+[93] acepack_1.4.1               png_0.1-7                  
+[95] tidyselect_1.0.0            xfun_0.12                  </code></pre>
+</div>
 </div>
 
 
