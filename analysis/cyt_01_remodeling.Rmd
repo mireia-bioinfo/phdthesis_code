@@ -17,7 +17,7 @@ load("../code/CYT_color_palettes.rda")
 ```
 
 
-## Quality control
+## 1) Quality control
 
 ### ATAC-seq specific QC measures
 
@@ -400,7 +400,7 @@ cor.rep.RNA
 ```
 
 
-## Differential analysis
+## 2) Differential analysis
 
 The differential analysis in the different assays is performed using `DESeq2`. 
 
@@ -477,4 +477,4 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc
 ```
 
 
-## Correlation between experiments
+## 3) Correlation between experiments
