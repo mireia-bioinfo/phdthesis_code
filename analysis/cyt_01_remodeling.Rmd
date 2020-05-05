@@ -6,11 +6,13 @@ author: "Mireia Ramos-Rodríguez"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE,
-                      message = FALSE)
+                      message = FALSE,
+                      eval = FALSE)
 
 library(ggplot2)
 library(cowplot)
 library(dplyr)
+library(kableExtra)
 
 theme_set(cowplot::theme_cowplot())
 load("../code/CYT_color_palettes.rda")
@@ -412,10 +414,14 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e ATAC
 ```
 
-```{r atac-tab-ec}
+```{r atac-tab-ec, eval=TRUE}
 load("../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda")
 
-table(res.gr$type, res.gr$annotation)
+table(res.gr$type, res.gr$annotation) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ",")) %>% 
+  kable_styling(full_width = FALSE) %>% 
+  add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 ```
 
 ```{r atac-volc-plot-ec, fig.height=4, fig.width=4}
@@ -452,7 +458,7 @@ volc_hi <-
   theme(legend.position="none")
 ```
 
-```{r}
+```{r, fig.height=4, fig.cap="Volcano plots showing the open chromatin sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red."}
 plot_grid(volc_ec, 
           volc_hi,
           ncol=2)
@@ -468,12 +474,104 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e H3K27ac
 ```
 
+```{r k27-tab-ec}
+load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda")
+
+table(res.gr$type, res.gr$annotation)
+```
+
+```{r k27-volc-plot-ec, fig.height=4, fig.width=4}
+volc_ec <- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name="RE type") +
+  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
+  ggtitle(expression("H3K27ac EndoC-"*beta*H1)) +
+  theme(legend.position="none")
+```
+
+```{r k27-tab-hi}
+load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_hi_fc1_padj0.05_GRangesBatch.rda")
+
+table(res.gr$type, res.gr$annotation)
+```
+
+```{r k27-volc-plot-hi, fig.height=4, fig.width=4}
+volc_hi <- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name="RE type") +
+  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
+  ggtitle(expression("H3K27ac HI")) +
+  theme(legend.position="none")
+```
+
+```{r, fig.height=4, fig.cap="Volcano plots showing the enriched H3K27ac sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red."}
+plot_grid(volc_ec, 
+          volc_hi,
+          ncol=2)
+```
+
 ### RNA-seq
 
 ```
 cd data/CYT/RNA
 Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s hi
 Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc
+```
+
+```{r rna-tab-ec}
+load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
+
+table(res.gr$type, res.gr$gene_biotype)
+```
+
+```{r rna-volc-plot-ec, fig.height=4, fig.width=4}
+volc_ec <- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name="Gene type") +
+  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
+  ggtitle(expression("H3K27ac EndoC-"*beta*H1)) +
+  theme(legend.position="none")
+```
+
+```{r rna-tab-hi}
+load("../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
+
+table(res.gr$type, res.gr$gene_biotype)
+```
+
+```{r rna-volc-plot-hi, fig.height=4, fig.width=4}
+volc_hi <- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name="Gene type") +
+  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
+  ggtitle(expression("RNA-seq HI")) +
+  theme(legend.position="none")
+```
+
+```{r, fig.height=4, fig.cap="Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red."}
+plot_grid(volc_ec, 
+          volc_hi,
+          ncol=2)
 ```
 
 
