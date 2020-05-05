@@ -27,6 +27,7 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
@@ -389,7 +390,7 @@ div.tocify {
       <a href="index_cyt.html">Description</a>
     </li>
     <li>
-      <a href="cyt_01_remodeling.html">1) Induction of chromatin remodeling</a>
+      <a href="cyt_01_remodeling.html">1) Remodeling of the β-cell regulatory landscape</a>
     </li>
   </ul>
 </li>
@@ -585,12 +586,6 @@ qc &lt;-
   plot_grid(heat, leg, nrow=2, rel_heights = c(0.7, 0.3))
 
 qc</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/atac-heatmap-1.png" alt="Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC)." width="672" />
-<p class="caption">
-Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC).
-</p>
-</div>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_tss_enrichment.rda&quot;)
 
 tss$dataset &lt;- factor(tss$dataset, levels=c(&quot;TSS annotation&quot;, &quot;Random control&quot;))
@@ -610,12 +605,6 @@ tss.plot &lt;-
   ylab(&quot;Mean ATAC-seq read counts&quot;) + xlab(&quot;Position relative to TSS (bp)&quot;)
 
 tss.plot</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/atac-tss-enrichment-1.png" alt="Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions." width="576" />
-<p class="caption">
-Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions.
-</p>
-</div>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_noise.rda&quot;)
 
 stats$mean.errorbar &lt;- stats$mean
@@ -641,12 +630,6 @@ noise &lt;-
         axis.title.x=element_blank())
 
 noise</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/atac-signal-to-noise-1.png" alt="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks." width="384" />
-<p class="caption">
-Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks.
-</p>
-</div>
 </div>
 <div id="correlation-between-replicates" class="section level3">
 <h3>Correlation between replicates</h3>
@@ -709,12 +692,6 @@ c.cyt.atac &lt;-
 
 cor.rep.atac &lt;- plot_grid(c.ctrl.atac, c.cyt.atac)
 cor.rep.atac</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/atac-genome-corr-1.png" alt="ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
-<p class="caption">
-ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
-</p>
-</div>
 <pre class="r"><code>load(&quot;../data/CYT/H3K27ac/QC/COR_10kb_norm.rda&quot;)
 mat &lt;- counts
 
@@ -762,12 +739,6 @@ c.cyt.H3K27ac &lt;-
 
 cor.rep.H3K27ac &lt;- plot_grid(c.ctrl.H3K27ac, c.cyt.H3K27ac)
 cor.rep.H3K27ac</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" alt="H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
-<p class="caption">
-H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
-</p>
-</div>
 <pre class="r"><code>load(&quot;../data/CYT/RNA/QC/COR_10kb_norm.rda&quot;)
 
 cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
@@ -814,12 +785,6 @@ c.cyt.RNA &lt;-
 
 cor.rep.RNA &lt;- plot_grid(c.ctrl.RNA, c.cyt.RNA)
 cor.rep.RNA</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/rna-genome-corr-1.png" alt="RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
-<p class="caption">
-RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
-</p>
-</div>
 </div>
 </div>
 <div id="differential-analysis" class="section level2">
@@ -832,12 +797,72 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e ATAC</code></pre>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
 
-table(res.gr$type, res.gr$annotation)</code></pre>
-<pre><code>        
-         Distal Promoter
-  gained  12240      267
-  lost      679        9
-  stable 171672    13354</code></pre>
+table(res.gr$type, res.gr$annotation) %&gt;% 
+  knitr::kable(format=&quot;html&quot;,
+               format.args = list(big.mark = &quot;,&quot;)) %&gt;% 
+  kable_styling(full_width = FALSE) %&gt;% 
+  add_header_above(c(&quot;Region type&quot; = 1, &quot;Location respect TSS&quot; = 2))</code></pre>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="1">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Region type
+</div>
+</th>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Location respect TSS
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Distal
+</th>
+<th style="text-align:right;">
+Promoter
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+gained
+</td>
+<td style="text-align:right;">
+12,240
+</td>
+<td style="text-align:right;">
+267
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+lost
+</td>
+<td style="text-align:right;">
+679
+</td>
+<td style="text-align:right;">
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+stable
+</td>
+<td style="text-align:right;">
+171,672
+</td>
+<td style="text-align:right;">
+13,354
+</td>
+</tr>
+</tbody>
+</table>
 <pre class="r"><code>volc_ec &lt;- 
   ggplot(data.frame(res.gr),
        aes(log2FoldChange, -log10(padj))) +
@@ -852,11 +877,6 @@ table(res.gr$type, res.gr$annotation)</code></pre>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/diffAnalysis/ATAC_hi_fc1_padj0.05_GRangesBatch.rda&quot;)
 
 table(res.gr$type, res.gr$annotation)</code></pre>
-<pre><code>        
-         Distal Promoter
-  gained  14505      462
-  lost     4544      115
-  stable 295383    18090</code></pre>
 <pre class="r"><code>volc_hi &lt;- 
   ggplot(data.frame(res.gr),
        aes(log2FoldChange, -log10(padj))) +
@@ -871,19 +891,80 @@ table(res.gr$type, res.gr$annotation)</code></pre>
 <pre class="r"><code>plot_grid(volc_ec, 
           volc_hi,
           ncol=2)</code></pre>
-<p><img src="figure/cyt_01_remodeling.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="h3k27ac" class="section level3">
 <h3>H3K27ac</h3>
 <pre><code>cd data/CYT/H3K27ac
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e H3K27ac
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e H3K27ac</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
+
+table(res.gr$type, res.gr$annotation)</code></pre>
+<pre class="r"><code>volc_ec &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;RE type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;H3K27ac EndoC-&quot;*beta*H1)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/H3K27ac/diffAnalysis/H3K27ac_hi_fc1_padj0.05_GRangesBatch.rda&quot;)
+
+table(res.gr$type, res.gr$annotation)</code></pre>
+<pre class="r"><code>volc_hi &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;RE type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;H3K27ac HI&quot;)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>plot_grid(volc_ec, 
+          volc_hi,
+          ncol=2)</code></pre>
 </div>
 <div id="rna-seq" class="section level3">
 <h3>RNA-seq</h3>
 <pre><code>cd data/CYT/RNA
 Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s hi
 Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda&quot;)
+
+table(res.gr$type, res.gr$gene_biotype)</code></pre>
+<pre class="r"><code>volc_ec &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;Gene type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;H3K27ac EndoC-&quot;*beta*H1)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+
+table(res.gr$type, res.gr$gene_biotype)</code></pre>
+<pre class="r"><code>volc_hi &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;Gene type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;RNA-seq HI&quot;)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>plot_grid(volc_ec, 
+          volc_hi,
+          ncol=2)</code></pre>
 </div>
 </div>
 <div id="correlation-between-experiments" class="section level2">
@@ -896,73 +977,6 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc</
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>R version 3.6.3 (2020-02-29)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 18362)
-
-Matrix products: default
-
-locale:
-[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
-[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
-[5] LC_TIME=Spanish_Spain.1252    
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
-[1] dplyr_0.8.5     cowplot_1.0.0   ggplot2_3.3.0   workflowr_1.6.1
-
-loaded via a namespace (and not attached):
- [1] Biobase_2.46.0              bit64_0.9-7                
- [3] splines_3.6.3               Formula_1.2-3              
- [5] assertthat_0.2.1            highr_0.8                  
- [7] stats4_3.6.3                latticeExtra_0.6-29        
- [9] blob_1.2.1                  GenomeInfoDbData_1.2.2     
-[11] yaml_2.2.1                  RSQLite_2.2.0              
-[13] pillar_1.4.3                backports_1.1.6            
-[15] lattice_0.20-41             glue_1.4.0                 
-[17] digest_0.6.25               GenomicRanges_1.38.0       
-[19] RColorBrewer_1.1-2          promises_1.1.0             
-[21] XVector_0.26.0              checkmate_2.0.0            
-[23] colorspace_1.4-1            htmltools_0.4.0            
-[25] httpuv_1.5.2                Matrix_1.2-18              
-[27] plyr_1.8.6                  XML_3.99-0.3               
-[29] DESeq2_1.26.0               pkgconfig_2.0.3            
-[31] genefilter_1.68.0           zlibbioc_1.32.0            
-[33] xtable_1.8-4                purrr_0.3.4                
-[35] scales_1.1.0                jpeg_0.1-8.1               
-[37] later_1.0.0                 BiocParallel_1.20.1        
-[39] annotate_1.64.0             git2r_0.26.1               
-[41] tibble_3.0.1                htmlTable_1.13.3           
-[43] farver_2.0.3                IRanges_2.20.2             
-[45] ellipsis_0.3.0              withr_2.2.0                
-[47] SummarizedExperiment_1.16.1 nnet_7.3-14                
-[49] BiocGenerics_0.32.0         survival_3.1-12            
-[51] magrittr_1.5                crayon_1.3.4               
-[53] memoise_1.1.0               evaluate_0.14              
-[55] fs_1.3.2                    foreign_0.8-76             
-[57] data.table_1.12.8           tools_3.6.3                
-[59] lifecycle_0.2.0             matrixStats_0.56.0         
-[61] stringr_1.4.0               S4Vectors_0.24.4           
-[63] locfit_1.5-9.4              munsell_0.5.0              
-[65] cluster_2.1.0               DelayedArray_0.12.3        
-[67] AnnotationDbi_1.48.0        compiler_3.6.3             
-[69] GenomeInfoDb_1.22.1         rlang_0.4.5                
-[71] grid_3.6.3                  RCurl_1.98-1.1             
-[73] rstudioapi_0.11             htmlwidgets_1.5.1          
-[75] bitops_1.0-6                base64enc_0.1-3            
-[77] labeling_0.3                rmarkdown_2.1              
-[79] gtable_0.3.0                DBI_1.1.0                  
-[81] reshape2_1.4.4              R6_2.4.1                   
-[83] gridExtra_2.3               knitr_1.28                 
-[85] bit_1.1-15.2                Hmisc_4.4-0                
-[87] rprojroot_1.3-2             stringi_1.4.6              
-[89] parallel_3.6.3              Rcpp_1.0.4                 
-[91] geneplotter_1.64.0          vctrs_0.2.4                
-[93] rpart_4.1-15                acepack_1.4.1              
-[95] png_0.1-7                   tidyselect_1.0.0           
-[97] xfun_0.13                  </code></pre>
 </div>
 </div>
 
