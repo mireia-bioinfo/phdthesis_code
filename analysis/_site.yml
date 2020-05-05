@@ -13,7 +13,7 @@ navbar:
     menu:
       - text: Description
         href: index_cyt.html
-      - text: "1) Remodeling of the β-cell regulatory landscape"
+      - text: "#1 Chromatin remodeling induced by cytokines"
         href: cyt_01_remodeling.html
   - text: About
     href: about.html

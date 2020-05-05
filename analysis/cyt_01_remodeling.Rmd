@@ -1,5 +1,6 @@
 ---
-title: Proinflammatory cytokine exposure causes profound remodeling of the  β-cell
+title: "#1 Chromatin remodeling induced by cytokines"
+subtitle: Proinflammatory cytokine exposure causes profound remodeling of the  β-cell
   regulatory landscape
 author: "Mireia Ramos-Rodríguez"
 ---

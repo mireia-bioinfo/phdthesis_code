@@ -32,13 +32,4 @@ knitr::kable(ids,
 
 ### UMI-4C
 
-## Index of Results
-
-1. Proinflammatory cytokine exposure causes profound remodeling of the $\beta$-cell regulatory landscape [[GO](cyt_01_remodeling.html)]
-    1. Quality Control [[GO](cyt_01_remodeling.html#1)_quality_control)]
-    2. Differential analysis [[GO](cyt_01_remodeling.html#2)_differential_analysis)]
-    3. Correlation between experiments [[GO](cyt_01_remodeling.html#3)_correlation_between_experiments)]
-2. The $\beta$-cell response to pro-inflammatory cytokines unveils neo and primed IREs
-3. Cytokine exposure induces changes in human islet 3D chromatin structure
-4. Cytokine-induced islet reegualtory elements map to T1D-associated regions and guide the identification of functional risk variants
 
