@@ -13,5 +13,16 @@ knitr::include_graphics("../docs/figure/graphical_abstracts/ifn.png")
 
 ## Data availability
 
+The different datasets that were used in the publication can be downloaded from GEO with the following accessions: 
+
+
+```{r echo=FALSE}
+ids <- read.delim("../data/geo_ids_ifna.tsv")
+knitr::kable(ids,
+             col.names=c("GEO ID", "Experiment", "Link"))
+```
+
+## Data processing
+
 
 ## Index of Results

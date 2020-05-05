@@ -7,12 +7,15 @@ author: "Mireia Ramos-Rodríguez"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE,
                       message = FALSE,
-                      eval = FALSE)
+                      eval = TRUE,
+                      fig.height = 4)
 
+library(GenomicRanges)
 library(ggplot2)
 library(cowplot)
-library(dplyr)
 library(kableExtra)
+library(dplyr)
+library(purrr)
 
 theme_set(cowplot::theme_cowplot())
 load("../code/CYT_color_palettes.rda")
@@ -414,12 +417,13 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e ATAC
 ```
 
-```{r atac-tab-ec, eval=TRUE}
+```{r atac-tab-ec}
 load("../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda")
 
 table(res.gr$type, res.gr$annotation) %>% 
   knitr::kable(format="html",
-               format.args = list(big.mark = ",")) %>% 
+               format.args = list(big.mark = ","),
+               caption = "Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples.") %>% 
   kable_styling(full_width = FALSE) %>% 
   add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 ```
@@ -441,7 +445,12 @@ volc_ec <-
 ```{r atac-tab-hi}
 load("../data/CYT/ATAC/diffAnalysis/ATAC_hi_fc1_padj0.05_GRangesBatch.rda")
 
-table(res.gr$type, res.gr$annotation)
+table(res.gr$type, res.gr$annotation) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               caption = "Number of regions classified according to significance and distance to TSS in ATAC-seq HI samples.") %>% 
+  kable_styling(full_width = FALSE) %>% 
+  add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 ```
 
 ```{r atac-volc-plot-hi, fig.height=4, fig.width=4}
@@ -465,6 +474,40 @@ plot_grid(volc_ec,
 ```
 
 
+```{r atac-comp-hi-ec, fig.width=4, fig.cap="Boxplot of HI log2FC at ATAC-seq regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds."}
+## Load regions
+load("../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda")
+ec <- res.gr
+
+load("../data/CYT/ATAC/diffAnalysis/ATAC_hi_fc1_padj0.05_GRangesBatch.rda")
+hi <- res.gr
+
+## Find overlaps
+ols <- findOverlaps(hi, ec)
+
+## Get fold-change in HI vs type in EndoC
+df <- cbind(data.frame(hi)[queryHits(ols),c(6,8)],
+            data.frame(ec)[subjectHits(ols),c(13)])
+colnames(df)[3] <- "type_ec"
+
+## Plot results
+ggplot(df,
+       aes(type_ec, log2FoldChange)) + 
+  geom_hline(yintercept=c(1,-1), lty=2, color="grey") +
+  geom_hline(yintercept=0, lty=1, color="grey") +
+  geom_boxplot(aes(color=type_ec), notch=F, outlier.shape=NA,
+               lwd=1) +
+  scale_color_manual(values=pals$differential,
+                    name="RE type") +
+  scale_y_continuous(name=expression("HI "*log[2]*" FC")) +
+  theme(legend.position="none",
+        strip.background = element_rect(fill="white", linetype=1, size=.5, color="black")) + 
+  scale_x_discrete(name=expression("EndoC-"*beta*"H1 region type"),
+                   labels=function(x) Hmisc::capitalize(x)) +
+  coord_cartesian(ylim=c(-2,3))
+```
+
+
 
 ### H3K27ac
 
@@ -477,7 +520,12 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc
 ```{r k27-tab-ec}
 load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda")
 
-table(res.gr$type, res.gr$annotation)
+table(res.gr$type, res.gr$annotation) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               caption = "Number of regions classified according to significance and distance to TSS in H3K27ac EndoC samples.") %>% 
+  kable_styling(full_width = FALSE) %>% 
+  add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 ```
 
 ```{r k27-volc-plot-ec, fig.height=4, fig.width=4}
@@ -497,7 +545,12 @@ volc_ec <-
 ```{r k27-tab-hi}
 load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_hi_fc1_padj0.05_GRangesBatch.rda")
 
-table(res.gr$type, res.gr$annotation)
+table(res.gr$type, res.gr$annotation) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               caption = "Number of regions classified according to significance and distance to TSS in H3K27ac HI samples.") %>% 
+  kable_styling(full_width = FALSE) %>% 
+  add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 ```
 
 ```{r k27-volc-plot-hi, fig.height=4, fig.width=4}
@@ -520,6 +573,39 @@ plot_grid(volc_ec,
           ncol=2)
 ```
 
+```{r k37-comp-hi-ec, fig.width=4, fig.cap="Boxplot of HI log2FC at H3K27ac regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds."}
+## Load regions
+load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda")
+ec <- res.gr
+
+load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_hi_fc1_padj0.05_GRangesBatch.rda")
+hi <- res.gr
+
+## Find overlaps
+ols <- findOverlaps(hi, ec)
+
+## Get fold-change in HI vs type in EndoC
+df <- cbind(data.frame(hi)[queryHits(ols),c(6,8)],
+            data.frame(ec)[subjectHits(ols),c(13)])
+colnames(df)[3] <- "type_ec"
+
+## Plot results
+ggplot(df,
+       aes(type_ec, log2FoldChange)) + 
+  geom_hline(yintercept=c(1,-1), lty=2, color="grey") +
+  geom_hline(yintercept=0, lty=1, color="grey") +
+  geom_boxplot(aes(color=type_ec), notch=F, outlier.shape=NA,
+               lwd=1) +
+  scale_color_manual(values=pals$differential,
+                    name="RE type") +
+  scale_y_continuous(name=expression("HI "*log[2]*" FC")) +
+  scale_x_discrete(name=expression("EndoC-"*beta*"H1 region type"),
+                   labels=function(x) Hmisc::capitalize(x)) +
+  theme(legend.position="none",
+        strip.background = element_rect(fill="white", linetype=1, size=.5, color="black")) + 
+  coord_cartesian(ylim=c(-2,3))
+```
+
 ### RNA-seq
 
 ```
@@ -531,7 +617,17 @@ Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc
 ```{r rna-tab-ec}
 load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
 
-table(res.gr$type, res.gr$gene_biotype)
+as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %>%
+  reshape2::dcast(Var1~Var2) %>% 
+  as_tibble() %>% 
+  mutate(Other = reduce(select(., !matches(c("Var1", "protein_coding"))), `+`)) %>% 
+  select(Var1, protein_coding, Other) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               col.names = c("Gene type", "Protein coding", "Other"),
+               caption = "Number of genes classified according to significance and biotype in RNA-seq EndoC samples.") %>%
+  kable_styling(full_width = FALSE) %>%
+  add_header_above(c(" " = 1, "Gene Biotype" = 2))
 ```
 
 ```{r rna-volc-plot-ec, fig.height=4, fig.width=4}
@@ -544,14 +640,23 @@ volc_ec <-
   geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
   geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
   xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
-  ggtitle(expression("H3K27ac EndoC-"*beta*H1)) +
+  ggtitle(expression("RNA-seq EndoC-"*beta*H1)) +
   theme(legend.position="none")
 ```
 
 ```{r rna-tab-hi}
 load("../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
 
-table(res.gr$type, res.gr$gene_biotype)
+as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %>%
+  reshape2::dcast(Var1~Var2) %>% 
+  mutate(Other = reduce(select(., !matches(c("Var1", "protein_coding"))), `+`)) %>% 
+  select(Var1, protein_coding, Other) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               col.names = c("Gene type", "Protein coding", "Other"),
+               caption = "Number of genes classified according to significance and biotype in RNA-seq HI samples.") %>%
+  kable_styling(full_width = FALSE) %>%
+  add_header_above(c(" " = 1, "Gene Biotype" = 2))
 ```
 
 ```{r rna-volc-plot-hi, fig.height=4, fig.width=4}
@@ -575,4 +680,38 @@ plot_grid(volc_ec,
 ```
 
 
+```{r, fig.width=4, fig.cap="Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds."}
+load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
+ec <- res.gr
+
+load("../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
+hi <- res.gr
+
+colnames(mcols(ec))[c(5,10)] <- paste0("endoc.", colnames(mcols(ec))[c(5,10)])
+colnames(mcols(hi))[c(5,10)] <- paste0("hi.", colnames(mcols(hi))[c(5,10)])
+
+df <- dplyr::left_join(data.frame(mcols(ec))[,c(1,5,10)],
+                       data.frame(mcols(hi))[,c(1,5,10)])
+
+ggplot(df,
+       aes(endoc.type, hi.log2FoldChange)) + 
+  geom_boxplot(aes(color=endoc.type), notch=TRUE, outlier.shape=NA,
+               lwd=1) +
+  scale_color_manual(values=pals$differential,
+                    name="Gene type") +
+  geom_hline(yintercept=c(1,0,-1), lty=c(2,1,2), color="grey") +
+  scale_y_continuous(name=expression("HI "*log[2]*" FC")) +
+  theme(legend.position="none",
+        strip.background = element_rect(fill="white", linetype=1, size=.5, color="black")) + 
+  scale_x_discrete(name=expression("EndoC-"*beta*"H1 region type"),
+                   labels=c("Up-regulated", "Down-regulated", "Equal-regulated")) +
+  coord_cartesian(ylim=c(-4,6))
+```
+
+
 ## 3) Correlation between experiments
+
+### ATAC-seq vs H3K27ac: Defining IREs
+
+
+### RNA-seq vs Proteomics
