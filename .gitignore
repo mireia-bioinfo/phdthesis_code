@@ -10,3 +10,4 @@ analysis/*html
 analysis/*_cache
 analysis/site_libs
 *rda
+output/cyt_01_remodeling/HOMER_IREs_endoc_fc1_padj0.05_mask
