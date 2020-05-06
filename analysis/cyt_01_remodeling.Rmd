@@ -16,9 +16,11 @@ library(ggplot2)
 library(cowplot)
 library(kableExtra)
 library(dplyr)
-library(purrr)
+library(ComplexHeatmap)
+library(DESeq2)
 
-theme_set(cowplot::theme_cowplot())
+
+theme_set(cowplot::theme_cowplot(font_size = 10))
 load("../code/CYT_color_palettes.rda")
 
 ## Create directory to save results
@@ -27,9 +29,9 @@ dir.create(out_dir, F)
 ```
 
 
-## 1) Quality control
+## Analysis of ATAC-seq data
 
-### ATAC-seq specific QC measures
+### Quality control
 
 Run Rscript for generating the necessary quality control measures.
 
@@ -239,14 +241,9 @@ noise <-
 noise
 ```
 
-### Correlation between replicates
-
 ```
 Rscript code/QC_CORR_genome.R data/CYT/ATAC/BAM/ data/CYT/ATAC/QC/
-Rscript code/QC_CORR_genome.R data/CYT/H3K27ac/BAM/ data/CYT/H3K27ac/QC/
-Rscript code/QC_CORR_genome.R data/CYT/RNA/BAM/ data/CYT/RNA/QC/
 ```
-
 
 ```{r functions}
  get_upper_tri <- function(cormat){
@@ -310,111 +307,9 @@ cor.rep.atac <- plot_grid(c.ctrl.atac, c.cyt.atac)
 cor.rep.atac
 ```
 
-```{r k27-genome-corr, fig.cap="H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2."}
-load("../data/CYT/H3K27ac/QC/COR_10kb_norm.rda")
-mat <- counts
 
-cor.mat.ctrl <- get_lower_tri(cor(mat[,grep("ctrl", colnames(mat))], method="pearson"))
-ctrl.m <- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+### Differential analysis
 
-c.ctrl.H3K27ac <-
-  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = "black", lwd=0.7)+
- scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
-   midpoint = 0.5, limit = c(0,1), space = "Lab", 
-   name="Pearson\nCorrelation") +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    panel.grid.major = element_blank(),
-    legend.position="none") +
-  coord_fixed() + 
-  ggtitle("H3k27ac genome-wide correlation")
-
-cor.mat.cyt <- get_upper_tri(cor(mat[,grep("cyt", colnames(mat))], method="pearson"))
-cyt.m <- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
-
-c.cyt.H3K27ac <-
-  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = "black", lwd=0.7)+
- scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
-   midpoint = 0.5, limit = c(0,1), space = "Lab", 
-   name="Pearson\nCorrelation") +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    legend.justification = c(1, 0),
-    legend.position = c(0.6, 0.75),
-    legend.direction = "horizontal",
-    panel.grid.major = element_blank()) +
-  coord_fixed() +
-  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
-                title.position = "top", title.hjust = 0.5))
-
-
-cor.rep.H3K27ac <- plot_grid(c.ctrl.H3K27ac, c.cyt.H3K27ac)
-cor.rep.H3K27ac
-```
-
-```{r rna-genome-corr, fig.cap="RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2."}
-load("../data/CYT/RNA/QC/COR_10kb_norm.rda")
-
-cor.mat.ctrl <- get_lower_tri(cor(mat[,grep("ctrl", colnames(mat))], method="pearson"))
-ctrl.m <- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
-
-c.ctrl.RNA <-
-  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = "black", lwd=0.7)+
- scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
-   midpoint = 0.5, limit = c(0,1), space = "Lab", 
-   name="Pearson\nCorrelation") +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    panel.grid.major = element_blank(),
-    legend.position="none") +
-  coord_fixed() + 
-  ggtitle("RNA-seq genome-wide correlation")
-
-cor.mat.cyt <- get_upper_tri(cor(mat[,grep("cyt", colnames(mat))], method="pearson"))
-cyt.m <- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
-
-c.cyt.RNA <-
-  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = "black", lwd=0.7)+
- scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
-   midpoint = 0.5, limit = c(0,1), space = "Lab", 
-   name="Pearson\nCorrelation") +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    legend.justification = c(1, 0),
-    legend.position = c(0.6, 0.75),
-    legend.direction = "horizontal",
-    panel.grid.major = element_blank()) +
-  coord_fixed() +
-  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
-                title.position = "top", title.hjust = 0.5))
-
-
-cor.rep.RNA <- plot_grid(c.ctrl.RNA, c.cyt.RNA)
-cor.rep.RNA
-```
-
-
-## 2) Differential analysis
-
-The differential analysis in the different assays is performed using `DESeq2`. 
-
-### ATAC-seq
 
 ```
 cd data/CYT/ATAC
@@ -513,8 +408,67 @@ ggplot(df,
 ```
 
 
+## Analysis of H3K27ac ChIP-seq data
 
-### H3K27ac
+### Quality control
+
+```
+Rscript code/QC_CORR_genome.R data/CYT/H3K27ac/BAM/ data/CYT/H3K27ac/QC/
+```
+
+```{r k27-genome-corr, fig.cap="H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2."}
+load("../data/CYT/H3K27ac/QC/COR_10kb_norm.rda")
+mat <- counts
+
+cor.mat.ctrl <- get_lower_tri(cor(mat[,grep("ctrl", colnames(mat))], method="pearson"))
+ctrl.m <- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+
+c.ctrl.H3K27ac <-
+  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "black", lwd=0.7)+
+ scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
+   midpoint = 0.5, limit = c(0,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    panel.grid.major = element_blank(),
+    legend.position="none") +
+  coord_fixed() + 
+  ggtitle("H3k27ac genome-wide correlation")
+
+cor.mat.cyt <- get_upper_tri(cor(mat[,grep("cyt", colnames(mat))], method="pearson"))
+cyt.m <- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
+
+c.cyt.H3K27ac <-
+  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "black", lwd=0.7)+
+ scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
+   midpoint = 0.5, limit = c(0,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.75),
+    legend.direction = "horizontal",
+    panel.grid.major = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = "top", title.hjust = 0.5))
+
+
+cor.rep.H3K27ac <- plot_grid(c.ctrl.H3K27ac, c.cyt.H3K27ac)
+cor.rep.H3K27ac
+```
+
+
+
+### Differential analysis
 
 ```
 cd data/CYT/H3K27ac
@@ -611,119 +565,21 @@ ggplot(df,
   coord_cartesian(ylim=c(-2,3))
 ```
 
-### RNA-seq
-
-```
-cd data/CYT/RNA
-Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s hi
-Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc
-```
-
-```{r rna-tab-ec}
-load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
-
-as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %>%
-  reshape2::dcast(Var1~Var2) %>% 
-  as_tibble() %>% 
-  mutate(Other = reduce(select(., !matches(c("Var1", "protein_coding"))), `+`)) %>% 
-  select(Var1, protein_coding, Other) %>% 
-  knitr::kable(format="html",
-               format.args = list(big.mark = ","),
-               col.names = c("Gene type", "Protein coding", "Other"),
-               caption = "Number of genes classified according to significance and biotype in RNA-seq EndoC samples.") %>%
-  kable_styling(full_width = FALSE) %>%
-  add_header_above(c(" " = 1, "Gene Biotype" = 2))
-```
-
-```{r rna-volc-plot-ec, fig.height=4, fig.width=4}
-volc_ec <- 
-  ggplot(data.frame(res.gr),
-       aes(log2FoldChange, -log10(padj))) +
-  geom_point(aes(color=type), size=0.4) + 
-  scale_color_manual(values=pals$differential,
-                    name="Gene type") +
-  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
-  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
-  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
-  ggtitle(expression("RNA-seq EndoC-"*beta*H1)) +
-  theme(legend.position="none")
-```
-
-```{r rna-tab-hi}
-load("../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
-
-as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %>%
-  reshape2::dcast(Var1~Var2) %>% 
-  mutate(Other = reduce(select(., !matches(c("Var1", "protein_coding"))), `+`)) %>% 
-  select(Var1, protein_coding, Other) %>% 
-  knitr::kable(format="html",
-               format.args = list(big.mark = ","),
-               col.names = c("Gene type", "Protein coding", "Other"),
-               caption = "Number of genes classified according to significance and biotype in RNA-seq HI samples.") %>%
-  kable_styling(full_width = FALSE) %>%
-  add_header_above(c(" " = 1, "Gene Biotype" = 2))
-```
-
-```{r rna-volc-plot-hi, fig.height=4, fig.width=4}
-volc_hi <- 
-  ggplot(data.frame(res.gr),
-       aes(log2FoldChange, -log10(padj))) +
-  geom_point(aes(color=type), size=0.4) + 
-  scale_color_manual(values=pals$differential,
-                    name="Gene type") +
-  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
-  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
-  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
-  ggtitle(expression("RNA-seq HI")) +
-  theme(legend.position="none")
-```
-
-```{r, fig.height=4, fig.cap="Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red."}
-plot_grid(volc_ec, 
-          volc_hi,
-          ncol=2)
-```
 
 
-```{r, fig.width=4, fig.cap="Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds."}
-load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
-ec <- res.gr
 
-load("../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
-hi <- res.gr
+## Defining Induced Regulatory Elements
 
-colnames(mcols(ec))[c(5,10)] <- paste0("endoc.", colnames(mcols(ec))[c(5,10)])
-colnames(mcols(hi))[c(5,10)] <- paste0("hi.", colnames(mcols(hi))[c(5,10)])
+### In EndoC-$\beta$H1
 
-df <- dplyr::left_join(data.frame(mcols(ec))[,c(1,5,10)],
-                       data.frame(mcols(hi))[,c(1,5,10)])
-
-ggplot(df,
-       aes(endoc.type, hi.log2FoldChange)) + 
-  geom_boxplot(aes(color=endoc.type), notch=TRUE, outlier.shape=NA,
-               lwd=1) +
-  scale_color_manual(values=pals$differential,
-                    name="Gene type") +
-  geom_hline(yintercept=c(1,0,-1), lty=c(2,1,2), color="grey") +
-  scale_y_continuous(name=expression("HI "*log[2]*" FC")) +
-  theme(legend.position="none",
-        strip.background = element_rect(fill="white", linetype=1, size=.5, color="black")) + 
-  scale_x_discrete(name=expression("EndoC-"*beta*"H1 region type"),
-                   labels=c("Up-regulated", "Down-regulated", "Equal-regulated")) +
-  coord_cartesian(ylim=c(-4,6))
-```
-
-
-## 3) Defining Induced Regulatory Elements
-
-```{r define-res}
+```{r define-res-ec}
 load("../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda")
 at <- res.gr
 
 load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda")
 k27 <- res.gr
 
-ols <- findOverlaps(at, k27, maxgap=1)
+ols <- findOverlaps(at, k27, maxgap=200)
 
 re <- at[queryHits(ols),]
 colnames(mcols(re)) <- paste0("atac.", colnames(mcols(re)))
@@ -737,13 +593,11 @@ re$type <- NA
 re$type[re$h3k27ac.type=="stable" & re$atac.type=="stable"] <- "SRE"
 re$type[re$h3k27ac.type=="gained" & (re$atac.type %in% c("gained", "stable"))] <- "IRE"
 
-# dir.create("../data/CYT/REs", F)
-# save(re, file="../data/CYT/REs/REs_endoc_granges.rda")
+dir.create("../data/CYT/REs", F)
+save(re, file="../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda")
 ```
 
-```{r plot-cor-res, fig.width=4}
-# load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda")
-
+```{r plot-cor-res-ec, fig.width=4}
 cor <- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
 
 re.df <- data.frame(re)[,-c(1:5)]
@@ -770,9 +624,224 @@ ggplot(re.df,
                      name=expression("ATAC-seq "*log[2]*" FC"))
 ```
 
-### Characterization of IREs
+### In human islets
+
+```{r define-res-hi}
+load("../data/CYT/ATAC/diffAnalysis/ATAC_hi_fc1_padj0.05_GRangesBatch.rda")
+at <- res.gr
+
+load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_hi_fc1_padj0.05_GRangesBatch.rda")
+k27 <- res.gr
+
+ols <- findOverlaps(at, k27, maxgap=200)
+
+re <- at[queryHits(ols),]
+colnames(mcols(re)) <- paste0("atac.", colnames(mcols(re)))
+mcols(k27) <- mcols(k27)[,c(1,3,8)]
+colnames(mcols(k27)) <- paste0("h3k27ac.", colnames(mcols(k27)))
+mcols(re) <- cbind(mcols(re),
+                   mcols(k27)[subjectHits(ols),])
+
+## Create new types of IREs
+re$type <- NA
+re$type[re$h3k27ac.type=="stable" & re$atac.type=="stable"] <- "SRE"
+re$type[re$h3k27ac.type=="gained" & (re$atac.type %in% c("gained", "stable"))] <- "IRE"
+
+dir.create("../data/CYT/REs", F)
+save(re, file="../data/CYT/REs/REs_hi_fc1_padj0.05_granges.rda")
+```
+
+```{r plot-cor-res-hi, fig.width=4}
+cor <- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
+
+re.df <- data.frame(re)[,-c(1:5)]
+
+re.df$type <- factor(re.df$type, 
+                     levels=c("SRE", "IRE"))
+
+re.df <- re.df[order(re.df$type),]
+
+ggplot(re.df,
+       aes(atac.log2FoldChange, h3k27ac.log2FoldChange)) +
+  geom_point(aes(color=h3k27ac.type,
+                 fill=atac.type), pch=21) +
+  scale_fill_manual(values=pals$differential) +
+  scale_color_manual(values=pals$differential) +
+  geom_vline(xintercept=c(-1,1), lty=2, color="grey") +
+  geom_hline(yintercept=c(-1,1), lty=2, color="grey") +
+  annotate("text", x=4, y=-2, label=paste0("r2=", round(cor$estimate, 2),
+                                      "\nP<2x10-16")) +
+  theme(legend.position="none") +
+  scale_y_continuous(limits=c(-3,6),
+                     name=expression("H3K27ac "*log[2]*" FC")) +
+  scale_x_continuous(limits=c(-3,6),
+                     name=expression("ATAC-seq "*log[2]*" FC"))
+```
+
+
+### Clustering
+
+Interestingly, the set of IREs identified in EndoC-$\beta$H1 cells allows us to cluster both EndoC-$\beta$H1 and Human Islet ATAC-seq and H3K27ac regions according to the suffered treatment and not sample type.
+
+
+```{r sample-clustering-ires, eval=FALSE}
+################################################
+## Clustering samples according to EndoC IREs ##
+################################################
+library(DESeq2)
+library(BiocParallel)
+register(MulticoreParam(4))
+
+## ATAC-seq ------------------------------------
+# Create SAF
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda")
+saf <- data.frame(re)[grep("IRE", re$type),c(1:3,6)]
+colnames(saf) <- c("Chr", "Start", "End", "GeneID")
+saf$Strand <- "+"
+
+# Get counts at IREs
+files <- list.files("../data/CYT/ATAC/BAM",
+                    pattern=".offset.bam$",
+                    full.names=TRUE)
+
+atac <- Rsubread::featureCounts(files,
+                                annot.ext=saf,
+                                nthreads=10)
+
+names <- pipelineNGS::getNameFromPath(files, suffix=".offset.bam")
+colnames(atac$counts) <- names
+
+# Normalize with DESeq2
+coldata <- data.frame(sample=names,
+                      treatment=unlist(lapply(strsplit(names, "_"),
+                                              function(x) x[2])),
+                      batch=unlist(lapply(strsplit(names, "_"),
+                                          function(x) x[1])))
+coldata$tissue <- gsub("[[:digit:]]*", "", coldata$batch)
+
+dds <- DESeqDataSetFromMatrix(countData=atac$counts,
+                              colData=coldata,
+                              design=~batch+treatment)
+
+dds <- DESeq(dds,
+             parallel=TRUE)
+
+rld <- rlog(dds)
+vsd <- vst(dds)
+save(rld,
+     file=file.path(out_dir, "IREs_ATAC_clustering_rld.rda"))
+
+## H3K27ac -------------------------------------------
+# Create SAF
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda")
+id <- unique(re$h3k27ac.GeneID[grep("IRE", re$type)])
+
+load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda")
+res.gr <- res.gr[res.gr$GeneID %in% id,]
+saf <- data.frame(res.gr)[,c(1:3,6)]
+colnames(saf) <- c("Chr", "Start", "End", "GeneID")
+saf$Strand <- "+"
+
+# Get counts at IREs
+files <- list.files("../../data/CYT/H3K27ac/BAM",
+                    pattern=".bam$",
+                    full.names=TRUE)
+files <- files[!grepl("raw", files)]
+
+atac <- Rsubread::featureCounts(files,
+                                annot.ext=saf,
+                                nthreads=10)
+
+names <- pipelineNGS::getNameFromPath(files, suffix=".bam")
+colnames(atac$counts) <- names
+
+# Normalize with DESeq2
+coldata <- data.frame(sample=names,
+                      treatment=unlist(lapply(strsplit(names, "_"),
+                                              function(x) x[2])),
+                      batch=unlist(lapply(strsplit(names, "_"),
+                                          function(x) x[1])))
+coldata$tissue <- gsub("[[:digit:]]*", "", coldata$batch)
+
+dds <- DESeqDataSetFromMatrix(countData=atac$counts,
+                              colData=coldata,
+                              design=~batch+treatment)
+
+dds <- DESeq(dds,
+             parallel=TRUE)
+
+rld <- rlog(dds)
+
+save(rld,
+     file=file.path(out_dir, "IREs_H3K27ac_clustering_rld.rda"))
+```
+
+```{r atac-heatmap-ires, fig.height=6, fig.width=6}
+load(file.path(out_dir, "IREs_ATAC_clustering_rld.rda"))
+
+mat <- assay(rld)
+mat <- limma::removeBatchEffect(mat, rld$batch)
+
+colors <- colorRampPalette( rev(RColorBrewer::brewer.pal(9, "BuPu")) )(255)
+rows <- data.frame("Treatment"=rld$treatment,
+                     "Tissue"=rld$tissue)
+  
+ha = HeatmapAnnotation(df = rows,
+                       col = list(Treatment = c(cyt="dark orange", ctrl="steelblue3"),
+                                   Tissue = c(endoc="violetred3", hi="palegreen3")))
+  
+sampleDists <- dist(t(mat), method="euclidean")
+sampleDistMatrix <- as.matrix(sampleDists)
+hclust <- hclust(sampleDists)
+heat <- Heatmap(sampleDistMatrix+1,
+                  col=colors,
+                  heatmap_legend_param = list(title = "Distance", 
+                                              color_bar = "continuous",
+                                              legend_direction="horizontal"),
+                  top_annotation=ha,
+                  rect_gp = gpar(col= "black"),
+                  cluster_rows=hclust,
+                  cluster_columns=hclust)
+  
+draw(heat, heatmap_legend_side = "bottom", annotation_legend_side = "right")
+```
+
+```{r k27-heatmap-ires, fig.height=5, fig.width=5}
+load(file.path(out_dir, "IREs_H3K27ac_clustering_rld.rda"))
+
+rld$batch[1] <- "endoc3"
+mat <- assay(rld)
+mat <- limma::removeBatchEffect(mat, rld$batch)
+
+colors <- colorRampPalette( rev(RColorBrewer::brewer.pal(9, "BuPu")) )(255)
+rows <- data.frame("Treatment"=rld$treatment,
+                     "Tissue"=rld$tissue)
+  
+ha = HeatmapAnnotation(df = rows,
+                       col = list(Treatment = c(cyt="dark orange", ctrl="steelblue3"),
+                                   Tissue = c(endoc="violetred3", hi="palegreen3")))
+  
+sampleDists <- dist(t(mat), method="euclidean")
+sampleDistMatrix <- as.matrix(sampleDists)
+hclust <- hclust(sampleDists)
+heat <- Heatmap(sampleDistMatrix+1,
+                  col=colors,
+                  heatmap_legend_param = list(title = "Distance", 
+                                              color_bar = "continuous",
+                                              legend_direction="horizontal"),
+                  top_annotation=ha,
+                  rect_gp = gpar(col= "black"),
+                  cluster_rows=hclust,
+                  cluster_columns=hclust)
+  
+draw(heat, heatmap_legend_side = "bottom", annotation_legend_side = "right")
+```
+
+## Characterization of IREs in EndoC-$\beta$H1
 
 ```{r position-tab}
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda")
+
 re.df <- data.frame(re)[,-c(1:5)]
 
 t <- table(re.df$type, re.df$atac.annotation)
@@ -842,7 +911,7 @@ ire.cons <- rbind(ire.cons, rnd.cons)
 save(ire.cons, file=file.path(out_path, "IRE_endoc_fc1_conservation.rda"))
 ```
 
-```{r plot-cons, fig.height=4, fig.width=4}
+```{r plot-cons, fig.height=3.5, fig.width=3.5}
 load(file.path(out_dir, "IRE_endoc_fc1_conservation.rda"))
 
 cons.plot <- 
@@ -875,6 +944,3 @@ htmltools::includeHTML(file.path(out_dir, "HOMER_IREs_endoc_fc1_padj0.05_mask/ho
 ```
 
 
-
-
-### RNA-seq vs Proteomics

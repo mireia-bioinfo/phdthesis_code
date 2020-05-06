@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Mireia Ramos-Rodríguez" />
+
+
+<title>#2 Changes in transcription and translation</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">β-cells and T1D</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    IFN-α
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="index_ifna.html">Description</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    IFN-γ + IL-1β
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="index_cyt.html">Description</a>
+    </li>
+    <li>
+      <a href="cyt_01_remodeling.html">#1 Chromatin remodeling induced by cytokines</a>
+    </li>
+    <li>
+      <a href="cyt_02_transcription.html">#2 Changes in transcription and translation</a>
+    </li>
+    <li>
+      <a href="cyt_03_subclassification.html">#3 Subclassification of IREs</a>
+    </li>
+    <li>
+      <a href="cyt_04_contacts.html">#4 Changes in 3D chormatin structure</a>
+    </li>
+    <li>
+      <a href="cyt_05_t1d.html">#5 IREs and T1D risk</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/mireia-bioinfo/phdthesis_code">
+    <span class="fa fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">#2 Changes in transcription and translation</h1>
+<h3 class="subtitle">Chromatin changes link to variation in transcription and translation</h3>
+<h4 class="author">Mireia Ramos-Rodríguez</h4>
+
+</div>
+
+
+<div id="analysis-of-rna-seq-data" class="section level2">
+<h2>Analysis of RNA-seq data</h2>
+<div id="quality-control" class="section level3">
+<h3>Quality control</h3>
+<pre><code>Rscript code/QC_CORR_genome.R data/CYT/RNA/BAM/ data/CYT/RNA/QC/</code></pre>
+<pre class="r"><code> get_upper_tri &lt;- function(cormat){
+    cormat[lower.tri(cormat)]&lt;- NA
+    return(cormat)
+ }
+ 
+  get_lower_tri &lt;- function(cormat){
+    cormat[upper.tri(cormat)]&lt;- NA
+    return(cormat)
+  }</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/QC/COR_10kb_norm.rda&quot;)
+
+cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
+ctrl.m &lt;- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+
+c.ctrl.RNA &lt;-
+  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    panel.grid.major = element_blank(),
+    legend.position=&quot;none&quot;) +
+  coord_fixed() + 
+  ggtitle(&quot;RNA-seq genome-wide correlation&quot;)
+
+cor.mat.cyt &lt;- get_upper_tri(cor(mat[,grep(&quot;cyt&quot;, colnames(mat))], method=&quot;pearson&quot;))
+cyt.m &lt;- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
+
+c.cyt.RNA &lt;-
+  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.75),
+    legend.direction = &quot;horizontal&quot;,
+    panel.grid.major = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = &quot;top&quot;, title.hjust = 0.5))
+
+
+cor.rep.RNA &lt;- plot_grid(c.ctrl.RNA, c.cyt.RNA)
+cor.rep.RNA</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_02_transcription.Rmd/rna-genome-corr-1.png" alt="RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
+<p class="caption">
+RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+</p>
+</div>
+</div>
+<div id="differential-analysis" class="section level3">
+<h3>Differential analysis</h3>
+<pre><code>cd data/CYT/RNA
+Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s hi
+Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda&quot;)
+
+as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %&gt;%
+  reshape2::dcast(Var1~Var2) %&gt;% 
+  as_tibble() %&gt;% 
+  mutate(Other = reduce(select(., !matches(c(&quot;Var1&quot;, &quot;protein_coding&quot;))), `+`)) %&gt;% 
+  select(Var1, protein_coding, Other) %&gt;% 
+  knitr::kable(format=&quot;html&quot;,
+               format.args = list(big.mark = &quot;,&quot;),
+               col.names = c(&quot;Gene type&quot;, &quot;Protein coding&quot;, &quot;Other&quot;),
+               caption = &quot;Number of genes classified according to significance and biotype in RNA-seq EndoC samples.&quot;) %&gt;%
+  kable_styling(full_width = FALSE) %&gt;%
+  add_header_above(c(&quot; &quot; = 1, &quot;Gene Biotype&quot; = 2))</code></pre>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+Number of genes classified according to significance and biotype in RNA-seq EndoC samples.
+</caption>
+<thead>
+<tr>
+<th style="border-bottom:hidden" colspan="1">
+</th>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Gene Biotype
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+Gene type
+</th>
+<th style="text-align:right;">
+Protein coding
+</th>
+<th style="text-align:right;">
+Other
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+gained
+</td>
+<td style="text-align:right;">
+934
+</td>
+<td style="text-align:right;">
+351
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+lost
+</td>
+<td style="text-align:right;">
+811
+</td>
+<td style="text-align:right;">
+185
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+stable
+</td>
+<td style="text-align:right;">
+18,538
+</td>
+<td style="text-align:right;">
+36,364
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>volc_ec &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;Gene type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;RNA-seq EndoC-&quot;*beta*H1)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+
+as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %&gt;%
+  reshape2::dcast(Var1~Var2) %&gt;% 
+  mutate(Other = reduce(select(., !matches(c(&quot;Var1&quot;, &quot;protein_coding&quot;))), `+`)) %&gt;% 
+  select(Var1, protein_coding, Other) %&gt;% 
+  knitr::kable(format=&quot;html&quot;,
+               format.args = list(big.mark = &quot;,&quot;),
+               col.names = c(&quot;Gene type&quot;, &quot;Protein coding&quot;, &quot;Other&quot;),
+               caption = &quot;Number of genes classified according to significance and biotype in RNA-seq HI samples.&quot;) %&gt;%
+  kable_styling(full_width = FALSE) %&gt;%
+  add_header_above(c(&quot; &quot; = 1, &quot;Gene Biotype&quot; = 2))</code></pre>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+Number of genes classified according to significance and biotype in RNA-seq HI samples.
+</caption>
+<thead>
+<tr>
+<th style="border-bottom:hidden" colspan="1">
+</th>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Gene Biotype
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+Gene type
+</th>
+<th style="text-align:right;">
+Protein coding
+</th>
+<th style="text-align:right;">
+Other
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+gained
+</td>
+<td style="text-align:right;">
+1,290
+</td>
+<td style="text-align:right;">
+453
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+lost
+</td>
+<td style="text-align:right;">
+1,081
+</td>
+<td style="text-align:right;">
+524
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+stable
+</td>
+<td style="text-align:right;">
+17,985
+</td>
+<td style="text-align:right;">
+36,572
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>volc_hi &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;Gene type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;RNA-seq HI&quot;)) +
+  theme(legend.position=&quot;none&quot;)</code></pre>
+<pre class="r"><code>plot_grid(volc_ec, 
+          volc_hi,
+          ncol=2)</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-1-1.png" alt="Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red." width="672" />
+<p class="caption">
+Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red.
+</p>
+</div>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda&quot;)
+ec &lt;- res.gr
+
+load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+hi &lt;- res.gr
+
+colnames(mcols(ec))[c(5,10)] &lt;- paste0(&quot;endoc.&quot;, colnames(mcols(ec))[c(5,10)])
+colnames(mcols(hi))[c(5,10)] &lt;- paste0(&quot;hi.&quot;, colnames(mcols(hi))[c(5,10)])
+
+df &lt;- dplyr::left_join(data.frame(mcols(ec))[,c(1,5,10)],
+                       data.frame(mcols(hi))[,c(1,5,10)])
+
+ggplot(df,
+       aes(endoc.type, hi.log2FoldChange)) + 
+  geom_boxplot(aes(color=endoc.type), notch=TRUE, outlier.shape=NA,
+               lwd=1) +
+  scale_color_manual(values=pals$differential,
+                    name=&quot;Gene type&quot;) +
+  geom_hline(yintercept=c(1,0,-1), lty=c(2,1,2), color=&quot;grey&quot;) +
+  scale_y_continuous(name=expression(&quot;HI &quot;*log[2]*&quot; FC&quot;)) +
+  theme(legend.position=&quot;none&quot;,
+        strip.background = element_rect(fill=&quot;white&quot;, linetype=1, size=.5, color=&quot;black&quot;)) + 
+  scale_x_discrete(name=expression(&quot;EndoC-&quot;*beta*&quot;H1 region type&quot;),
+                   labels=c(&quot;Up-regulated&quot;, &quot;Down-regulated&quot;, &quot;Equal-regulated&quot;)) +
+  coord_cartesian(ylim=c(-4,6))</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-2-1.png" alt="Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds." width="384" />
+<p class="caption">
+Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
+</p>
+</div>
+</div>
+</div>
+<div id="analysis-of-multiplex-proteomics-data" class="section level2">
+<h2>Analysis of multiplex proteomics data</h2>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.3 (2020-02-29)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 18362)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
+[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
+[5] LC_TIME=Spanish_Spain.1252    
+
+attached base packages:
+[1] parallel  stats4    stats     graphics  grDevices utils     datasets 
+[8] methods   base     
+
+other attached packages:
+ [1] purrr_0.3.4          dplyr_0.8.5          kableExtra_1.1.0    
+ [4] cowplot_1.0.0        ggplot2_3.3.0        GenomicRanges_1.38.0
+ [7] GenomeInfoDb_1.22.1  IRanges_2.20.2       S4Vectors_0.24.4    
+[10] BiocGenerics_0.32.0  workflowr_1.6.1     
+
+loaded via a namespace (and not attached):
+ [1] bitops_1.0-6                matrixStats_0.56.0         
+ [3] fs_1.3.2                    bit64_0.9-7                
+ [5] webshot_0.5.2               RColorBrewer_1.1-2         
+ [7] httr_1.4.1                  rprojroot_1.3-2            
+ [9] tools_3.6.3                 backports_1.1.6            
+[11] R6_2.4.1                    rpart_4.1-15               
+[13] Hmisc_4.4-0                 DBI_1.1.0                  
+[15] colorspace_1.4-1            nnet_7.3-14                
+[17] withr_2.2.0                 tidyselect_1.0.0           
+[19] gridExtra_2.3               DESeq2_1.26.0              
+[21] bit_1.1-15.2                compiler_3.6.3             
+[23] git2r_0.26.1                rvest_0.3.5                
+[25] Biobase_2.46.0              htmlTable_1.13.3           
+[27] xml2_1.3.2                  DelayedArray_0.12.3        
+[29] labeling_0.3                scales_1.1.0               
+[31] checkmate_2.0.0             readr_1.3.1                
+[33] genefilter_1.68.0           stringr_1.4.0              
+[35] digest_0.6.25               foreign_0.8-76             
+[37] rmarkdown_2.1               XVector_0.26.0             
+[39] base64enc_0.1-3             jpeg_0.1-8.1               
+[41] pkgconfig_2.0.3             htmltools_0.4.0            
+[43] highr_0.8                   htmlwidgets_1.5.1          
+[45] rlang_0.4.5                 rstudioapi_0.11            
+[47] RSQLite_2.2.0               farver_2.0.3               
+[49] BiocParallel_1.20.1         acepack_1.4.1              
+[51] RCurl_1.98-1.1              magrittr_1.5               
+[53] GenomeInfoDbData_1.2.2      Formula_1.2-3              
+[55] Matrix_1.2-18               Rcpp_1.0.4                 
+[57] munsell_0.5.0               lifecycle_0.2.0            
+[59] stringi_1.4.6               yaml_2.2.1                 
+[61] SummarizedExperiment_1.16.1 zlibbioc_1.32.0            
+[63] plyr_1.8.6                  blob_1.2.1                 
+[65] grid_3.6.3                  promises_1.1.0             
+[67] crayon_1.3.4                lattice_0.20-41            
+[69] splines_3.6.3               annotate_1.64.0            
+[71] hms_0.5.3                   locfit_1.5-9.4             
+[73] knitr_1.28                  pillar_1.4.3               
+[75] reshape2_1.4.4              geneplotter_1.64.0         
+[77] XML_3.99-0.3                glue_1.4.0                 
+[79] evaluate_0.14               latticeExtra_0.6-29        
+[81] data.table_1.12.8           png_0.1-7                  
+[83] vctrs_0.2.4                 httpuv_1.5.2               
+[85] gtable_0.3.0                assertthat_0.2.1           
+[87] xfun_0.13                   xtable_1.8-4               
+[89] later_1.0.0                 survival_3.1-12            
+[91] viridisLite_0.3.0           tibble_3.0.1               
+[93] memoise_1.1.0               AnnotationDbi_1.48.0       
+[95] cluster_2.1.0               ellipsis_0.3.0             </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

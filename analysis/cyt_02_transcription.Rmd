@@ -1,0 +1,199 @@
+---
+title: '#2 Changes in transcription and translation'
+subtitle: "Chromatin changes link to variation in transcription and translation"
+author: "Mireia Ramos-Rodríguez"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE,
+                      eval = TRUE,
+                      fig.height = 4)
+
+library(GenomicRanges)
+library(ggplot2)
+library(cowplot)
+library(kableExtra)
+library(dplyr)
+library(purrr)
+
+theme_set(cowplot::theme_cowplot())
+load("../code/CYT_color_palettes.rda")
+
+## Create directory to save results
+out_dir <- "../output/cyt_02_transcription/"
+dir.create(out_dir, F)
+```
+
+## Analysis of RNA-seq data
+
+### Quality control
+
+```
+Rscript code/QC_CORR_genome.R data/CYT/RNA/BAM/ data/CYT/RNA/QC/
+```
+```{r functions}
+ get_upper_tri <- function(cormat){
+    cormat[lower.tri(cormat)]<- NA
+    return(cormat)
+ }
+ 
+  get_lower_tri <- function(cormat){
+    cormat[upper.tri(cormat)]<- NA
+    return(cormat)
+  }
+```
+
+```{r rna-genome-corr, fig.cap="RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2."}
+load("../data/CYT/RNA/QC/COR_10kb_norm.rda")
+
+cor.mat.ctrl <- get_lower_tri(cor(mat[,grep("ctrl", colnames(mat))], method="pearson"))
+ctrl.m <- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+
+c.ctrl.RNA <-
+  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "black", lwd=0.7)+
+ scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
+   midpoint = 0.5, limit = c(0,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    panel.grid.major = element_blank(),
+    legend.position="none") +
+  coord_fixed() + 
+  ggtitle("RNA-seq genome-wide correlation")
+
+cor.mat.cyt <- get_upper_tri(cor(mat[,grep("cyt", colnames(mat))], method="pearson"))
+cyt.m <- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
+
+c.cyt.RNA <-
+  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "black", lwd=0.7)+
+ scale_fill_gradient2(low = "white", high = "slateblue4", mid = "skyblue2", 
+   midpoint = 0.5, limit = c(0,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.75),
+    legend.direction = "horizontal",
+    panel.grid.major = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = "top", title.hjust = 0.5))
+
+
+cor.rep.RNA <- plot_grid(c.ctrl.RNA, c.cyt.RNA)
+cor.rep.RNA
+```
+
+### Differential analysis
+
+```
+cd data/CYT/RNA
+Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s hi
+Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc
+```
+
+```{r rna-tab-ec}
+load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
+
+as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %>%
+  reshape2::dcast(Var1~Var2) %>% 
+  as_tibble() %>% 
+  mutate(Other = reduce(select(., !matches(c("Var1", "protein_coding"))), `+`)) %>% 
+  select(Var1, protein_coding, Other) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               col.names = c("Gene type", "Protein coding", "Other"),
+               caption = "Number of genes classified according to significance and biotype in RNA-seq EndoC samples.") %>%
+  kable_styling(full_width = FALSE) %>%
+  add_header_above(c(" " = 1, "Gene Biotype" = 2))
+```
+
+```{r rna-volc-plot-ec, fig.height=4, fig.width=4}
+volc_ec <- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name="Gene type") +
+  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
+  ggtitle(expression("RNA-seq EndoC-"*beta*H1)) +
+  theme(legend.position="none")
+```
+
+```{r rna-tab-hi}
+load("../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
+
+as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %>%
+  reshape2::dcast(Var1~Var2) %>% 
+  mutate(Other = reduce(select(., !matches(c("Var1", "protein_coding"))), `+`)) %>% 
+  select(Var1, protein_coding, Other) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               col.names = c("Gene type", "Protein coding", "Other"),
+               caption = "Number of genes classified according to significance and biotype in RNA-seq HI samples.") %>%
+  kable_styling(full_width = FALSE) %>%
+  add_header_above(c(" " = 1, "Gene Biotype" = 2))
+```
+
+```{r rna-volc-plot-hi, fig.height=4, fig.width=4}
+volc_hi <- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name="Gene type") +
+  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
+  ggtitle(expression("RNA-seq HI")) +
+  theme(legend.position="none")
+```
+
+```{r, fig.height=4, fig.cap="Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red."}
+plot_grid(volc_ec, 
+          volc_hi,
+          ncol=2)
+```
+
+
+```{r, fig.width=4, fig.cap="Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds."}
+load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
+ec <- res.gr
+
+load("../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
+hi <- res.gr
+
+colnames(mcols(ec))[c(5,10)] <- paste0("endoc.", colnames(mcols(ec))[c(5,10)])
+colnames(mcols(hi))[c(5,10)] <- paste0("hi.", colnames(mcols(hi))[c(5,10)])
+
+df <- dplyr::left_join(data.frame(mcols(ec))[,c(1,5,10)],
+                       data.frame(mcols(hi))[,c(1,5,10)])
+
+ggplot(df,
+       aes(endoc.type, hi.log2FoldChange)) + 
+  geom_boxplot(aes(color=endoc.type), notch=TRUE, outlier.shape=NA,
+               lwd=1) +
+  scale_color_manual(values=pals$differential,
+                    name="Gene type") +
+  geom_hline(yintercept=c(1,0,-1), lty=c(2,1,2), color="grey") +
+  scale_y_continuous(name=expression("HI "*log[2]*" FC")) +
+  theme(legend.position="none",
+        strip.background = element_rect(fill="white", linetype=1, size=.5, color="black")) + 
+  scale_x_discrete(name=expression("EndoC-"*beta*"H1 region type"),
+                   labels=c("Up-regulated", "Down-regulated", "Equal-regulated")) +
+  coord_cartesian(ylim=c(-4,6))
+```
+
+## Analysis of multiplex proteomics data
+

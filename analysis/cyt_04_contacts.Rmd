@@ -1,0 +1,26 @@
+---
+title: '#4 Changes in 3D chormatin structure'
+subtitle: ""
+author: "Mireia Ramos-Rodríguez"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE,
+                      eval = TRUE,
+                      fig.height = 4)
+
+library(GenomicRanges)
+library(ggplot2)
+library(cowplot)
+library(kableExtra)
+library(dplyr)
+library(purrr)
+
+theme_set(cowplot::theme_cowplot())
+load("../code/CYT_color_palettes.rda")
+
+## Create directory to save results
+out_dir <- "../output/cyt_04_contacts/"
+dir.create(out_dir, F)
+```

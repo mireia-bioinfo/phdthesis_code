@@ -15,6 +15,14 @@ navbar:
         href: index_cyt.html
       - text: "#1 Chromatin remodeling induced by cytokines"
         href: cyt_01_remodeling.html
+      - text: "#2 Changes in transcription and translation"
+        href: cyt_02_transcription.html
+      - text: "#3 Subclassification of IREs"
+        href: cyt_03_subclassification.html
+      - text: "#4 Changes in 3D chormatin structure"
+        href: cyt_04_contacts.html
+      - text: "#5 IREs and T1D risk"
+        href: cyt_05_t1d.html
   - text: About
     href: about.html
   - text: License

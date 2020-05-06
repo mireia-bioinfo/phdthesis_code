@@ -392,6 +392,18 @@ div.tocify {
     <li>
       <a href="cyt_01_remodeling.html">#1 Chromatin remodeling induced by cytokines</a>
     </li>
+    <li>
+      <a href="cyt_02_transcription.html">#2 Changes in transcription and translation</a>
+    </li>
+    <li>
+      <a href="cyt_03_subclassification.html">#3 Subclassification of IREs</a>
+    </li>
+    <li>
+      <a href="cyt_04_contacts.html">#4 Changes in 3D chormatin structure</a>
+    </li>
+    <li>
+      <a href="cyt_05_t1d.html">#5 IREs and T1D risk</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -433,10 +445,10 @@ div.tocify {
 </div>
 
 
-<div id="quality-control" class="section level2">
-<h2>1) Quality control</h2>
-<div id="atac-seq-specific-qc-measures" class="section level3">
-<h3>ATAC-seq specific QC measures</h3>
+<div id="analysis-of-atac-seq-data" class="section level2">
+<h2>Analysis of ATAC-seq data</h2>
+<div id="quality-control" class="section level3">
+<h3>Quality control</h3>
 <p>Run Rscript for generating the necessary quality control measures.</p>
 <pre><code>Rscript code/CYT_QC_ATAC.R</code></pre>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_stats.rda&quot;)
@@ -649,12 +661,7 @@ noise</code></pre>
 Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks.
 </p>
 </div>
-</div>
-<div id="correlation-between-replicates" class="section level3">
-<h3>Correlation between replicates</h3>
-<pre><code>Rscript code/QC_CORR_genome.R data/CYT/ATAC/BAM/ data/CYT/ATAC/QC/
-Rscript code/QC_CORR_genome.R data/CYT/H3K27ac/BAM/ data/CYT/H3K27ac/QC/
-Rscript code/QC_CORR_genome.R data/CYT/RNA/BAM/ data/CYT/RNA/QC/</code></pre>
+<pre><code>Rscript code/QC_CORR_genome.R data/CYT/ATAC/BAM/ data/CYT/ATAC/QC/</code></pre>
 <pre class="r"><code> get_upper_tri &lt;- function(cormat){
     cormat[lower.tri(cormat)]&lt;- NA
     return(cormat)
@@ -717,118 +724,9 @@ cor.rep.atac</code></pre>
 ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
 </p>
 </div>
-<pre class="r"><code>load(&quot;../data/CYT/H3K27ac/QC/COR_10kb_norm.rda&quot;)
-mat &lt;- counts
-
-cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
-ctrl.m &lt;- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
-
-c.ctrl.H3K27ac &lt;-
-  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = &quot;black&quot;, lwd=0.7)+
- scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
-   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
-   name=&quot;Pearson\nCorrelation&quot;) +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    panel.grid.major = element_blank(),
-    legend.position=&quot;none&quot;) +
-  coord_fixed() + 
-  ggtitle(&quot;H3k27ac genome-wide correlation&quot;)
-
-cor.mat.cyt &lt;- get_upper_tri(cor(mat[,grep(&quot;cyt&quot;, colnames(mat))], method=&quot;pearson&quot;))
-cyt.m &lt;- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
-
-c.cyt.H3K27ac &lt;-
-  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = &quot;black&quot;, lwd=0.7)+
- scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
-   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
-   name=&quot;Pearson\nCorrelation&quot;) +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    legend.justification = c(1, 0),
-    legend.position = c(0.6, 0.75),
-    legend.direction = &quot;horizontal&quot;,
-    panel.grid.major = element_blank()) +
-  coord_fixed() +
-  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
-                title.position = &quot;top&quot;, title.hjust = 0.5))
-
-
-cor.rep.H3K27ac &lt;- plot_grid(c.ctrl.H3K27ac, c.cyt.H3K27ac)
-cor.rep.H3K27ac</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" alt="H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
-<p class="caption">
-H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
-</p>
 </div>
-<pre class="r"><code>load(&quot;../data/CYT/RNA/QC/COR_10kb_norm.rda&quot;)
-
-cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
-ctrl.m &lt;- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
-
-c.ctrl.RNA &lt;-
-  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = &quot;black&quot;, lwd=0.7)+
- scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
-   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
-   name=&quot;Pearson\nCorrelation&quot;) +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    panel.grid.major = element_blank(),
-    legend.position=&quot;none&quot;) +
-  coord_fixed() + 
-  ggtitle(&quot;RNA-seq genome-wide correlation&quot;)
-
-cor.mat.cyt &lt;- get_upper_tri(cor(mat[,grep(&quot;cyt&quot;, colnames(mat))], method=&quot;pearson&quot;))
-cyt.m &lt;- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
-
-c.cyt.RNA &lt;-
-  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
- geom_tile(color = &quot;black&quot;, lwd=0.7)+
- scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
-   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
-   name=&quot;Pearson\nCorrelation&quot;) +
-  geom_text(aes(label=round(value, 2)), size=3) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-    size = 12, hjust = 1),
-    axis.title=element_blank(),
-    legend.justification = c(1, 0),
-    legend.position = c(0.6, 0.75),
-    legend.direction = &quot;horizontal&quot;,
-    panel.grid.major = element_blank()) +
-  coord_fixed() +
-  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
-                title.position = &quot;top&quot;, title.hjust = 0.5))
-
-
-cor.rep.RNA &lt;- plot_grid(c.ctrl.RNA, c.cyt.RNA)
-cor.rep.RNA</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/rna-genome-corr-1.png" alt="RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
-<p class="caption">
-RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
-</p>
-</div>
-</div>
-</div>
-<div id="differential-analysis" class="section level2">
-<h2>2) Differential analysis</h2>
-<p>The differential analysis in the different assays is performed using <code>DESeq2</code>.</p>
-<div id="atac-seq" class="section level3">
-<h3>ATAC-seq</h3>
+<div id="differential-analysis" class="section level3">
+<h3>Differential analysis</h3>
 <pre><code>cd data/CYT/ATAC
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e ATAC
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e ATAC</code></pre>
@@ -1044,8 +942,68 @@ Boxplot of HI log2FC at ATAC-seq regions classified as gained, lost or stable in
 </p>
 </div>
 </div>
-<div id="h3k27ac" class="section level3">
-<h3>H3K27ac</h3>
+</div>
+<div id="analysis-of-h3k27ac-chip-seq-data" class="section level2">
+<h2>Analysis of H3K27ac ChIP-seq data</h2>
+<div id="quality-control-1" class="section level3">
+<h3>Quality control</h3>
+<pre><code>Rscript code/QC_CORR_genome.R data/CYT/H3K27ac/BAM/ data/CYT/H3K27ac/QC/</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/H3K27ac/QC/COR_10kb_norm.rda&quot;)
+mat &lt;- counts
+
+cor.mat.ctrl &lt;- get_lower_tri(cor(mat[,grep(&quot;ctrl&quot;, colnames(mat))], method=&quot;pearson&quot;))
+ctrl.m &lt;- reshape2::melt(cor.mat.ctrl, na.rm=TRUE)
+
+c.ctrl.H3K27ac &lt;-
+  ggplot(data = ctrl.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    panel.grid.major = element_blank(),
+    legend.position=&quot;none&quot;) +
+  coord_fixed() + 
+  ggtitle(&quot;H3k27ac genome-wide correlation&quot;)
+
+cor.mat.cyt &lt;- get_upper_tri(cor(mat[,grep(&quot;cyt&quot;, colnames(mat))], method=&quot;pearson&quot;))
+cyt.m &lt;- reshape2::melt(cor.mat.cyt, na.rm=TRUE)
+
+c.cyt.H3K27ac &lt;-
+  ggplot(data = cyt.m, aes(Var2, Var1, fill = value))+
+ geom_tile(color = &quot;black&quot;, lwd=0.7)+
+ scale_fill_gradient2(low = &quot;white&quot;, high = &quot;slateblue4&quot;, mid = &quot;skyblue2&quot;, 
+   midpoint = 0.5, limit = c(0,1), space = &quot;Lab&quot;, 
+   name=&quot;Pearson\nCorrelation&quot;) +
+  geom_text(aes(label=round(value, 2)), size=3) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1),
+    axis.title=element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.6, 0.75),
+    legend.direction = &quot;horizontal&quot;,
+    panel.grid.major = element_blank()) +
+  coord_fixed() +
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = &quot;top&quot;, title.hjust = 0.5))
+
+
+cor.rep.H3K27ac &lt;- plot_grid(c.ctrl.H3K27ac, c.cyt.H3K27ac)
+cor.rep.H3K27ac</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" alt="H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
+<p class="caption">
+H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+</p>
+</div>
+</div>
+<div id="differential-analysis-1" class="section level3">
+<h3>Differential analysis</h3>
 <pre><code>cd data/CYT/H3K27ac
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s hi -e H3K27ac
 Rscript ../../code/CYT_diffAnalysis_DESeq2_chrom.R -f 1 -q 0.05 -b TRUE -s endoc -e H3K27ac</code></pre>
@@ -1261,233 +1219,18 @@ Boxplot of HI log2FC at H3K27ac regions classified as gained, lost or stable in 
 </p>
 </div>
 </div>
-<div id="rna-seq" class="section level3">
-<h3>RNA-seq</h3>
-<pre><code>cd data/CYT/RNA
-Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s hi
-Rscript ../../code/CYT_diffAnalysis_DESeq2_rna.R -f 1 -q 0.05 -b TRUE -s endoc</code></pre>
-<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda&quot;)
-
-as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %&gt;%
-  reshape2::dcast(Var1~Var2) %&gt;% 
-  as_tibble() %&gt;% 
-  mutate(Other = reduce(select(., !matches(c(&quot;Var1&quot;, &quot;protein_coding&quot;))), `+`)) %&gt;% 
-  select(Var1, protein_coding, Other) %&gt;% 
-  knitr::kable(format=&quot;html&quot;,
-               format.args = list(big.mark = &quot;,&quot;),
-               col.names = c(&quot;Gene type&quot;, &quot;Protein coding&quot;, &quot;Other&quot;),
-               caption = &quot;Number of genes classified according to significance and biotype in RNA-seq EndoC samples.&quot;) %&gt;%
-  kable_styling(full_width = FALSE) %&gt;%
-  add_header_above(c(&quot; &quot; = 1, &quot;Gene Biotype&quot; = 2))</code></pre>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>
-Number of genes classified according to significance and biotype in RNA-seq EndoC samples.
-</caption>
-<thead>
-<tr>
-<th style="border-bottom:hidden" colspan="1">
-</th>
-<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
-Gene Biotype
-</div>
-</th>
-</tr>
-<tr>
-<th style="text-align:left;">
-Gene type
-</th>
-<th style="text-align:right;">
-Protein coding
-</th>
-<th style="text-align:right;">
-Other
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-gained
-</td>
-<td style="text-align:right;">
-934
-</td>
-<td style="text-align:right;">
-351
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-lost
-</td>
-<td style="text-align:right;">
-811
-</td>
-<td style="text-align:right;">
-185
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-stable
-</td>
-<td style="text-align:right;">
-18,538
-</td>
-<td style="text-align:right;">
-36,364
-</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>volc_ec &lt;- 
-  ggplot(data.frame(res.gr),
-       aes(log2FoldChange, -log10(padj))) +
-  geom_point(aes(color=type), size=0.4) + 
-  scale_color_manual(values=pals$differential,
-                    name=&quot;Gene type&quot;) +
-  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
-  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
-  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
-  ggtitle(expression(&quot;RNA-seq EndoC-&quot;*beta*H1)) +
-  theme(legend.position=&quot;none&quot;)</code></pre>
-<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
-
-as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %&gt;%
-  reshape2::dcast(Var1~Var2) %&gt;% 
-  mutate(Other = reduce(select(., !matches(c(&quot;Var1&quot;, &quot;protein_coding&quot;))), `+`)) %&gt;% 
-  select(Var1, protein_coding, Other) %&gt;% 
-  knitr::kable(format=&quot;html&quot;,
-               format.args = list(big.mark = &quot;,&quot;),
-               col.names = c(&quot;Gene type&quot;, &quot;Protein coding&quot;, &quot;Other&quot;),
-               caption = &quot;Number of genes classified according to significance and biotype in RNA-seq HI samples.&quot;) %&gt;%
-  kable_styling(full_width = FALSE) %&gt;%
-  add_header_above(c(&quot; &quot; = 1, &quot;Gene Biotype&quot; = 2))</code></pre>
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<caption>
-Number of genes classified according to significance and biotype in RNA-seq HI samples.
-</caption>
-<thead>
-<tr>
-<th style="border-bottom:hidden" colspan="1">
-</th>
-<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
-<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
-Gene Biotype
-</div>
-</th>
-</tr>
-<tr>
-<th style="text-align:left;">
-Gene type
-</th>
-<th style="text-align:right;">
-Protein coding
-</th>
-<th style="text-align:right;">
-Other
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-gained
-</td>
-<td style="text-align:right;">
-1,290
-</td>
-<td style="text-align:right;">
-453
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-lost
-</td>
-<td style="text-align:right;">
-1,081
-</td>
-<td style="text-align:right;">
-524
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-stable
-</td>
-<td style="text-align:right;">
-17,985
-</td>
-<td style="text-align:right;">
-36,572
-</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>volc_hi &lt;- 
-  ggplot(data.frame(res.gr),
-       aes(log2FoldChange, -log10(padj))) +
-  geom_point(aes(color=type), size=0.4) + 
-  scale_color_manual(values=pals$differential,
-                    name=&quot;Gene type&quot;) +
-  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
-  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
-  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
-  ggtitle(expression(&quot;RNA-seq HI&quot;)) +
-  theme(legend.position=&quot;none&quot;)</code></pre>
-<pre class="r"><code>plot_grid(volc_ec, 
-          volc_hi,
-          ncol=2)</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/unnamed-chunk-3-1.png" alt="Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red." width="672" />
-<p class="caption">
-Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red.
-</p>
-</div>
-<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda&quot;)
-ec &lt;- res.gr
-
-load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
-hi &lt;- res.gr
-
-colnames(mcols(ec))[c(5,10)] &lt;- paste0(&quot;endoc.&quot;, colnames(mcols(ec))[c(5,10)])
-colnames(mcols(hi))[c(5,10)] &lt;- paste0(&quot;hi.&quot;, colnames(mcols(hi))[c(5,10)])
-
-df &lt;- dplyr::left_join(data.frame(mcols(ec))[,c(1,5,10)],
-                       data.frame(mcols(hi))[,c(1,5,10)])
-
-ggplot(df,
-       aes(endoc.type, hi.log2FoldChange)) + 
-  geom_boxplot(aes(color=endoc.type), notch=TRUE, outlier.shape=NA,
-               lwd=1) +
-  scale_color_manual(values=pals$differential,
-                    name=&quot;Gene type&quot;) +
-  geom_hline(yintercept=c(1,0,-1), lty=c(2,1,2), color=&quot;grey&quot;) +
-  scale_y_continuous(name=expression(&quot;HI &quot;*log[2]*&quot; FC&quot;)) +
-  theme(legend.position=&quot;none&quot;,
-        strip.background = element_rect(fill=&quot;white&quot;, linetype=1, size=.5, color=&quot;black&quot;)) + 
-  scale_x_discrete(name=expression(&quot;EndoC-&quot;*beta*&quot;H1 region type&quot;),
-                   labels=c(&quot;Up-regulated&quot;, &quot;Down-regulated&quot;, &quot;Equal-regulated&quot;)) +
-  coord_cartesian(ylim=c(-4,6))</code></pre>
-<div class="figure" style="text-align: center">
-<img src="figure/cyt_01_remodeling.Rmd/unnamed-chunk-4-1.png" alt="Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds." width="384" />
-<p class="caption">
-Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
-</p>
-</div>
-</div>
 </div>
 <div id="defining-induced-regulatory-elements" class="section level2">
-<h2>3) Defining Induced Regulatory Elements</h2>
+<h2>Defining Induced Regulatory Elements</h2>
+<div id="in-endoc-betah1" class="section level3">
+<h3>In EndoC-<span class="math inline">\(\beta\)</span>H1</h3>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
 at &lt;- res.gr
 
 load(&quot;../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
 k27 &lt;- res.gr
 
-ols &lt;- findOverlaps(at, k27, maxgap=1)
+ols &lt;- findOverlaps(at, k27, maxgap=200)
 
 re &lt;- at[queryHits(ols),]
 colnames(mcols(re)) &lt;- paste0(&quot;atac.&quot;, colnames(mcols(re)))
@@ -1501,11 +1244,9 @@ re$type &lt;- NA
 re$type[re$h3k27ac.type==&quot;stable&quot; &amp; re$atac.type==&quot;stable&quot;] &lt;- &quot;SRE&quot;
 re$type[re$h3k27ac.type==&quot;gained&quot; &amp; (re$atac.type %in% c(&quot;gained&quot;, &quot;stable&quot;))] &lt;- &quot;IRE&quot;
 
-# dir.create(&quot;../data/CYT/REs&quot;, F)
-# save(re, file=&quot;../data/CYT/REs/REs_endoc_granges.rda&quot;)</code></pre>
-<pre class="r"><code># load(&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)
-
-cor &lt;- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
+dir.create(&quot;../data/CYT/REs&quot;, F)
+save(re, file=&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)</code></pre>
+<pre class="r"><code>cor &lt;- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
 
 re.df &lt;- data.frame(re)[,-c(1:5)]
 
@@ -1529,17 +1270,221 @@ ggplot(re.df,
                      name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;)) +
   scale_x_continuous(limits=c(-3,6),
                      name=expression(&quot;ATAC-seq &quot;*log[2]*&quot; FC&quot;))</code></pre>
-<p><img src="figure/cyt_01_remodeling.Rmd/plot-cor-res-1.png" width="384" style="display: block; margin: auto;" /></p>
-<div id="characterization-of-ires" class="section level3">
-<h3>Characterization of IREs</h3>
-<pre class="r"><code>re.df &lt;- data.frame(re)[,-c(1:5)]
+<p><img src="figure/cyt_01_remodeling.Rmd/plot-cor-res-ec-1.png" width="384" style="display: block; margin: auto;" /></p>
+</div>
+<div id="in-human-islets" class="section level3">
+<h3>In human islets</h3>
+<pre class="r"><code>load(&quot;../data/CYT/ATAC/diffAnalysis/ATAC_hi_fc1_padj0.05_GRangesBatch.rda&quot;)
+at &lt;- res.gr
+
+load(&quot;../data/CYT/H3K27ac/diffAnalysis/H3K27ac_hi_fc1_padj0.05_GRangesBatch.rda&quot;)
+k27 &lt;- res.gr
+
+ols &lt;- findOverlaps(at, k27, maxgap=200)
+
+re &lt;- at[queryHits(ols),]
+colnames(mcols(re)) &lt;- paste0(&quot;atac.&quot;, colnames(mcols(re)))
+mcols(k27) &lt;- mcols(k27)[,c(1,3,8)]
+colnames(mcols(k27)) &lt;- paste0(&quot;h3k27ac.&quot;, colnames(mcols(k27)))
+mcols(re) &lt;- cbind(mcols(re),
+                   mcols(k27)[subjectHits(ols),])
+
+## Create new types of IREs
+re$type &lt;- NA
+re$type[re$h3k27ac.type==&quot;stable&quot; &amp; re$atac.type==&quot;stable&quot;] &lt;- &quot;SRE&quot;
+re$type[re$h3k27ac.type==&quot;gained&quot; &amp; (re$atac.type %in% c(&quot;gained&quot;, &quot;stable&quot;))] &lt;- &quot;IRE&quot;
+
+dir.create(&quot;../data/CYT/REs&quot;, F)
+save(re, file=&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges.rda&quot;)</code></pre>
+<pre class="r"><code>cor &lt;- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
+
+re.df &lt;- data.frame(re)[,-c(1:5)]
+
+re.df$type &lt;- factor(re.df$type, 
+                     levels=c(&quot;SRE&quot;, &quot;IRE&quot;))
+
+re.df &lt;- re.df[order(re.df$type),]
+
+ggplot(re.df,
+       aes(atac.log2FoldChange, h3k27ac.log2FoldChange)) +
+  geom_point(aes(color=h3k27ac.type,
+                 fill=atac.type), pch=21) +
+  scale_fill_manual(values=pals$differential) +
+  scale_color_manual(values=pals$differential) +
+  geom_vline(xintercept=c(-1,1), lty=2, color=&quot;grey&quot;) +
+  geom_hline(yintercept=c(-1,1), lty=2, color=&quot;grey&quot;) +
+  annotate(&quot;text&quot;, x=4, y=-2, label=paste0(&quot;r2=&quot;, round(cor$estimate, 2),
+                                      &quot;\nP&lt;2x10-16&quot;)) +
+  theme(legend.position=&quot;none&quot;) +
+  scale_y_continuous(limits=c(-3,6),
+                     name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;)) +
+  scale_x_continuous(limits=c(-3,6),
+                     name=expression(&quot;ATAC-seq &quot;*log[2]*&quot; FC&quot;))</code></pre>
+<p><img src="figure/cyt_01_remodeling.Rmd/plot-cor-res-hi-1.png" width="384" style="display: block; margin: auto;" /></p>
+</div>
+<div id="clustering" class="section level3">
+<h3>Clustering</h3>
+<p>Interestingly, the set of IREs identified in EndoC-<span class="math inline">\(\beta\)</span>H1 cells allows us to cluster both EndoC-<span class="math inline">\(\beta\)</span>H1 and Human Islet ATAC-seq and H3K27ac regions according to the suffered treatment and not sample type.</p>
+<pre class="r"><code>################################################
+## Clustering samples according to EndoC IREs ##
+################################################
+library(DESeq2)
+library(BiocParallel)
+register(MulticoreParam(4))
+
+## ATAC-seq ------------------------------------
+# Create SAF
+load(&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)
+saf &lt;- data.frame(re)[grep(&quot;IRE&quot;, re$type),c(1:3,6)]
+colnames(saf) &lt;- c(&quot;Chr&quot;, &quot;Start&quot;, &quot;End&quot;, &quot;GeneID&quot;)
+saf$Strand &lt;- &quot;+&quot;
+
+# Get counts at IREs
+files &lt;- list.files(&quot;../data/CYT/ATAC/BAM&quot;,
+                    pattern=&quot;.offset.bam$&quot;,
+                    full.names=TRUE)
+
+atac &lt;- Rsubread::featureCounts(files,
+                                annot.ext=saf,
+                                nthreads=10)
+
+names &lt;- pipelineNGS::getNameFromPath(files, suffix=&quot;.offset.bam&quot;)
+colnames(atac$counts) &lt;- names
+
+# Normalize with DESeq2
+coldata &lt;- data.frame(sample=names,
+                      treatment=unlist(lapply(strsplit(names, &quot;_&quot;),
+                                              function(x) x[2])),
+                      batch=unlist(lapply(strsplit(names, &quot;_&quot;),
+                                          function(x) x[1])))
+coldata$tissue &lt;- gsub(&quot;[[:digit:]]*&quot;, &quot;&quot;, coldata$batch)
+
+dds &lt;- DESeqDataSetFromMatrix(countData=atac$counts,
+                              colData=coldata,
+                              design=~batch+treatment)
+
+dds &lt;- DESeq(dds,
+             parallel=TRUE)
+
+rld &lt;- rlog(dds)
+vsd &lt;- vst(dds)
+save(rld,
+     file=file.path(out_dir, &quot;IREs_ATAC_clustering_rld.rda&quot;))
+
+## H3K27ac -------------------------------------------
+# Create SAF
+load(&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)
+id &lt;- unique(re$h3k27ac.GeneID[grep(&quot;IRE&quot;, re$type)])
+
+load(&quot;../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
+res.gr &lt;- res.gr[res.gr$GeneID %in% id,]
+saf &lt;- data.frame(res.gr)[,c(1:3,6)]
+colnames(saf) &lt;- c(&quot;Chr&quot;, &quot;Start&quot;, &quot;End&quot;, &quot;GeneID&quot;)
+saf$Strand &lt;- &quot;+&quot;
+
+# Get counts at IREs
+files &lt;- list.files(&quot;../../data/CYT/H3K27ac/BAM&quot;,
+                    pattern=&quot;.bam$&quot;,
+                    full.names=TRUE)
+files &lt;- files[!grepl(&quot;raw&quot;, files)]
+
+atac &lt;- Rsubread::featureCounts(files,
+                                annot.ext=saf,
+                                nthreads=10)
+
+names &lt;- pipelineNGS::getNameFromPath(files, suffix=&quot;.bam&quot;)
+colnames(atac$counts) &lt;- names
+
+# Normalize with DESeq2
+coldata &lt;- data.frame(sample=names,
+                      treatment=unlist(lapply(strsplit(names, &quot;_&quot;),
+                                              function(x) x[2])),
+                      batch=unlist(lapply(strsplit(names, &quot;_&quot;),
+                                          function(x) x[1])))
+coldata$tissue &lt;- gsub(&quot;[[:digit:]]*&quot;, &quot;&quot;, coldata$batch)
+
+dds &lt;- DESeqDataSetFromMatrix(countData=atac$counts,
+                              colData=coldata,
+                              design=~batch+treatment)
+
+dds &lt;- DESeq(dds,
+             parallel=TRUE)
+
+rld &lt;- rlog(dds)
+
+save(rld,
+     file=file.path(out_dir, &quot;IREs_H3K27ac_clustering_rld.rda&quot;))</code></pre>
+<pre class="r"><code>load(file.path(out_dir, &quot;IREs_ATAC_clustering_rld.rda&quot;))
+
+mat &lt;- assay(rld)
+mat &lt;- limma::removeBatchEffect(mat, rld$batch)
+
+colors &lt;- colorRampPalette( rev(RColorBrewer::brewer.pal(9, &quot;BuPu&quot;)) )(255)
+rows &lt;- data.frame(&quot;Treatment&quot;=rld$treatment,
+                     &quot;Tissue&quot;=rld$tissue)
+  
+ha = HeatmapAnnotation(df = rows,
+                       col = list(Treatment = c(cyt=&quot;dark orange&quot;, ctrl=&quot;steelblue3&quot;),
+                                   Tissue = c(endoc=&quot;violetred3&quot;, hi=&quot;palegreen3&quot;)))
+  
+sampleDists &lt;- dist(t(mat), method=&quot;euclidean&quot;)
+sampleDistMatrix &lt;- as.matrix(sampleDists)
+hclust &lt;- hclust(sampleDists)
+heat &lt;- Heatmap(sampleDistMatrix+1,
+                  col=colors,
+                  heatmap_legend_param = list(title = &quot;Distance&quot;, 
+                                              color_bar = &quot;continuous&quot;,
+                                              legend_direction=&quot;horizontal&quot;),
+                  top_annotation=ha,
+                  rect_gp = gpar(col= &quot;black&quot;),
+                  cluster_rows=hclust,
+                  cluster_columns=hclust)
+  
+draw(heat, heatmap_legend_side = &quot;bottom&quot;, annotation_legend_side = &quot;right&quot;)</code></pre>
+<p><img src="figure/cyt_01_remodeling.Rmd/atac-heatmap-ires-1.png" width="576" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>load(file.path(out_dir, &quot;IREs_H3K27ac_clustering_rld.rda&quot;))
+
+rld$batch[1] &lt;- &quot;endoc3&quot;
+mat &lt;- assay(rld)
+mat &lt;- limma::removeBatchEffect(mat, rld$batch)</code></pre>
+<pre><code>Coefficients not estimable: batch8 </code></pre>
+<pre class="r"><code>colors &lt;- colorRampPalette( rev(RColorBrewer::brewer.pal(9, &quot;BuPu&quot;)) )(255)
+rows &lt;- data.frame(&quot;Treatment&quot;=rld$treatment,
+                     &quot;Tissue&quot;=rld$tissue)
+  
+ha = HeatmapAnnotation(df = rows,
+                       col = list(Treatment = c(cyt=&quot;dark orange&quot;, ctrl=&quot;steelblue3&quot;),
+                                   Tissue = c(endoc=&quot;violetred3&quot;, hi=&quot;palegreen3&quot;)))
+  
+sampleDists &lt;- dist(t(mat), method=&quot;euclidean&quot;)
+sampleDistMatrix &lt;- as.matrix(sampleDists)
+hclust &lt;- hclust(sampleDists)
+heat &lt;- Heatmap(sampleDistMatrix+1,
+                  col=colors,
+                  heatmap_legend_param = list(title = &quot;Distance&quot;, 
+                                              color_bar = &quot;continuous&quot;,
+                                              legend_direction=&quot;horizontal&quot;),
+                  top_annotation=ha,
+                  rect_gp = gpar(col= &quot;black&quot;),
+                  cluster_rows=hclust,
+                  cluster_columns=hclust)
+  
+draw(heat, heatmap_legend_side = &quot;bottom&quot;, annotation_legend_side = &quot;right&quot;)</code></pre>
+<p><img src="figure/cyt_01_remodeling.Rmd/k27-heatmap-ires-1.png" width="480" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="characterization-of-ires-in-endoc-betah1" class="section level2">
+<h2>Characterization of IREs in EndoC-<span class="math inline">\(\beta\)</span>H1</h2>
+<pre class="r"><code>load(&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)
+
+re.df &lt;- data.frame(re)[,-c(1:5)]
 
 t &lt;- table(re.df$type, re.df$atac.annotation)
 t</code></pre>
 <pre><code>     
       Distal Promoter
-  IRE   3489      201
-  SRE  66263     9701</code></pre>
+  IRE   3594      204
+  SRE  70391     9982</code></pre>
 <pre class="r"><code>## Make groups
 re.tss &lt;- unique(re.df[!is.na(re.df$type),])
 
@@ -1611,7 +1556,7 @@ cons.plot &lt;-
   guides(linetype=guide_legend(nrow=2))
 
 cons.plot</code></pre>
-<p><img src="figure/cyt_01_remodeling.Rmd/plot-cons-1.png" width="384" style="display: block; margin: auto;" /></p>
+<p><img src="figure/cyt_01_remodeling.Rmd/plot-cons-1.png" width="336" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>library(maRge)
 
 out_homer &lt;- file.path(out_dir, &quot;HOMER_IREs_endoc_fc1_padj0.05_mask/&quot;)
@@ -1621,9 +1566,6 @@ deNovoMotifHOMER(bed=paste0(&quot;../data/CYT/bedfiles/IREs_endoc_fc1_padj0.05.b
                  other_param=&quot;-mask&quot;,
                  path_homer=&quot;~/tools/homer/&quot;)</code></pre>
 <pre class="r"><code>htmltools::includeHTML(file.path(out_dir, &quot;HOMER_IREs_endoc_fc1_padj0.05_mask/homerResults.html&quot;))</code></pre>
-</div>
-<div id="rna-seq-vs-proteomics" class="section level3">
-<h3>RNA-seq vs Proteomics</h3>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1644,65 +1586,54 @@ locale:
 [5] LC_TIME=Spanish_Spain.1252    
 
 attached base packages:
-[1] parallel  stats4    stats     graphics  grDevices utils     datasets 
-[8] methods   base     
+ [1] grid      parallel  stats4    stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
 
 other attached packages:
- [1] purrr_0.3.4          dplyr_0.8.5          kableExtra_1.1.0    
- [4] cowplot_1.0.0        ggplot2_3.3.0        GenomicRanges_1.38.0
- [7] GenomeInfoDb_1.22.1  IRanges_2.20.2       S4Vectors_0.24.4    
-[10] BiocGenerics_0.32.0  workflowr_1.6.1     
+ [1] DESeq2_1.26.0               SummarizedExperiment_1.16.1
+ [3] DelayedArray_0.12.3         BiocParallel_1.20.1        
+ [5] matrixStats_0.56.0          Biobase_2.46.0             
+ [7] ComplexHeatmap_2.5.2        dplyr_0.8.5                
+ [9] kableExtra_1.1.0            cowplot_1.0.0              
+[11] ggplot2_3.3.0               GenomicRanges_1.38.0       
+[13] GenomeInfoDb_1.22.1         IRanges_2.20.2             
+[15] S4Vectors_0.24.4            BiocGenerics_0.32.0        
+[17] workflowr_1.6.1            
 
 loaded via a namespace (and not attached):
- [1] bitops_1.0-6                matrixStats_0.56.0         
- [3] fs_1.3.2                    bit64_0.9-7                
- [5] webshot_0.5.2               RColorBrewer_1.1-2         
- [7] httr_1.4.1                  rprojroot_1.3-2            
- [9] tools_3.6.3                 backports_1.1.6            
-[11] R6_2.4.1                    rpart_4.1-15               
-[13] DBI_1.1.0                   Hmisc_4.4-0                
-[15] colorspace_1.4-1            nnet_7.3-14                
-[17] withr_2.2.0                 tidyselect_1.0.0           
-[19] gridExtra_2.3               DESeq2_1.26.0              
-[21] bit_1.1-15.2                compiler_3.6.3             
-[23] git2r_0.26.1                rvest_0.3.5                
-[25] Biobase_2.46.0              htmlTable_1.13.3           
-[27] xml2_1.3.2                  DelayedArray_0.12.3        
-[29] labeling_0.3                scales_1.1.0               
-[31] checkmate_2.0.0             readr_1.3.1                
-[33] genefilter_1.68.0           stringr_1.4.0              
-[35] digest_0.6.25               foreign_0.8-76             
-[37] rmarkdown_2.1               XVector_0.26.0             
-[39] base64enc_0.1-3             jpeg_0.1-8.1               
-[41] pkgconfig_2.0.3             htmltools_0.4.0            
-[43] highr_0.8                   htmlwidgets_1.5.1          
-[45] rlang_0.4.5                 RSQLite_2.2.0              
-[47] rstudioapi_0.11             farver_2.0.3               
-[49] BiocParallel_1.20.1         acepack_1.4.1              
-[51] RCurl_1.98-1.1              magrittr_1.5               
-[53] GenomeInfoDbData_1.2.2      Formula_1.2-3              
-[55] Matrix_1.2-18               Rcpp_1.0.4                 
-[57] munsell_0.5.0               lifecycle_0.2.0            
-[59] stringi_1.4.6               yaml_2.2.1                 
-[61] SummarizedExperiment_1.16.1 zlibbioc_1.32.0            
-[63] plyr_1.8.6                  blob_1.2.1                 
-[65] grid_3.6.3                  promises_1.1.0             
-[67] crayon_1.3.4                lattice_0.20-41            
-[69] splines_3.6.3               annotate_1.64.0            
-[71] hms_0.5.3                   locfit_1.5-9.4             
-[73] knitr_1.28                  pillar_1.4.3               
-[75] geneplotter_1.64.0          reshape2_1.4.4             
-[77] XML_3.99-0.3                glue_1.4.0                 
-[79] evaluate_0.14               latticeExtra_0.6-29        
-[81] data.table_1.12.8           vctrs_0.2.4                
-[83] png_0.1-7                   httpuv_1.5.2               
-[85] gtable_0.3.0                assertthat_0.2.1           
-[87] xfun_0.13                   xtable_1.8-4               
-[89] later_1.0.0                 survival_3.1-12            
-[91] viridisLite_0.3.0           tibble_3.0.1               
-[93] memoise_1.1.0               AnnotationDbi_1.48.0       
-[95] cluster_2.1.0               ellipsis_0.3.0             </code></pre>
-</div>
+ [1] colorspace_1.4-1       rjson_0.2.20           ellipsis_0.3.0        
+ [4] rprojroot_1.3-2        circlize_0.4.9         htmlTable_1.13.3      
+ [7] XVector_0.26.0         GlobalOptions_0.1.1    base64enc_0.1-3       
+[10] fs_1.3.2               clue_0.3-57            rstudioapi_0.11       
+[13] farver_2.0.3           bit64_0.9-7            AnnotationDbi_1.48.0  
+[16] xml2_1.3.2             splines_3.6.3          geneplotter_1.64.0    
+[19] knitr_1.28             Formula_1.2-3          annotate_1.64.0       
+[22] cluster_2.1.0          png_0.1-7              readr_1.3.1           
+[25] compiler_3.6.3         httr_1.4.1             backports_1.1.6       
+[28] assertthat_0.2.1       Matrix_1.2-18          limma_3.42.2          
+[31] later_1.0.0            acepack_1.4.1          htmltools_0.4.0       
+[34] tools_3.6.3            gtable_0.3.0           glue_1.4.0            
+[37] GenomeInfoDbData_1.2.2 reshape2_1.4.4         Rcpp_1.0.4            
+[40] vctrs_0.2.4            xfun_0.13              stringr_1.4.0         
+[43] rvest_0.3.5            lifecycle_0.2.0        XML_3.99-0.3          
+[46] zlibbioc_1.32.0        scales_1.1.0           hms_0.5.3             
+[49] promises_1.1.0         RColorBrewer_1.1-2     yaml_2.2.1            
+[52] memoise_1.1.0          gridExtra_2.3          rpart_4.1-15          
+[55] latticeExtra_0.6-29    stringi_1.4.6          RSQLite_2.2.0         
+[58] highr_0.8              genefilter_1.68.0      checkmate_2.0.0       
+[61] shape_1.4.4            rlang_0.4.5            pkgconfig_2.0.3       
+[64] bitops_1.0-6           evaluate_0.14          lattice_0.20-41       
+[67] purrr_0.3.4            htmlwidgets_1.5.1      labeling_0.3          
+[70] bit_1.1-15.2           tidyselect_1.0.0       plyr_1.8.6            
+[73] magrittr_1.5           R6_2.4.1               Hmisc_4.4-0           
+[76] DBI_1.1.0              pillar_1.4.3           foreign_0.8-76        
+[79] withr_2.2.0            survival_3.1-12        RCurl_1.98-1.1        
+[82] nnet_7.3-14            tibble_3.0.1           crayon_1.3.4          
+[85] rmarkdown_2.1          jpeg_0.1-8.1           GetoptLong_0.1.8      
+[88] locfit_1.5-9.4         data.table_1.12.8      blob_1.2.1            
+[91] git2r_0.26.1           digest_0.6.25          webshot_0.5.2         
+[94] xtable_1.8-4           httpuv_1.5.2           munsell_0.5.0         
+[97] viridisLite_0.3.0     </code></pre>
 </div>
 </div>
 

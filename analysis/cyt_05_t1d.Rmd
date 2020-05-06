@@ -1,0 +1,26 @@
+---
+title: '#5 IREs and T1D risk'
+subtitle: "Islet induced regulotory elements are implicated in T1D genetic susceptibility"
+author: "Mireia Ramos-Rodríguez"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE,
+                      eval = TRUE,
+                      fig.height = 4)
+
+library(GenomicRanges)
+library(ggplot2)
+library(cowplot)
+library(kableExtra)
+library(dplyr)
+library(purrr)
+
+theme_set(cowplot::theme_cowplot())
+load("../code/CYT_color_palettes.rda")
+
+## Create directory to save results
+out_dir <- "../output/cyt_05_t1d/"
+dir.create(out_dir, F)
+```
