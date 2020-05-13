@@ -24,3 +24,407 @@ load("../code/CYT_color_palettes.rda")
 out_dir <- "../output/cyt_03_subclassification/"
 dir.create(out_dir, F)
 ```
+
+# Subclassification of IREs
+
+To determine which IREs were not accessible in control conditions, we call peaks from merged control BAM file with a relaxed threshold: *P*<0.05.
+
+```
+macs2 callpeak -f BAM -t data/CYT/ATAC/BAM/merged/endoc_ctrl.offset.bam -g hs --outdir data/CYT/ATAC/Peaks/relaxed/ -n endoc_ctrl_relaxed --tempdir data/CYT/ATAC/Peaks/tmp/ -p 0.05 --nomodel --shift -100 --extsize 200
+```
+
+```{r generate-subgroups, eval=FALSE}
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda")
+re <- re[!is.na(re$type),]
+
+## Save first subgroup
+re$subgroup1 <- NA
+re$subgroup1[grep("SRE", re$type)] <- "SRE"
+re$subgroup1[re$atac.type=="gained" & re$h3k27ac.type=="gained"] <- "Opening IRE"
+re$subgroup1[re$atac.type=="stable" & re$h3k27ac.type=="gained"] <- "Primed IRE"
+
+## Save 2nd subgroup
+re$subgroup2 <- re$subgroup1
+
+relaxed <- regioneR::toGRanges(paste0("../../data/ATAC/Peaks/relaxed/endoc_ctrl_relaxed_peaks.narrowPeak"))
+ols <- subsetByOverlaps(re[re$subgroup1=="Opening IRE",],
+                        relaxed)$atac.GeneID
+
+re$subgroup2[re$atac.GeneID %in% ols & 
+               re$subgroup1=="Opening IRE"] <- "Other IRE"
+re$subgroup2[!(re$atac.GeneID %in% ols) &
+               re$subgroup1=="Opening IRE"] <- "Neo IRE"
+
+save(re, file="../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+
+## With less stringent threshold --- 
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_k27.8.rda")
+re <- re[!is.na(re$type),]
+
+## Save first subgroup
+re$subgroup1 <- NA
+re$subgroup1[grep("SRE", re$type)] <- "SRE"
+re$subgroup1[re$atac.type=="gained" & re$h3k27ac.type=="gained"] <- "Opening IRE"
+re$subgroup1[re$atac.type=="stable" & re$h3k27ac.type=="gained"] <- "Primed IRE"
+
+## Save 2nd subgroup
+re$subgroup2 <- re$subgroup1
+
+relaxed <- regioneR::toGRanges(paste0("../data/CYT/ATAC/Peaks/relaxed/endoc_ctrl_relaxed_peaks.narrowPeak"))
+ols <- subsetByOverlaps(re[re$subgroup1=="Opening IRE",],
+                        relaxed)$atac.GeneID
+
+re$subgroup2[re$atac.GeneID %in% ols & 
+               re$subgroup1=="Opening IRE"] <- "Other IRE"
+re$subgroup2[!(re$atac.GeneID %in% ols) &
+               re$subgroup1=="Opening IRE"] <- "Neo IRE"
+
+save(re, file="../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup_k27.8.rda")
+```
+
+```{r distr-reads-sub-ires, fig.height=3, fig.width=5}
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+re <- data.frame(mcols(re)[,c(1,13,17,18)])
+
+load("../data/CYT/ATAC/diffAnalysis/ATAC_endoc_normCountsBatch.rda")
+counts <- data.frame(counts)
+counts$atac.GeneID <- rownames(counts)
+counts <- reshape2::melt(counts,
+                         id.var=11,
+                         value.var=1:10,
+                         value.name="counts",
+                         variable.name="sample")
+counts$treatment <- unlist(lapply(strsplit(as.character(counts$sample), "_"),
+                                  function(x) x[2]))
+
+counts <- counts %>%
+  group_by(atac.GeneID, treatment) %>%
+  summarise(counts=mean(counts))
+
+colnames(counts)[3] <- "ATAC-seq"
+
+re.counts <- dplyr::left_join(re, counts)
+
+load("../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_normCountsBatch.rda")
+counts <- data.frame(counts)
+counts$h3k27ac.GeneID <- rownames(counts)
+counts <- reshape2::melt(counts,
+                         id.var=9,
+                         value.var=1:8,
+                         value.name="counts",
+                         variable.name="sample")
+counts$treatment <- unlist(lapply(strsplit(as.character(counts$sample), "_"),
+                                  function(x) x[2]))
+
+counts <- counts %>%
+  group_by(h3k27ac.GeneID, treatment) %>%
+  summarise(counts=mean(counts))
+
+colnames(counts)[3] <- "H3K27ac"
+
+re.counts <- dplyr::left_join(re.counts, counts)
+
+re.counts <- reshape2::melt(re.counts,
+                            id.vars=1:5,
+                            value.vars=6:7,
+                            value.name="counts",
+                            variable.name="experiment")
+
+distr.reads <- 
+  ggplot(re.counts[!grepl("Other", re.counts$subgroup2),],
+       aes(subgroup2, log2(counts+1))) +
+  geom_boxplot(aes(color=treatment), notch=TRUE, lwd=0.7) +
+  scale_color_manual(values=pals$treatment,
+                     labels=function(x) toupper(x),
+                     name="Treatment") +
+  facet_wrap(~experiment) +
+  ylab(expression(Log[2]*" normalized counts")) +
+  scale_x_discrete(labels=function(x) paste0(x, "s")) +
+  theme(axis.text.x=element_text(angle=30, hjust=1),
+        axis.title.x=element_blank(),
+        strip.background = element_rect(fill="white", color="black",
+                                        size=0.5, linetype=1))
+
+distr.reads
+```
+
+## Characterization
+
+```{r assoc-sub-rna, fig.width=4, fig.height=4}
+win.width=30e3
+
+load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
+
+rna <- res.gr[res.gr$gene_biotype=="protein_coding",]
+win <- promoters(rna)
+win <- resize(rna, width=win.width, fix="center")
+
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+ols <- findOverlaps(re, win)
+
+anno <- cbind(mcols(re)[queryHits(ols), c(1,17,18)],
+              mcols(win)[subjectHits(ols), c(1,2,5)])
+
+load("../data/CYT/RNA/diffAnalysis/RNA_endoc_normCountsBatch.rda")
+counts <- data.frame(counts)
+counts$GeneID <- rownames(counts)
+counts$GeneID <- gsub("\\.[[:digit:]]*", "", counts$GeneID)
+
+counts <- reshape2::melt(counts,
+                         id.vars=11,
+                         value.vars=1:10,
+                         value.name="counts",
+                         variable.name="sample")
+counts$treatment <- unlist(lapply(strsplit(as.character(counts$sample), "_"),
+                                  function(x) x[2]))
+
+counts.mean <- counts %>%
+  group_by(GeneID, treatment) %>%
+  summarise(counts=mean(counts))
+
+anno.counts <- left_join(data.frame(anno), counts.mean)
+anno.counts <- unique(anno.counts[,-1])
+
+
+test <- anno.counts[anno.counts$subgroup2!="SRE",] %>%
+  group_by(subgroup1) %>%
+  summarise(pval=wilcox.test(counts[treatment=="ctrl"],
+                             counts[treatment=="cyt"],
+                             paired=F)$p.value)
+
+test$lab <- ""
+test$lab[test$pval<0.05] <- "*"
+test$lab[test$pval<0.01] <- "**"
+test$lab[test$pval<0.001] <- "***"
+
+ggplot(anno.counts[anno.counts$subgroup2!="SRE",],
+       aes(subgroup1, log2(counts + 1))) +
+  geom_boxplot(aes(color=treatment), notch=TRUE, 
+               outlier.shape=NA, lwd=1) +
+  geom_text(data=test,
+            aes(x=subgroup1, y=20, label=lab),
+            size=5) +
+  scale_color_manual(values=pals$treatment,
+                     name="Treatment",
+                     labels=function(x) toupper(x)) +
+  ylab(expression("RNA-seq "*log[2]*" counts")) +
+  scale_x_discrete(labels=function(x) paste0(x, "s")) +
+  theme(legend.position="top",
+        axis.title.x=element_blank())
+```
+
+
+```{r sub-cons, eval=FALSE}
+load(paste0("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda"))
+scope=1e3
+bin=50
+
+## Opening IREs
+op <- re[grep("Opening", re$subgroup1),]
+rnd <- regioneR::randomizeRegions(op)
+
+op.cons <- pipelineNGS::calculateMeanCons(op,
+                                           scope=scope,
+                                           bin=bin)
+op.cons$re_type <- "Opening IRE"
+rnd.cons <- pipelineNGS::calculateMeanCons(rnd,
+                                           scope=scope,
+                                           bin=bin)
+rnd.cons$re_type <- "Random Opening IRE"
+
+ire.cons <- rbind(op.cons, rnd.cons)
+
+## Primed IREs
+pr <- re[grep("Primed", re$subgroup1),]
+rnd <- regioneR::randomizeRegions(pr)
+
+pr.cons <- pipelineNGS::calculateMeanCons(pr,
+                                           scope=scope,
+                                           bin=bin)
+pr.cons$re_type <- "Primed IRE"
+rnd.cons <- pipelineNGS::calculateMeanCons(rnd,
+                                           scope=scope,
+                                           bin=bin)
+rnd.cons$re_type <- "Random Primed IRE"
+
+## Final dataset
+ire.cons <- rbind(ire.cons, pr.cons, rnd.cons)
+save(ire.cons, file=file.path(out_dir, "CONS_IREs_sub.rda"))
+```
+
+```{r plot-cons-sub, fig.height=4, fig.width=6}
+load(file.path(out_dir, "CONS_IREs_sub.rda"))
+
+ire.cons$color <- gsub("Random ", "", ire.cons$re_type)
+ire.cons$lty <- gsub("Opening ", "", gsub("Primed ", "", ire.cons$re_type))
+
+cons.plot <- 
+  ggplot(ire.cons,
+       aes(position, meanCons)) +
+  geom_line(aes(lty=lty, color=color), 
+            lwd=1) +
+  scale_linetype_discrete(name="Region type") +
+  scale_color_manual(values=pals$re,
+                     name="Region type",
+                     labels=function(x) paste0(x, "s")) +
+  geom_vline(xintercept=0, lty=2, color="grey") +
+  ylab("Mean PhastCons46way Score") +
+  xlab("Position from peak center (bp)") +
+  theme(legend.position = "top") +
+  guides(linetype=guide_legend(nrow=2),
+         color=guide_legend(nrow=2))
+
+cons.plot
+```
+
+
+ 
+```{r}
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+re.df <- data.frame(re)[,-c(1:5)]
+
+## Make groups
+re.tss <- unique(re.df[!is.na(re.df$type),])
+
+re.tss$anno.group <- NA
+re.tss$anno.group[abs(re.tss$atac.distanceToTSS)>200e3] <- ">200kb"
+re.tss$anno.group[abs(re.tss$atac.distanceToTSS)<=200e3 &
+                    abs(re.tss$atac.distanceToTSS)>20e3] <- "20-200kb"
+re.tss$anno.group[abs(re.tss$atac.distanceToTSS)<=20e3 &
+                    abs(re.tss$atac.distanceToTSS)>2e3] <- "2-20kb"
+re.tss$anno.group[abs(re.tss$atac.distanceToTSS)<=2e3] <- "0-2kb"
+
+len.neo <- sum(grepl("Neo", re.tss$subgroup2))
+len.primed <- sum(grepl("Primed", re.tss$subgroup2))
+len.sre <- sum(grepl("SRE", re.tss$subgroup2))
+
+sum.tss <- re.tss %>%
+  group_by(subgroup2, anno.group) %>%
+  summarise(num=length(unique(atac.GeneID)))
+
+sum.tss$perc <- NA
+sum.tss$perc[grep("Neo", sum.tss$subgroup2)] <- sum.tss$num[grep("Neo", sum.tss$subgroup2)]/len.neo*100
+sum.tss$perc[grep("Primed", sum.tss$subgroup2)] <- sum.tss$num[grep("Primed", sum.tss$subgroup2)]/len.primed*100
+sum.tss$perc[grep("SRE", sum.tss$subgroup2)] <- sum.tss$num[grep("SRE", sum.tss$subgroup2)]/len.sre*100
+
+sum.tss <- sum.tss[!is.na(sum.tss$perc),]
+sum.tss$anno.group <- factor(sum.tss$anno.group,
+                             levels=c("0-2kb", "2-20kb", "20-200kb", ">200kb"))
+
+tss.plot <- 
+  ggplot(sum.tss,
+       aes(anno.group, perc)) +
+  geom_bar(aes(fill=subgroup2), color="black", lwd=0.7, stat="identity", position="dodge") +
+  geom_vline(xintercept=1.5, lty=2, color="dark red") +
+  scale_fill_manual(values=pals$re,
+                    name="RE type", labels=function(x) paste0(x, "s")) +
+  annotate("text", x=c(1,3), y=c(60, 60), label=c("Promoters", "Enhancers")) +
+  theme(legend.position="top") +
+  xlab("Distance to TSS") + 
+  scale_y_continuous(name="Percentage of RE",
+                     labels=function(x) paste0(x, "%"),
+                     breaks=scales::pretty_breaks()) +
+  guides(fill=guide_legend(ncol=1))
+
+tss.plot
+```
+
+```{r, eval=FALSE}
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+
+## Do it on enhancers IREs
+sel <- re[grep("IRE", re$type),]
+
+
+files <- list.files("~/data/ChromHMM_ENCODE-Broad/",
+                    pattern="*.bed",
+                    full.names=TRUE)
+names <- pipelineNGS::getNameFromPath(files,
+                                      prefix="wgEncodeBroadHmm", 
+                                      suffix="HMM.bed")
+
+chrom <- lapply(files, regioneR::toGRanges)
+names(chrom) <- names
+
+overlaps <- data.frame()
+for (i in 1:length(chrom)) {
+  hmm <- chrom[[i]]
+  ols <- findOverlaps(sel,
+                      hmm)
+  df <- cbind(sel$type[queryHits(ols)],
+              sel$atac.GeneID[queryHits(ols)],
+              hmm$name[subjectHits(ols)])
+  df <- as.data.frame(df)
+  colnames(df) <- c("type", "peakID", "chromHMM")
+  df$ENCODE <- names(chrom)[i]  
+  overlaps <- rbind(overlaps, df)
+}
+
+ids.enh <- unique(overlaps$peakID[grep("Enhancer", overlaps$chromHMM)])
+length(ids.enh)
+ids.prom <- unique(overlaps$peakID[grep("Promoter", overlaps$chromHMM)])
+length(ids.prom)
+ids.het <- unique(overlaps$peakID[grep("Hetero", overlaps$chromHMM)])
+length(ids.het)
+
+ids.het.enh <- ids.het[ids.het %in% ids.enh]
+length(ids.het.enh)
+
+## Test with a randomized set
+rndm <- regioneR::randomizeRegions(sel)
+rndm$geneID <- paste0("random_", 1:length(rndm))
+
+overlaps.rndm <- data.frame()
+for (i in 1:length(chrom)) {
+  hmm <- chrom[[i]]
+  ols <- findOverlaps(rndm,
+                      hmm)
+  df <- cbind(rndm$geneID[queryHits(ols)],
+              hmm$name[subjectHits(ols)])
+  df <- as.data.frame(df)
+  colnames(df) <- c("peakID", "chromHMM")
+  df$ENCODE <- names(chrom)[i]  
+  overlaps.rndm <- rbind(overlaps.rndm, df)
+}
+
+ids.enh.rndm <- unique(overlaps.rndm$peakID[grep("Enhancer", overlaps.rndm$chromHMM)])
+length(ids.enh.rndm)
+ids.prom.rndm <- unique(overlaps.rndm$peakID[grep("Promoter", overlaps.rndm$chromHMM)])
+length(ids.prom.rndm)
+ids.het.rndm <- unique(overlaps.rndm$peakID[grep("Hetero", overlaps.rndm$chromHMM)])
+length(ids.het.rndm)
+
+ids.het.enh.rndm <- ids.het.rndm[ids.het.rndm %in% ids.enh.rndm]
+length(ids.het.enh.rndm)
+
+df <- data.frame("class"=rep(c("Enhancer", "Promoter"), 2),
+                 "regions"=c(rep("IREs", 2), rep("Random", 2)),
+                 "overlaps"=c(length(ids.enh), length(ids.prom), 
+                              length(ids.enh.rndm), length(ids.prom.rndm)))
+
+mat <- matrix(df$overlaps, ncol=2)
+
+save(df, file=file.path(out_dir, "ENH_chromHMM_IREs.rda"))
+```
+
+```{r, fig.width=3.5, fig.height=4}
+load(file.path(out_dir, "ENH_chromHMM_IREs.rda"))
+
+bar.chrom <- 
+  ggplot(df[df$class!="Promoter",],
+       aes(class, overlaps)) +
+  geom_bar(aes(fill=regions), stat="identity",
+           position="dodge", color="black",
+           width=0.7) +
+  xlab("ChromHMM class") +
+  scale_y_continuous(labels=scales::comma,
+                     breaks=scales::pretty_breaks(),
+                     name="# of overlapping IREs") +
+  scale_fill_manual(values=c("#e37418", "#0c3a5c"),
+                    name="Source") +
+  annotate("text", 1, 2800, label="*", size=8) +
+  theme(legend.position=c(0.55, 0.85))
+
+bar.chrom
+```
+

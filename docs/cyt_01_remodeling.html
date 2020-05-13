@@ -1234,7 +1234,7 @@ ols &lt;- findOverlaps(at, k27, maxgap=200)
 
 re &lt;- at[queryHits(ols),]
 colnames(mcols(re)) &lt;- paste0(&quot;atac.&quot;, colnames(mcols(re)))
-mcols(k27) &lt;- mcols(k27)[,c(1,3,8)]
+mcols(k27) &lt;- mcols(k27)[,c(1,3,7,8)]
 colnames(mcols(k27)) &lt;- paste0(&quot;h3k27ac.&quot;, colnames(mcols(k27)))
 mcols(re) &lt;- cbind(mcols(re),
                    mcols(k27)[subjectHits(ols),])
@@ -1245,8 +1245,17 @@ re$type[re$h3k27ac.type==&quot;stable&quot; &amp; re$atac.type==&quot;stable&quo
 re$type[re$h3k27ac.type==&quot;gained&quot; &amp; (re$atac.type %in% c(&quot;gained&quot;, &quot;stable&quot;))] &lt;- &quot;IRE&quot;
 
 dir.create(&quot;../data/CYT/REs&quot;, F)
-save(re, file=&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)</code></pre>
-<pre class="r"><code>cor &lt;- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
+save(re, file=&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)
+
+## Create less stringent IREs
+re$type &lt;- NA
+re$h3k27ac.type[re$h3k27ac.log2FoldChange &gt; 0.8 &amp; re$h3k27ac.padj &lt;= 0.05] &lt;- &quot;gained&quot;
+re$type[re$h3k27ac.type==&quot;stable&quot; &amp; re$atac.type==&quot;stable&quot;] &lt;- &quot;SRE&quot;
+re$type[re$h3k27ac.type==&quot;gained&quot; &amp; (re$atac.type %in% c(&quot;gained&quot;, &quot;stable&quot;))] &lt;- &quot;IRE&quot;
+save(re, file=&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_k27.8.rda&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/REs/REs_endoc_fc1_padj0.05_granges.rda&quot;)
+
+cor &lt;- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
 
 re.df &lt;- data.frame(re)[,-c(1:5)]
 
@@ -1284,7 +1293,7 @@ ols &lt;- findOverlaps(at, k27, maxgap=200)
 
 re &lt;- at[queryHits(ols),]
 colnames(mcols(re)) &lt;- paste0(&quot;atac.&quot;, colnames(mcols(re)))
-mcols(k27) &lt;- mcols(k27)[,c(1,3,8)]
+mcols(k27) &lt;- mcols(k27)[,c(1,3,7,8)]
 colnames(mcols(k27)) &lt;- paste0(&quot;h3k27ac.&quot;, colnames(mcols(k27)))
 mcols(re) &lt;- cbind(mcols(re),
                    mcols(k27)[subjectHits(ols),])
@@ -1295,8 +1304,17 @@ re$type[re$h3k27ac.type==&quot;stable&quot; &amp; re$atac.type==&quot;stable&quo
 re$type[re$h3k27ac.type==&quot;gained&quot; &amp; (re$atac.type %in% c(&quot;gained&quot;, &quot;stable&quot;))] &lt;- &quot;IRE&quot;
 
 dir.create(&quot;../data/CYT/REs&quot;, F)
-save(re, file=&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges.rda&quot;)</code></pre>
-<pre class="r"><code>cor &lt;- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
+save(re, file=&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges.rda&quot;)
+
+## Create less stringent IREs
+re$type &lt;- NA
+re$h3k27ac.type[re$h3k27ac.log2FoldChange &gt; 0.8 &amp; re$h3k27ac.padj &lt;= 0.05] &lt;- &quot;gained&quot;
+re$type[re$h3k27ac.type==&quot;stable&quot; &amp; re$atac.type==&quot;stable&quot;] &lt;- &quot;SRE&quot;
+re$type[re$h3k27ac.type==&quot;gained&quot; &amp; (re$atac.type %in% c(&quot;gained&quot;, &quot;stable&quot;))] &lt;- &quot;IRE&quot;
+save(re, file=&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges_k27.8.rda&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges.rda&quot;)
+
+cor &lt;- cor.test(re$atac.log2FoldChange, re$h3k27ac.log2FoldChange)
 
 re.df &lt;- data.frame(re)[,-c(1:5)]
 

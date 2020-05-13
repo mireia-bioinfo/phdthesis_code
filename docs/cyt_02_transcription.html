@@ -732,6 +732,228 @@ Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in End
 </div>
 <div id="analysis-of-multiplex-proteomics-data" class="section level2">
 <h2>Analysis of multiplex proteomics data</h2>
+<div id="differential-analysis-1" class="section level3">
+<h3>Differential analysis</h3>
+<pre class="r"><code>load(&quot;../data/CYT/Proteomics/proteomics_data_type.rda&quot;)
+
+table(data$type)</code></pre>
+<pre><code>
+gained   lost stable 
+   223    125   9818 </code></pre>
+<pre class="r"><code>volc.rna &lt;- 
+  ggplot(data.frame(data),
+       aes(log2FoldChange, -log10(pvalue))) +
+  geom_point(aes(color=type), size=0.7) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;PROT type&quot;) +
+  geom_vline(xintercept=c(0.58,-0.58), linetype=2, color=&quot;dark grey&quot;) +
+  # geom_hline(yintercept=-log10(0.1), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold change&quot;)) + ylab(expression(-Log[10]*&quot; P&quot;)) +
+  ggtitle(expression(&quot;Proteomics EndoC-&quot;*beta*H1)) +
+  theme_cowplot(18) +
+  theme(legend.position=&quot;none&quot;)
+
+volc.rna</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/cyt_02_transcription.Rmd/volc-plot-prot-1.png" alt="Volcano plot showing detected proteins classified as more abundant (green) or less abundant (red) after cytokine exposure in EndoC cells." width="384" />
+<p class="caption">
+Volcano plot showing detected proteins classified as more abundant (green) or less abundant (red) after cytokine exposure in EndoC cells.
+</p>
+</div>
+</div>
+<div id="protein-protein-interaction-network" class="section level3">
+<h3>Protein-protein interaction network</h3>
+<p>??</p>
+</div>
+</div>
+<div id="correlation-mrna-and-protein-product" class="section level2">
+<h2>Correlation mRNA and protein product</h2>
+<pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda&quot;)
+load(&quot;../data/CYT/Proteomics/proteomics_data_type.rda&quot;)
+colnames(data)[c(4,17)] &lt;- paste0(&quot;prot.&quot;, colnames(data[c(4,17)]))
+
+cor &lt;- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:3,5,10)]),
+                        data[,c(9,4,17)])
+colnames(cor)[4:5] &lt;- paste0(&quot;rna.&quot;, colnames(cor)[4:5])
+cor &lt;- cor[!is.na(cor$prot.type),]
+
+test &lt;- cor.test(cor$rna.log2FoldChange, cor$prot.log2FoldChange)
+cor &lt;- cor[order(cor$rna.log2FoldChange+cor$prot.log2FoldChange, decreasing = T),]
+
+cor$lab &lt;- NA
+cor$lab[1:10] &lt;- cor$external_gene_name[1:10]
+
+cor$rna.type &lt;- factor(cor$rna.type, levels=c(&quot;stable&quot;, &quot;lost&quot;, &quot;gained&quot;))
+cor$prot.type &lt;- factor(cor$prot.type, levels=c(&quot;stable&quot;, &quot;lost&quot;, &quot;gained&quot;))
+cor &lt;- cor[order(cor$rna.type, cor$prot.type),]
+
+cor.prot &lt;- 
+  ggplot(cor,
+       aes(rna.log2FoldChange, prot.log2FoldChange)) +
+  geom_point(aes(color=prot.type, fill=rna.type), pch=21) +
+  ggrepel::geom_text_repel(aes(label=lab), size=3) +
+  annotate(&quot;text&quot;, x=-2, y=12, 
+           label=as.expression(bquote(r^2 == .(round(test$estimate, 2)))),
+           hjust=0) +
+  annotate(&quot;text&quot;, x=-2, y=11, 
+           label=expression(P&lt;=2*x*10^-16),
+           hjust=0) + 
+  scale_fill_manual(values=pals$differential) +
+  scale_color_manual(values=pals$differential) +
+  scale_y_continuous(limits=c(-3,13),
+                     name=expression(&quot;Proteomics &quot;*log[2]*&quot; FC&quot;)) +
+  scale_x_continuous(limits=c(-3,13),
+                     name=expression(&quot;RNA-seq &quot;*log[2]*&quot; FC&quot;)) +
+  theme(legend.position=&quot;none&quot;)
+
+cor.prot</code></pre>
+<p><img src="figure/cyt_02_transcription.Rmd/plot-cor-rna-prot-1.png" width="384" style="display: block; margin: auto;" /></p>
+</div>
+<div id="correlation-res-and-mrnaprotein" class="section level2">
+<h2>Correlation REs and mRNA/Protein</h2>
+<pre><code>Rscript code/CYT_annotate_RE_to_RNA_PROT.R -f 1 -q 0.05 -s endoc -w 30000
+Rscript code/CYT_annotate_RE_to_RNA_PROT.R -f 1 -q 0.05 -s endoc -w 80000</code></pre>
+<pre class="r"><code>files &lt;- list.files(out_dir,
+                    pattern=&quot;RNA_annotation_endoc_&quot;,
+                    full.names=TRUE)
+names &lt;- gsub(&quot;RNA_annotation_endoc_fc1_padj0.05_&quot;, &quot;&quot;, gsub(&quot;.rda&quot;, &quot;&quot;, basename(files)))
+  
+anno.counts.all &lt;- data.frame()
+anno.group.all &lt;- data.frame()
+
+for (i in 1:length(files)) {
+  load(files[i])
+  
+  anno.counts$win &lt;- names[i]
+  anno.counts.all &lt;- rbind(anno.counts.all, anno.counts)
+  
+  anno.group$win &lt;- names[i]
+  anno.group.all &lt;- rbind(anno.group.all, anno.group)
+}
+
+anno.counts.all$win &lt;- factor(anno.counts.all$win,
+                               levels=unique(anno.counts.all$win))
+
+anno.group.all$win &lt;- factor(anno.group.all$win,
+                               levels=unique(anno.counts.all$win))
+
+rm(anno.counts, anno.group, anno)</code></pre>
+<pre class="r"><code>files &lt;- list.files(out_dir,
+                    pattern=&quot;PROT_annotation_endoc_&quot;,
+                    full.names=TRUE)
+names &lt;- gsub(&quot;PROT_annotation_endoc_fc1_padj0.05_&quot;, &quot;&quot;, gsub(&quot;.rda&quot;, &quot;&quot;, basename(files)))
+
+anno.prot.all &lt;- data.frame()
+
+for (i in 1:length(files)) {
+  load(files[i])
+  
+  anno.prot$win &lt;- names[i]
+  anno.prot.all &lt;- rbind(anno.prot.all, anno.prot)
+}
+
+anno.prot.all$win &lt;- factor(anno.prot.all$win,
+                               levels=unique(anno.prot.all$win))
+
+rm(&quot;anno.prot&quot;)</code></pre>
+<div id="rna" class="section level3">
+<h3>RNA</h3>
+<pre class="r"><code>anno.counts.all &lt;- unique(anno.counts.all[,-1])
+
+test &lt;- anno.counts.all %&gt;%
+  group_by(type, win) %&gt;%
+  summarise(pval=wilcox.test(counts[treatment==&quot;ctrl&quot;],
+                             counts[treatment==&quot;cyt&quot;],
+                             paired=F)$p.value,
+            num=length(counts[treatment==&quot;ctrl&quot;]))
+
+test$lab &lt;- &quot;&quot;
+test$lab[test$pval&lt;0.05] &lt;- &quot;*&quot;
+test$lab[test$pval&lt;0.01] &lt;- &quot;**&quot;
+test$lab[test$pval&lt;0.001] &lt;- &quot;***&quot;
+
+cor.rna &lt;- 
+  ggplot(anno.counts.all[anno.counts.all$win==&quot;win30000&quot;,],
+       aes(type, log2(counts + 1))) +
+  geom_boxplot(aes(color=treatment), notch=TRUE, 
+               outlier.shape=NA, lwd=1) +
+  geom_text(data=test[test$win==&quot;win30000&quot;,],
+            aes(x=type, y=20, label=lab),
+            size=5) +
+  geom_label(data=test[test$win==&quot;win30000&quot;,],
+            aes(x=type, y=0, label=scales::comma(num)),
+            size=3) +
+  scale_color_manual(values=pals$treatment,
+                     name=&quot;Treatment&quot;, labels=function(x) toupper(x)) +
+  scale_x_discrete(labels=function(x) paste0(x, &quot;s&quot;)) +
+  ylab(expression(&quot;RNA-seq &quot;*log[2]*&quot; counts&quot;)) +
+  theme(legend.position=&quot;top&quot;,
+        axis.title.x=element_blank())
+
+cor.rna</code></pre>
+<p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-4-1.png" width="336" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>nums &lt;- anno.group.all %&gt;%
+  group_by(win, group) %&gt;%
+  summarise(num=length(log2FoldChange))
+
+group.rna &lt;- 
+  ggplot(anno.group.all[anno.group.all$win==&quot;win80000&quot;,],
+       aes(group, log2FoldChange)) +
+  geom_boxplot(aes(color=group), notch=T, outlier.shape=NA, lwd=1) + 
+  scale_color_manual(values=c(&quot;slategray1&quot;, &quot;slategray2&quot;, &quot;slategray3&quot;, &quot;slategray4&quot;)) +
+  geom_label(data=nums[nums$win==&quot;win80000&quot;,],
+             aes(group, y=-1, label=scales::comma(num))) +
+  geom_hline(yintercept=0, lty=2, color=&quot;grey&quot;) +
+  scale_y_continuous(name=expression(&quot;RNA-seq &quot;*log[2]*&quot; FC&quot;), limits=c(-1,6)) +
+  annotate(&quot;text&quot;, 1.3, 5.8, label=&quot;P&lt;2x10-16&quot;) +
+  xlab(&quot;# of IREs&quot;) +
+  theme(legend.position=&quot;none&quot;)
+
+group.rna</code></pre>
+<p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-5-1.png" width="336" style="display: block; margin: auto;" /></p>
+</div>
+<div id="protein" class="section level3">
+<h3>Protein</h3>
+<pre class="r"><code>test &lt;- wilcox.test(anno.prot.all$prot.log2FoldChange[anno.prot.all$win==&quot;win30000&quot; &amp;
+                                                        anno.prot.all$type==&quot;IRE&quot;],
+                    anno.prot.all$prot.log2FoldChange[anno.prot.all$win==&quot;win30000&quot; &amp;
+                                                        anno.prot.all$type==&quot;SRE&quot;])
+
+prot.distr &lt;- 
+  ggplot(anno.prot.all[anno.prot.all$win==&quot;win30000&quot;,],
+       aes(prot.log2FoldChange)) +
+  geom_density(aes(fill=type, color=type), alpha=0.1, lwd=.7) +
+  scale_fill_manual(values=pals$re, name=&quot;RE type&quot;,
+                    labels=function(x) paste0(x, &quot;s&quot;)) +
+  scale_color_manual(values=pals$re, name=&quot;RE type&quot;,
+                    labels=function(x) paste0(x, &quot;s&quot;)) +
+  geom_vline(xintercept=c(-1,1), lty=2, color=&quot;grey&quot;) +
+  annotate(&quot;text&quot;, 2, 3.5, label=expression(P&lt;2*x*10^{-16})) +
+  xlab(expression(&quot;Protein &quot;*log[2]*&quot; FC&quot;)) + ylab(&quot;Density&quot;) +
+  theme(legend.position=&quot;top&quot;)
+
+prot.distr</code></pre>
+<p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-6-1.png" width="336" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>anno.prot.all$type &lt;- factor(anno.prot.all$type, levels=c(&quot;IRE&quot;, &quot;SRE&quot;))
+
+prot.bar &lt;- 
+  ggplot(anno.prot.all[anno.prot.all$win==&quot;win30000&quot;,],
+       aes(type, ..count..)) +
+  geom_bar(aes(fill=prot.type),
+           position=&quot;fill&quot;, color=&quot;black&quot;, width=0.7) +
+  scale_fill_manual(values=pals$differential,
+                    name=&quot;Protein type&quot;,
+                    labels=c(&quot;Up-regulated&quot;, &quot;Down-regulated&quot;, &quot;Equal-regulated&quot;)) +
+  annotate(&quot;text&quot;, 1.5, 1.05, label=&quot;***&quot;, size=6) +
+  scale_y_continuous(labels=function(x) x*100,
+                     name=&quot;% Proteins&quot;) +
+  scale_x_discrete(labels=function(x) paste0(x, &quot;s&quot;)) +
+  theme(legend.position=&quot;top&quot;,
+        axis.title.x=element_blank()) +
+  guides(fill=guide_legend(ncol=1))
+
+prot.bar</code></pre>
+<p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-7-1.png" width="336" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -794,22 +1016,24 @@ loaded via a namespace (and not attached):
 [59] stringi_1.4.6               yaml_2.2.1                 
 [61] SummarizedExperiment_1.16.1 zlibbioc_1.32.0            
 [63] plyr_1.8.6                  blob_1.2.1                 
-[65] grid_3.6.3                  promises_1.1.0             
-[67] crayon_1.3.4                lattice_0.20-41            
-[69] splines_3.6.3               annotate_1.64.0            
-[71] hms_0.5.3                   locfit_1.5-9.4             
-[73] knitr_1.28                  pillar_1.4.3               
-[75] reshape2_1.4.4              geneplotter_1.64.0         
-[77] XML_3.99-0.3                glue_1.4.0                 
-[79] evaluate_0.14               latticeExtra_0.6-29        
-[81] data.table_1.12.8           png_0.1-7                  
-[83] vctrs_0.2.4                 httpuv_1.5.2               
-[85] gtable_0.3.0                assertthat_0.2.1           
-[87] xfun_0.13                   xtable_1.8-4               
-[89] later_1.0.0                 survival_3.1-12            
-[91] viridisLite_0.3.0           tibble_3.0.1               
-[93] memoise_1.1.0               AnnotationDbi_1.48.0       
-[95] cluster_2.1.0               ellipsis_0.3.0             </code></pre>
+[65] grid_3.6.3                  ggrepel_0.8.2              
+[67] promises_1.1.0              crayon_1.3.4               
+[69] lattice_0.20-41             splines_3.6.3              
+[71] annotate_1.64.0             hms_0.5.3                  
+[73] locfit_1.5-9.4              knitr_1.28                 
+[75] pillar_1.4.3                reshape2_1.4.4             
+[77] geneplotter_1.64.0          XML_3.99-0.3               
+[79] glue_1.4.0                  evaluate_0.14              
+[81] latticeExtra_0.6-29         data.table_1.12.8          
+[83] png_0.1-7                   vctrs_0.2.4                
+[85] httpuv_1.5.2                gtable_0.3.0               
+[87] assertthat_0.2.1            xfun_0.13                  
+[89] xtable_1.8-4                later_1.0.0                
+[91] survival_3.1-12             viridisLite_0.3.0          
+[93] tibble_3.0.1                memoise_1.1.0              
+[95] AnnotationDbi_1.48.0        cluster_2.1.0              
+[97] ellipsis_0.3.0             </code></pre>
+</div>
 </div>
 </div>
 

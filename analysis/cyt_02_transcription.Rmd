@@ -197,3 +197,237 @@ ggplot(df,
 
 ## Analysis of multiplex proteomics data
 
+### Differential analysis
+
+```{r}
+load("../data/CYT/Proteomics/proteomics_data_type.rda")
+
+table(data$type)
+```
+
+```{r volc-plot-prot, fig.height=4, fig.width=4, fig.cap="Volcano plot showing detected proteins classified as more abundant (green) or less abundant (red) after cytokine exposure in EndoC cells."}
+volc.rna <- 
+  ggplot(data.frame(data),
+       aes(log2FoldChange, -log10(pvalue))) +
+  geom_point(aes(color=type), size=0.7) + 
+  scale_color_manual(values=pals$differential,
+                    name="PROT type") +
+  geom_vline(xintercept=c(0.58,-0.58), linetype=2, color="dark grey") +
+  # geom_hline(yintercept=-log10(0.1), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold change")) + ylab(expression(-Log[10]*" P")) +
+  ggtitle(expression("Proteomics EndoC-"*beta*H1)) +
+  theme_cowplot(18) +
+  theme(legend.position="none")
+
+volc.rna
+```
+
+### Protein-protein interaction network
+
+??
+
+## Correlation mRNA and protein product
+
+
+```{r plot-cor-rna-prot, fig.width=4, fig.height=4}
+load("../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda")
+load("../data/CYT/Proteomics/proteomics_data_type.rda")
+colnames(data)[c(4,17)] <- paste0("prot.", colnames(data[c(4,17)]))
+
+cor <- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:3,5,10)]),
+                        data[,c(9,4,17)])
+colnames(cor)[4:5] <- paste0("rna.", colnames(cor)[4:5])
+cor <- cor[!is.na(cor$prot.type),]
+
+test <- cor.test(cor$rna.log2FoldChange, cor$prot.log2FoldChange)
+cor <- cor[order(cor$rna.log2FoldChange+cor$prot.log2FoldChange, decreasing = T),]
+
+cor$lab <- NA
+cor$lab[1:10] <- cor$external_gene_name[1:10]
+
+cor$rna.type <- factor(cor$rna.type, levels=c("stable", "lost", "gained"))
+cor$prot.type <- factor(cor$prot.type, levels=c("stable", "lost", "gained"))
+cor <- cor[order(cor$rna.type, cor$prot.type),]
+
+cor.prot <- 
+  ggplot(cor,
+       aes(rna.log2FoldChange, prot.log2FoldChange)) +
+  geom_point(aes(color=prot.type, fill=rna.type), pch=21) +
+  ggrepel::geom_text_repel(aes(label=lab), size=3) +
+  annotate("text", x=-2, y=12, 
+           label=as.expression(bquote(r^2 == .(round(test$estimate, 2)))),
+           hjust=0) +
+  annotate("text", x=-2, y=11, 
+           label=expression(P<=2*x*10^-16),
+           hjust=0) + 
+  scale_fill_manual(values=pals$differential) +
+  scale_color_manual(values=pals$differential) +
+  scale_y_continuous(limits=c(-3,13),
+                     name=expression("Proteomics "*log[2]*" FC")) +
+  scale_x_continuous(limits=c(-3,13),
+                     name=expression("RNA-seq "*log[2]*" FC")) +
+  theme(legend.position="none")
+
+cor.prot
+```
+
+## Correlation REs and mRNA/Protein
+
+```
+Rscript code/CYT_annotate_RE_to_RNA_PROT.R -f 1 -q 0.05 -s endoc -w 30000
+Rscript code/CYT_annotate_RE_to_RNA_PROT.R -f 1 -q 0.05 -s endoc -w 80000
+```
+```{r load-data-rna}
+files <- list.files(out_dir,
+                    pattern="RNA_annotation_endoc_",
+                    full.names=TRUE)
+names <- gsub("RNA_annotation_endoc_fc1_padj0.05_", "", gsub(".rda", "", basename(files)))
+  
+anno.counts.all <- data.frame()
+anno.group.all <- data.frame()
+
+for (i in 1:length(files)) {
+  load(files[i])
+  
+  anno.counts$win <- names[i]
+  anno.counts.all <- rbind(anno.counts.all, anno.counts)
+  
+  anno.group$win <- names[i]
+  anno.group.all <- rbind(anno.group.all, anno.group)
+}
+
+anno.counts.all$win <- factor(anno.counts.all$win,
+                               levels=unique(anno.counts.all$win))
+
+anno.group.all$win <- factor(anno.group.all$win,
+                               levels=unique(anno.counts.all$win))
+
+rm(anno.counts, anno.group, anno)
+```
+
+```{r load-data-prot}
+files <- list.files(out_dir,
+                    pattern="PROT_annotation_endoc_",
+                    full.names=TRUE)
+names <- gsub("PROT_annotation_endoc_fc1_padj0.05_", "", gsub(".rda", "", basename(files)))
+
+anno.prot.all <- data.frame()
+
+for (i in 1:length(files)) {
+  load(files[i])
+  
+  anno.prot$win <- names[i]
+  anno.prot.all <- rbind(anno.prot.all, anno.prot)
+}
+
+anno.prot.all$win <- factor(anno.prot.all$win,
+                               levels=unique(anno.prot.all$win))
+
+rm("anno.prot")
+```
+
+
+### RNA
+
+```{r, fig.width=3.5, fig.height=4}
+anno.counts.all <- unique(anno.counts.all[,-1])
+
+test <- anno.counts.all %>%
+  group_by(type, win) %>%
+  summarise(pval=wilcox.test(counts[treatment=="ctrl"],
+                             counts[treatment=="cyt"],
+                             paired=F)$p.value,
+            num=length(counts[treatment=="ctrl"]))
+
+test$lab <- ""
+test$lab[test$pval<0.05] <- "*"
+test$lab[test$pval<0.01] <- "**"
+test$lab[test$pval<0.001] <- "***"
+
+cor.rna <- 
+  ggplot(anno.counts.all[anno.counts.all$win=="win30000",],
+       aes(type, log2(counts + 1))) +
+  geom_boxplot(aes(color=treatment), notch=TRUE, 
+               outlier.shape=NA, lwd=1) +
+  geom_text(data=test[test$win=="win30000",],
+            aes(x=type, y=20, label=lab),
+            size=5) +
+  geom_label(data=test[test$win=="win30000",],
+            aes(x=type, y=0, label=scales::comma(num)),
+            size=3) +
+  scale_color_manual(values=pals$treatment,
+                     name="Treatment", labels=function(x) toupper(x)) +
+  scale_x_discrete(labels=function(x) paste0(x, "s")) +
+  ylab(expression("RNA-seq "*log[2]*" counts")) +
+  theme(legend.position="top",
+        axis.title.x=element_blank())
+
+cor.rna
+```
+
+```{r, fig.width=3.5, fig.height=4}
+nums <- anno.group.all %>%
+  group_by(win, group) %>%
+  summarise(num=length(log2FoldChange))
+
+group.rna <- 
+  ggplot(anno.group.all[anno.group.all$win=="win80000",],
+       aes(group, log2FoldChange)) +
+  geom_boxplot(aes(color=group), notch=T, outlier.shape=NA, lwd=1) + 
+  scale_color_manual(values=c("slategray1", "slategray2", "slategray3", "slategray4")) +
+  geom_label(data=nums[nums$win=="win80000",],
+             aes(group, y=-1, label=scales::comma(num))) +
+  geom_hline(yintercept=0, lty=2, color="grey") +
+  scale_y_continuous(name=expression("RNA-seq "*log[2]*" FC"), limits=c(-1,6)) +
+  annotate("text", 1.3, 5.8, label="P<2x10-16") +
+  xlab("# of IREs") +
+  theme(legend.position="none")
+
+group.rna
+```
+
+### Protein
+
+```{r, fig.height=4, fig.width=3.5}
+test <- wilcox.test(anno.prot.all$prot.log2FoldChange[anno.prot.all$win=="win30000" &
+                                                        anno.prot.all$type=="IRE"],
+                    anno.prot.all$prot.log2FoldChange[anno.prot.all$win=="win30000" &
+                                                        anno.prot.all$type=="SRE"])
+
+prot.distr <- 
+  ggplot(anno.prot.all[anno.prot.all$win=="win30000",],
+       aes(prot.log2FoldChange)) +
+  geom_density(aes(fill=type, color=type), alpha=0.1, lwd=.7) +
+  scale_fill_manual(values=pals$re, name="RE type",
+                    labels=function(x) paste0(x, "s")) +
+  scale_color_manual(values=pals$re, name="RE type",
+                    labels=function(x) paste0(x, "s")) +
+  geom_vline(xintercept=c(-1,1), lty=2, color="grey") +
+  annotate("text", 2, 3.5, label=expression(P<2*x*10^{-16})) +
+  xlab(expression("Protein "*log[2]*" FC")) + ylab("Density") +
+  theme(legend.position="top")
+
+prot.distr
+```
+
+```{r, fig.width=3.5, fig.height=4}
+anno.prot.all$type <- factor(anno.prot.all$type, levels=c("IRE", "SRE"))
+
+prot.bar <- 
+  ggplot(anno.prot.all[anno.prot.all$win=="win30000",],
+       aes(type, ..count..)) +
+  geom_bar(aes(fill=prot.type),
+           position="fill", color="black", width=0.7) +
+  scale_fill_manual(values=pals$differential,
+                    name="Protein type",
+                    labels=c("Up-regulated", "Down-regulated", "Equal-regulated")) +
+  annotate("text", 1.5, 1.05, label="***", size=6) +
+  scale_y_continuous(labels=function(x) x*100,
+                     name="% Proteins") +
+  scale_x_discrete(labels=function(x) paste0(x, "s")) +
+  theme(legend.position="top",
+        axis.title.x=element_blank()) +
+  guides(fill=guide_legend(ncol=1))
+
+prot.bar
+```
