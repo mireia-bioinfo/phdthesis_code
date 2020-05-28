@@ -5,10 +5,10 @@ author: "Mireia Ramos-Rodríguez"
 
 ## Publication
 
-> **Ramos-Rodríguez, M.**, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. *Nat Genet.* **51**, 1588–1595 (2019) doi:10.1038/s41588-019-0524-6
+> **Ramos-Rodríguez, M.**, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. *Nat Genet.* **51**, 1588–1595 (2019) https://doi.org/10.1038/s41588-019-0524-6
 
-```{r, echo=FALSE, out.width='60%'}
-knitr::include_graphics("../docs/figure/graphical_abstracts/cyt.png")
+```{r, echo=FALSE, out.width='70%', error=FALSE}
+knitr::include_graphics("figure/graphical_abstracts/cyt.png", error=FALSE)
 ```
 
 

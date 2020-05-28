@@ -5,10 +5,10 @@ author: "Mireia Ramos-Rodríguez"
 
 ## Publication
 
-> Colli, M.L., **Ramos-Rodríguez, M.**, Nakayasu, N.S. et al. An integrated multi-omics approach identifies the landscape of interferon-$\alpha$-mediated responses of human pancreatic $\beta$ cells. *Nat Commun.* (2020)
+> Colli, M.L., **Ramos-Rodríguez, M.**, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. *Nat Commun* **11**, 2584 (2020). https://doi.org/10.1038/s41467-020-16327-0
 
-```{r, echo=FALSE, out.width='60%'}
-knitr::include_graphics("../docs/figure/graphical_abstracts/ifn.png")
+```{r, echo=FALSE, out.width='70%'}
+knitr::include_graphics("figure/graphical_abstracts/ifn.png", error=FALSE)
 ```
 
 ## Data availability
@@ -25,4 +25,3 @@ knitr::kable(ids,
 ## Data processing
 
 
-## Index of Results
