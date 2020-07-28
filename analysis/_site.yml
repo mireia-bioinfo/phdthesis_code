@@ -23,6 +23,16 @@ navbar:
         href: cyt_04_contacts.html
       - text: "#5 IREs and T1D risk"
         href: cyt_05_t1d.html
+  - text: IRB
+    menu:
+      - text: Description
+        href: index_irb.html
+      - text: plotRegulome R package
+        href: https://mireia-bioinfo.github.io/plotRegulome
+      - text: IRB Shiny App code
+        href: https://github.com/mireia-bioinfo/isletregulome_shiny
+      - text: Islet Regulome Browser
+        href: http://www.isletregulome.org
   - text: About
     href: about.html
   - text: License
@@ -40,3 +50,5 @@ output:
     highlight: textmate
     css: style.css
     linkcolor: red
+    # includes:
+    #   after_body: include/footer.html

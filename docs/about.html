@@ -20,7 +20,6 @@
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
@@ -257,9 +256,6 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
-<style type="text/css">
-.code-folding-btn { margin-bottom: 4px; }
-</style>
 
 
 
@@ -328,6 +324,27 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    IRB
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="index_irb.html">Description</a>
+    </li>
+    <li>
+      <a href="https://mireia-bioinfo.github.io/plotRegulome">plotRegulome R package</a>
+    </li>
+    <li>
+      <a href="https://github.com/mireia-bioinfo/isletregulome_shiny">IRB Shiny App code</a>
+    </li>
+    <li>
+      <a href="http://www.isletregulome.org">Islet Regulome Browser</a>
+    </li>
+  </ul>
+</li>
 <li>
   <a href="about.html">About</a>
 </li>
@@ -350,14 +367,6 @@ $(document).ready(function () {
 
 <div class="fluid-row" id="header">
 
-<div class="btn-group pull-right">
-<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
-<ul class="dropdown-menu" style="min-width: 50px;">
-<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
-<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
-</ul>
-</div>
-
 
 
 <h1 class="title toc-ignore">About</h1>
@@ -365,7 +374,20 @@ $(document).ready(function () {
 </div>
 
 
-<p>Describe your project.</p>
+<p>The contents of this site have been generated as supplementary material to the PhD thesis entitled <mark><span class="math inline">\(\beta\)</span>-cells cis-regulatory networks and type 1 diabetes</mark>, a dissertation submitted by <mark>Mireia Ramos Rodríguez</mark> to opt for a Doctoral Degree in Biomedicine from the Universitat de Barcelona.</p>
+<blockquote>
+<p>Ramos-Rodríguez, M. (2020). <em><span class="math inline">\(\beta\)</span>-cells cis-regulatory networks and type 1 diabetes</em> (Unpublished doctoral dissertation). Universitat de Barcelona, Barcelona, Spain.</p>
+</blockquote>
+<p>The above-mentioned thesis was developed under the supervision of Dr. Lorenzo Pasquali at the <a href="https://www.endoregulatorygenomics.org/">Endocrine Regulatory Genomics Lab</a> in <a href="http://www.germanstrias.org/">Fundació Institut d’Investigació en Ciències de la Salut Germans Trias i Pujol (IGTP)</a>.</p>
+<p>You can download a temporary copy of the PhD thesis <a href="https://drive.google.com/file/d/15_peaNIS0-UKUEdL3ZCUSgCWtwrldMsi/view?usp=sharing">here</a>.</p>
+<div id="abstract" class="section level2">
+<h2>Abstract</h2>
+<p>Type 1 Diabetes (T1D) is a <span class="math inline">\(\beta\)</span>-cell-targeted autoimmune disease, leading to a reduction in pancreatic <span class="math inline">\(\beta\)</span>-cell mass that renders patients insulin-dependent for life. In early stages of the disease, cells from the immune system infiltrate pancreatic islets in a process called insulitis. During this stage, a cross-talk is established between cells in the pancreatic islets and the infiltrating immune cells, mediated by the release of cytokines and chemokines. Studying the gene regulatory networks driving <span class="math inline">\(\beta\)</span> cell responses during insulitis, will allow us to pinpoint key gene pathways leading to <span class="math inline">\(\beta\)</span>-cell loss-of-function and apoptosis, and also to understand the role <span class="math inline">\(\beta\)</span> cells have in their own demise.</p>
+<p>In the present thesis, we used two different cytokine cocktails, IFN-<span class="math inline">\(\alpha\)</span> and IFN-<span class="math inline">\(\gamma\)</span> + IL-1<span class="math inline">\(\beta\)</span>, to model early and late insulitis, respectively. After exposing <span class="math inline">\(\beta\)</span> cells and pancreatic islets to such proinflammatory cytokines, we characterized the changes in their chromatin landscape, gene networks and protein profiles. Using both models, we observed dramatic chromatin remodeling in terms of accessibility and/or H3K27ac histone modification enrichment, coupled with up-regulation of the nearby genes and increased abundance of the corresponding protein.</p>
+<p>Mining gene regulatory networks of <span class="math inline">\(\beta\)</span>-cells exposed to IFN-<span class="math inline">\(\alpha\)</span> revealed two potential therapeutic interventions which were able to reduce interferon signature in <span class="math inline">\(\beta\)</span> cells: 1) Inhibition of bromodomain proteins, which resulted in a down-regulation of IFN-<span class="math inline">\(\alpha\)</span>-induced <em>HLA-I</em> and <em>CXCL10</em> expression; 2) Baricitnib, a JAK1/2 inhibitor, which was able to reduce both IFN-<span class="math inline">\(\alpha\)</span>-induced <em>HLA-I</em> and <em>CXCL10</em> expression levels and <span class="math inline">\(\beta\)</span> cell apoptosis.</p>
+<p>In <span class="math inline">\(\beta\)</span> cells exposed to IFN-<span class="math inline">\(\gamma\)</span> + IL-1<span class="math inline">\(\beta\)</span>, we were able to identify a subset of novel regulatory elements uncovered upon the exposure, which we named Induced Regulatory Elements (IREs). Such regions were enriched for T1D-associated risk variants, suggesting that <span class="math inline">\(\beta\)</span> cells might carry a portion of T1D genetic risk. Interestingly, we identified two T1D lead variants overlapping IREs, in which the risk allele modulated the IRE enhancer activity, exposing a potential T1D mechanism acting through <span class="math inline">\(\beta\)</span> cells.</p>
+<p>To facilitate the access to these genomic data, together with other datasets relevant for the pancreatic islet community, we developed the Islet Regulome Browser (<a href="http://www.isletregulome.org/" class="uri">http://www.isletregulome.org/</a>), a free web application that allows exploration and integration of pancreatic islet genomic data.</p>
+</div>
 
 
 <!-- Adjust MathJax settings so that all math formulae are shown using
@@ -412,11 +434,6 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("hide" === "show");
-});
-</script>
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

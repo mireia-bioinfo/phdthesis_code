@@ -406,6 +406,27 @@ div.tocify {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    IRB
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="index_irb.html">Description</a>
+    </li>
+    <li>
+      <a href="https://mireia-bioinfo.github.io/plotRegulome">plotRegulome R package</a>
+    </li>
+    <li>
+      <a href="https://github.com/mireia-bioinfo/isletregulome_shiny">IRB Shiny App code</a>
+    </li>
+    <li>
+      <a href="http://www.isletregulome.org">Islet Regulome Browser</a>
+    </li>
+  </ul>
+</li>
 <li>
   <a href="about.html">About</a>
 </li>
@@ -606,6 +627,8 @@ Sumary of per-replicate sequencing metrics, showing total library sizes, percent
 </p>
 </div>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_tss_enrichment.rda&quot;)
+# tss &lt;- ungroup(tss)
+# save(tss, file=&quot;../data/CYT/ATAC/QC/ATAC_tss_enrichment.rda&quot;)
 
 tss$dataset &lt;- factor(tss$dataset, levels=c(&quot;TSS annotation&quot;, &quot;Random control&quot;))
 tss$group &lt;- gsub(&quot;[[:digit:]]*_&quot;, &quot;_&quot;, tss$sample)
@@ -631,6 +654,8 @@ Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized 
 </p>
 </div>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_noise.rda&quot;)
+# stats &lt;- ungroup(stats)
+# save(stats, file=&quot;../data/CYT/ATAC/QC/ATAC_noise.rda&quot;)
 
 stats$mean.errorbar &lt;- stats$mean
 stats &lt;- stats[order(rev(stats$Annotation)),]
@@ -1592,7 +1617,7 @@ deNovoMotifHOMER(bed=paste0(&quot;../data/CYT/bedfiles/IREs_endoc_fc1_padj0.05.b
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>R version 3.6.3 (2020-02-29)
+<pre><code>R version 4.0.0 (2020-04-24)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 10 x64 (build 18362)
 
@@ -1608,50 +1633,49 @@ attached base packages:
  [8] datasets  methods   base     
 
 other attached packages:
- [1] DESeq2_1.26.0               SummarizedExperiment_1.16.1
- [3] DelayedArray_0.12.3         BiocParallel_1.20.1        
- [5] matrixStats_0.56.0          Biobase_2.46.0             
- [7] ComplexHeatmap_2.5.2        dplyr_0.8.5                
- [9] kableExtra_1.1.0            cowplot_1.0.0              
-[11] ggplot2_3.3.0               GenomicRanges_1.38.0       
-[13] GenomeInfoDb_1.22.1         IRanges_2.20.2             
-[15] S4Vectors_0.24.4            BiocGenerics_0.32.0        
-[17] workflowr_1.6.1            
+ [1] DESeq2_1.29.4               SummarizedExperiment_1.19.4
+ [3] DelayedArray_0.15.1         matrixStats_0.56.0         
+ [5] Biobase_2.49.0              ComplexHeatmap_2.5.3       
+ [7] dplyr_1.0.0                 kableExtra_1.1.0           
+ [9] cowplot_1.0.0               ggplot2_3.3.1              
+[11] GenomicRanges_1.41.1        GenomeInfoDb_1.25.0        
+[13] IRanges_2.23.5              S4Vectors_0.27.8           
+[15] BiocGenerics_0.35.2         workflowr_1.6.2            
 
 loaded via a namespace (and not attached):
- [1] colorspace_1.4-1       rjson_0.2.20           ellipsis_0.3.0        
- [4] rprojroot_1.3-2        circlize_0.4.9         htmlTable_1.13.3      
- [7] XVector_0.26.0         GlobalOptions_0.1.1    base64enc_0.1-3       
-[10] fs_1.3.2               clue_0.3-57            rstudioapi_0.11       
-[13] farver_2.0.3           bit64_0.9-7            AnnotationDbi_1.48.0  
-[16] xml2_1.3.2             splines_3.6.3          geneplotter_1.64.0    
-[19] knitr_1.28             Formula_1.2-3          annotate_1.64.0       
-[22] cluster_2.1.0          png_0.1-7              readr_1.3.1           
-[25] compiler_3.6.3         httr_1.4.1             backports_1.1.6       
-[28] assertthat_0.2.1       Matrix_1.2-18          limma_3.42.2          
-[31] later_1.0.0            acepack_1.4.1          htmltools_0.4.0       
-[34] tools_3.6.3            gtable_0.3.0           glue_1.4.0            
-[37] GenomeInfoDbData_1.2.2 reshape2_1.4.4         Rcpp_1.0.4            
-[40] vctrs_0.2.4            xfun_0.13              stringr_1.4.0         
-[43] rvest_0.3.5            lifecycle_0.2.0        XML_3.99-0.3          
-[46] zlibbioc_1.32.0        scales_1.1.0           hms_0.5.3             
-[49] promises_1.1.0         RColorBrewer_1.1-2     yaml_2.2.1            
-[52] memoise_1.1.0          gridExtra_2.3          rpart_4.1-15          
-[55] latticeExtra_0.6-29    stringi_1.4.6          RSQLite_2.2.0         
-[58] highr_0.8              genefilter_1.68.0      checkmate_2.0.0       
-[61] shape_1.4.4            rlang_0.4.5            pkgconfig_2.0.3       
-[64] bitops_1.0-6           evaluate_0.14          lattice_0.20-41       
-[67] purrr_0.3.4            htmlwidgets_1.5.1      labeling_0.3          
-[70] bit_1.1-15.2           tidyselect_1.0.0       plyr_1.8.6            
-[73] magrittr_1.5           R6_2.4.1               Hmisc_4.4-0           
-[76] DBI_1.1.0              pillar_1.4.3           foreign_0.8-76        
-[79] withr_2.2.0            survival_3.1-12        RCurl_1.98-1.1        
-[82] nnet_7.3-14            tibble_3.0.1           crayon_1.3.4          
-[85] rmarkdown_2.1          jpeg_0.1-8.1           GetoptLong_0.1.8      
-[88] locfit_1.5-9.4         data.table_1.12.8      blob_1.2.1            
-[91] git2r_0.26.1           digest_0.6.25          webshot_0.5.2         
-[94] xtable_1.8-4           httpuv_1.5.2           munsell_0.5.0         
-[97] viridisLite_0.3.0     </code></pre>
+ [1] bitops_1.0-6           fs_1.4.1               bit64_0.9-7           
+ [4] webshot_0.5.2          RColorBrewer_1.1-2     httr_1.4.1            
+ [7] rprojroot_1.3-2        tools_4.0.0            backports_1.1.7       
+[10] R6_2.4.1               rpart_4.1-15           Hmisc_4.4-0           
+[13] DBI_1.1.0              colorspace_1.4-1       nnet_7.3-14           
+[16] GetoptLong_1.0.2       withr_2.2.0            gridExtra_2.3         
+[19] tidyselect_1.1.0       bit_1.1-15.2           compiler_4.0.0        
+[22] git2r_0.27.1           rvest_0.3.6            htmlTable_2.0.1       
+[25] xml2_1.3.2             labeling_0.3           checkmate_2.0.0       
+[28] scales_1.1.1           readr_1.3.1            genefilter_1.71.0     
+[31] stringr_1.4.0          digest_0.6.25          foreign_0.8-80        
+[34] rmarkdown_2.3          XVector_0.29.1         jpeg_0.1-8.1          
+[37] base64enc_0.1-3        pkgconfig_2.0.3        htmltools_0.5.0       
+[40] limma_3.45.9           highr_0.8              htmlwidgets_1.5.1     
+[43] rlang_0.4.6            GlobalOptions_0.1.2    rstudioapi_0.11       
+[46] RSQLite_2.2.0          shape_1.4.4            generics_0.0.2        
+[49] farver_2.0.3           BiocParallel_1.23.0    acepack_1.4.1         
+[52] RCurl_1.98-1.2         magrittr_1.5           Formula_1.2-3         
+[55] GenomeInfoDbData_1.2.3 Matrix_1.2-18          Rcpp_1.0.4.6          
+[58] munsell_0.5.0          lifecycle_0.2.0        stringi_1.4.6         
+[61] yaml_2.2.1             zlibbioc_1.35.0        plyr_1.8.6            
+[64] blob_1.2.1             promises_1.1.0         crayon_1.3.4          
+[67] lattice_0.20-41        splines_4.0.0          annotate_1.67.0       
+[70] circlize_0.4.10        hms_0.5.3              locfit_1.5-9.4        
+[73] knitr_1.28             pillar_1.4.4           rjson_0.2.20          
+[76] reshape2_1.4.4         geneplotter_1.67.0     XML_3.99-0.3          
+[79] glue_1.4.1             evaluate_0.14          latticeExtra_0.6-29   
+[82] data.table_1.12.8      png_0.1-7              vctrs_0.3.0           
+[85] httpuv_1.5.3.1         gtable_0.3.0           purrr_0.3.4           
+[88] clue_0.3-57            xfun_0.14              xtable_1.8-4          
+[91] later_1.0.0            survival_3.1-12        viridisLite_0.3.0     
+[94] tibble_3.0.1           AnnotationDbi_1.51.0   memoise_1.1.0         
+[97] cluster_2.1.0          ellipsis_0.3.1        </code></pre>
 </div>
 </div>
 
@@ -1722,7 +1746,7 @@ $(document).ready(function ()  {
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
       },
       ignoreSelector: ".toc-ignore",
       scrollTo: 0

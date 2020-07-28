@@ -1,0 +1,13 @@
+---
+title: "The Pancreatic Islet Regulome Browser"
+author: "Mireia Ramos-Rodríguez"
+---
+
+***
+
+# Publication
+
+> Mularoni L., **Ramos-Rodríguez M.** and Pasquali L. The Pancreatic Islet Regulome Browser. *Front. Genet.* **8** (2017). https://doi.org/10.3389/fgene.2017.00013
+
+# Data & Code availability
+

@@ -192,6 +192,8 @@ qc
 
 ```{r atac-tss-enrichment, fig.width=6, fig.height=4, fig.cap="Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions."}
 load("../data/CYT/ATAC/QC/ATAC_tss_enrichment.rda")
+# tss <- ungroup(tss)
+# save(tss, file="../data/CYT/ATAC/QC/ATAC_tss_enrichment.rda")
 
 tss$dataset <- factor(tss$dataset, levels=c("TSS annotation", "Random control"))
 tss$group <- gsub("[[:digit:]]*_", "_", tss$sample)
@@ -215,6 +217,8 @@ tss.plot
 
 ```{r atac-signal-to-noise, fig.height=4, fig.width=4, fig.cap="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks."}
 load("../data/CYT/ATAC/QC/ATAC_noise.rda")
+# stats <- ungroup(stats)
+# save(stats, file="../data/CYT/ATAC/QC/ATAC_noise.rda")
 
 stats$mean.errorbar <- stats$mean
 stats <- stats[order(rev(stats$Annotation)),]

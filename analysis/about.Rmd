@@ -3,8 +3,35 @@ title: "About"
 output:
   workflowr::wflow_html:
     toc: false
+    code_folding: "none"
 editor_options:
   chunk_output_type: console
 ---
 
-Describe your project.
+The contents of this site have been generated as supplementary material to the PhD thesis entitled <mark>$\beta$-cells cis-regulatory networks and type 1 diabetes</mark>, a dissertation submitted by <mark>Mireia Ramos Rodríguez</mark> to opt for a Doctoral Degree in Biomedicine from the Universitat de Barcelona. 
+
+> Ramos-Rodríguez, M. (2020). *$\beta$-cells cis-regulatory networks and type 1 diabetes* (Unpublished doctoral dissertation). Universitat de Barcelona, Barcelona, Spain.
+
+The above-mentioned thesis was developed under the supervision of Dr. Lorenzo Pasquali at the
+[Endocrine Regulatory Genomics Lab](https://www.endoregulatorygenomics.org/) in [Fundació Institut d’Investigació en Ciències de la Salut Germans Trias i Pujol (IGTP)](http://www.germanstrias.org/).
+
+You can download a temporary copy of the PhD thesis [here](https://drive.google.com/file/d/15_peaNIS0-UKUEdL3ZCUSgCWtwrldMsi/view?usp=sharing).
+
+## Abstract
+
+Type 1 Diabetes (T1D) is a $\beta$-cell-targeted autoimmune disease, leading to a reduction in pancreatic $\beta$-cell mass that renders patients insulin-dependent for life.
+In early stages of the disease, cells from the immune system infiltrate pancreatic islets in a process called insulitis.
+During this stage, a cross-talk is established between cells in the pancreatic islets and the infiltrating immune cells, mediated by the release of cytokines and chemokines.
+Studying the gene regulatory networks driving $\beta$ cell responses during insulitis, will allow us to pinpoint key gene pathways leading to $\beta$-cell loss-of-function and apoptosis, and also to understand the role $\beta$ cells have in their own demise.
+
+In the present thesis, we used two different cytokine cocktails, IFN-$\alpha$ and IFN-$\gamma$ + IL-1$\beta$, to model early and late insulitis, respectively.
+After exposing $\beta$ cells and pancreatic islets to such proinflammatory cytokines, we characterized the changes in their chromatin landscape, gene networks and protein profiles.
+Using both models, we observed dramatic chromatin remodeling in terms of accessibility and/or H3K27ac histone modification enrichment, coupled with up-regulation of the nearby genes and increased abundance of the corresponding protein.
+
+Mining gene regulatory networks of $\beta$-cells exposed to IFN-$\alpha$ revealed two potential therapeutic interventions which were able to reduce interferon signature in $\beta$ cells: 1) Inhibition of bromodomain proteins, which resulted in a down-regulation of IFN-$\alpha$-induced *HLA-I* and *CXCL10* expression; 2) Baricitnib, a JAK1/2 inhibitor, which was able to reduce both IFN-$\alpha$-induced *HLA-I* and *CXCL10* expression levels and $\beta$ cell apoptosis.
+
+In $\beta$ cells exposed to IFN-$\gamma$ + IL-1$\beta$, we were able to identify a subset of novel regulatory elements uncovered upon the exposure, which we named Induced Regulatory Elements (IREs).
+Such regions were enriched for T1D-associated risk variants, suggesting that $\beta$ cells might carry a portion of T1D genetic risk.
+Interestingly, we identified two T1D lead variants overlapping IREs, in which the risk allele modulated the IRE enhancer activity, exposing a potential T1D mechanism acting through $\beta$ cells.
+
+To facilitate the access to these genomic data, together with other datasets relevant for the pancreatic islet community, we developed the Islet Regulome Browser (http://www.isletregulome.org/), a free web application that allows exploration and integration of pancreatic islet genomic data.

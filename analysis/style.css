@@ -28,3 +28,17 @@ h2, #TOC>ul>ul>li {
 a {
   color: #ff6666;
 }
+
+.footer {
+  position: static;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #ffcccc;
+  color: grey;
+  text-align: center;
+}
+
+mark {
+  background-color: #ffcccc;
+}

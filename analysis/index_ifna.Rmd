@@ -1,7 +1,14 @@
 ---
 title: "IFN-α to model early insulitis in pancreatic β cells"
 author: "Mireia Ramos-Rodríguez"
+output:
+  workflowr::wflow_html:
+    code_folding: "none"
+workflowr: 
+  sessioninfo: "" 
 ---
+
+***
 
 ## Publication
 
@@ -24,4 +31,7 @@ knitr::kable(ids,
 
 ## Data processing
 
+### ATAC-seq
+
+ATAC-seq and ChIP-seq experiments were processed using the custom [`pipelineNGS`](https://github.com/mireia-bioinfo/pipelineNGS) R package. The specific scripts used for processing such data can be found at the corresponding folders inside `data/IFN/`, in the source code repository for this website. 
 
