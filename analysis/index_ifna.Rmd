@@ -33,5 +33,5 @@ knitr::kable(ids,
 
 ### ATAC-seq
 
-ATAC-seq and ChIP-seq experiments were processed using the custom [`pipelineNGS`](https://github.com/mireia-bioinfo/pipelineNGS) R package. The specific scripts used for processing such data can be found at the corresponding folders inside `data/IFN/`, in the source code repository for this website. 
+ATAC-seq and ChIP-seq experiments were processed using the custom [`pipelineNGS`](https://github.com/mireia-bioinfo/pipelineNGS) R package. The specific scripts used for processing such data can be found at the corresponding folders inside `data/IFNa/`, in the source code repository for this website. 
 

@@ -9,6 +9,8 @@ navbar:
     menu:
       - text: Description
         href: index_ifna.html
+      - text: "#1 Chromatin remodeling induced by IFN-α"
+        href: ifn_01_accessibility.html
   - text: IFN-γ + IL-1β
     menu:
       - text: Description

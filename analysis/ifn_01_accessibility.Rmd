@@ -1,0 +1,624 @@
+---
+title: "#1 Chromatin remodeling induced by IFN-α"
+subtitle: "IFN-α induces early changes in chromatin accessibility"
+author: "Mireia Ramos-Rodríguez"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE,
+                      eval = TRUE,
+                      fig.height = 4)
+
+library(GenomicRanges)
+library(ggplot2)
+library(cowplot)
+library(kableExtra)
+library(dplyr)
+library(ComplexHeatmap)
+library(DESeq2)
+
+
+theme_set(cowplot::theme_cowplot(font_size = 10))
+load("../code/IFNa_color_palettes.rda")
+
+## Create directory to save results
+out_dir <- "../output/ifn_01_accessibility/"
+dir.create(out_dir, F)
+
+```
+
+## Analysis of ATAC-seq data
+
+### Quality control
+
+Run Rscript for generating the necessary quality control measures.
+
+```
+Rscript code/IFNa_QC_ATAC.R
+```
+
+```{r atac-heatmap, fig.width=7, fig.height=8, fig.cap="Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC)."}
+# Get RSC and NSC indexes
+# source("QC_phantom_peak.R") # Runs code to generate files
+load("../data/IFNa/ATAC/QC/QC_scores.rda")
+sc <- txt[,c("sampleID", "NSC", "RSC")]
+
+# Load alignment stats
+load("../data/IFNa/ATAC/QC/summary.rda")
+stats <- sum.df[!grepl("_2$", sum.df$samples),c("samples", "al.raw", "perc.align", "perc.filtOut")]
+colnames(stats) <- c("sampleID", "Lib Size", "% Align", "% Mito")
+
+nms <- unique(stats$sampleID)
+lvl <- rev(nms[c(grep("ctrl-2h", nms),
+             grep("ctrl-24h", nms),
+             grep("ifn-2h", nms),
+             grep("ifn-24h", nms))])
+
+stats <- dplyr::left_join(stats, sc)
+stats$sampleID <- factor(stats$sampleID,
+                         levels=lvl)
+
+lib_size <-
+  ggplot(stats,
+       aes("Lib Size", sampleID)) +
+  geom_tile(aes(fill=`Lib Size`), color="black", size=.7) +
+  geom_text(aes(label=round(`Lib Size`/1e6, 2))) +
+  scale_fill_gradient(low="white", high="darkorchid4",
+                      limits=c(0, max(stats$`Lib Size`)),
+                      breaks=c(0, max(stats$`Lib Size`)),
+                      labels=c("0", "Max"),
+                      name=expression("Library size (x"*10^6*")"),
+                      guide = guide_colorbar(direction="horizontal",
+                                             title.position = "bottom",
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = "top",
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour="black",
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line = element_blank())
+
+align <-
+  ggplot(stats,
+                aes("% Align", sampleID)) +
+  geom_tile(aes(fill=`% Align`), color="black", size=.7) +
+  geom_text(aes(label=round(`% Align`, 1))) +
+  scale_fill_gradient(low="white", high="darkorange3",
+                      limits=c(0, max(stats$`% Align`)),
+                      breaks=c(0, max(stats$`% Align`)),
+                      labels=c("0", "Max"),
+                      name="% alignment",
+                      guide = guide_colorbar(direction="horizontal",
+                                             title.position = "bottom",
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = "top",
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour="black",
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+mito <-
+  ggplot(stats,
+         aes("% Mito", sampleID)) +
+  geom_tile(aes(fill=`% Mito`), color="black", size=.7) +
+  geom_text(aes(label=round(`% Mito`, 1))) +
+  scale_fill_gradient(low="dodgerblue3", high="white",
+                      limits=c(0, max(stats$`% Mito`)),
+                      breaks=c(0, max(stats$`% Mito`)),
+                      labels=c("0", "Max"),
+                      name="% mitochondrial",
+                      guide = guide_colorbar(direction="horizontal",
+                                             title.position = "bottom",
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = "top",
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour="black",
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+nsc <-
+  ggplot(stats,
+         aes("NSC", sampleID)) +
+  geom_tile(aes(fill=NSC), color="black", size=.7) +
+  geom_text(aes(label=round(NSC, 1))) +
+  scale_fill_gradient(low="white", high="brown3",
+                      limits=c(1, max(stats$NSC)),
+                      breaks=c(1, max(stats$NSC)),
+                      labels=c("1", "Max"),
+                      name="NSC",
+                      guide = guide_colorbar(direction="horizontal",
+                                             title.position = "bottom",
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = "top",
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour="black",
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+rsc <-
+  ggplot(stats,
+         aes("RSC", sampleID)) +
+  geom_tile(aes(fill=RSC), color="black", size=.7) +
+  geom_text(aes(label=round(RSC, 1))) +
+  scale_fill_gradient(low="white", high="aquamarine4",
+                      limits=c(1, max(stats$RSC)),
+                      breaks=c(1, max(stats$RSC)),
+                      labels=c("0", "Max"),
+                      name="RSC",
+                      guide = guide_colorbar(direction="horizontal",
+                                             title.position = "bottom",
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = "top",
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour="black",
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+
+plot_grid(lib_size,
+          align,
+          mito,
+          nsc,
+          rsc,
+          nrow=1,
+          rel_widths=c(0.3, rep(0.175, 4)),
+          align="h")
+```
+
+```{r atac-tss-enrichment, fig.width=6, fig.height=4, fig.cap="Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions."}
+load("../data/IFNa/ATAC/QC/ATAC_tss_enrichment.rda")
+tss <- enr
+
+tss$dataset <- factor(tss$dataset, levels=c("TSS annotation", "Random control"))
+tss$group <- factor(tss$condition,
+                        levels=c("ctrl-2h", "ctrl-24h", "ifn-2h", "ifn-24h"),
+                        labels=c("'Control 2h'", "'Control 24h'",
+                                 "'IFN-'*alpha*' 2h'", "'IFN-'*alpha*' 24h'"))
+tss <- tss %>% 
+  group_by(dataset, group, Position) %>%
+  summarise(mean=mean(mean))
+
+tss.plot <- 
+  ggplot(tss,
+       aes(Position, mean)) +
+  geom_line(aes(group=dataset, color=dataset), lwd=0.7) +
+  scale_color_manual(values=c("seagreen4", "goldenrod3"), name="Dataset") +
+  facet_wrap(~group, scales="free_y", labeller= label_parsed) +
+  theme(legend.position="top") +
+  ylab("Mean ATAC-seq read counts") + xlab("Position relative to TSS (bp)")
+
+tss.plot
+```
+
+```{r atac-signal-to-noise, fig.height=4, fig.width=4, fig.cap="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks."}
+load("../data/IFNa/ATAC/QC/ATAC_noise.rda")
+
+stats$condition <- factor(stats$condition,
+                              levels=c("ctrl-2h", "ifn-2h", "ctrl-24h", "ifn-24h", "Random"),
+                              labels=c("'Ctrl 2h'", "'IFN-'*alpha*' 2h'",
+                                       "'Ctrl 24h'", "'IFN-'*alpha*' 24h'", "Random"))
+
+noise <- 
+  ggplot(stats[stats$Annotation!="Unassigned",],
+       aes(condition, mean)) +
+  geom_bar(aes(fill=Annotation), stat="identity",
+           position="stack",
+           color="black", lwd=0.7) +
+  geom_errorbar(aes(ymin=cumsum, ymax=cumsum+sd,
+                    group=Annotation),
+                width=.3, lwd=0.5) +
+  scale_fill_manual(values=c("violetred", "dark orange")) +
+  scale_y_continuous(name="Percentage of reads in peaks (%)") +
+  scale_x_discrete(labels=function(x) parse(text=x)) +
+  theme(axis.text.x=element_text(angle=30, hjust=1),
+        legend.position="top",
+        axis.title.x=element_blank())
+
+noise
+```
+```{r functions}
+ get_upper_tri <- function(cormat){
+    cormat[lower.tri(cormat)]<- NA
+    return(cormat)
+ }
+ 
+  get_lower_tri <- function(cormat){
+    cormat[upper.tri(cormat)]<- NA
+    return(cormat)
+  }
+```
+
+```{r atac-genome-corr, fig.cap="ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2."}
+load("../data/IFNa/ATAC/QC/ATAC_10kb_correlation_rsubread.rda")
+mat <- cor(counts$counts, method="pearson")
+mat[lower.tri(mat, diag=FALSE)] <- NA
+
+df <- reshape2::melt(mat)
+df <- df[!is.na(df$value),]
+df$condition <- gsub("_[[:digit:]]", "", df$Var1)
+
+df <- df[gsub("_[[:digit:]]", "", df$Var2)==df$condition,]
+
+
+df$condition <- factor(df$condition,
+                       levels=c("ctrl-2h", "ctrl-24h", "ifn-2h", "ifn-24h"),
+                       labels=c("'Ctrl 2h'", "'Ctrl 24h'",
+                                "'IFN-'*alpha*' 2h'", "'IFN-'*alpha*' 24h'"))
+
+ggplot(df,
+       aes(Var1, Var2)) +
+  geom_tile(aes(fill=value), color="black", size=.7) +
+  geom_text(aes(label=round(value, 2)), color="white") +
+  scale_fill_gradient2(low="white", high="royalblue4",
+                       mid="steelblue2", midpoint=0.5,
+                       limits=c(0,1),
+                       breaks=scales::pretty_breaks(n=3),
+                       name="Pearson's correlation",
+                       guide=guide_colorbar(title.vjust = 1,
+                                            label.hjust=0.5,
+                                            label.vjust=1,
+                                            frame.colour="black",
+                                            frame.linewidth=.7)) +
+  facet_wrap(~condition, scales="free", labeller=label_parsed) +
+  theme(axis.title=element_blank(),
+        axis.text.x=element_text(angle=30, hjust=1),
+        legend.position="bottom",
+        legend.justification="center",
+        axis.line=element_blank(),
+        strip.background = element_rect(fill="white",
+                                        color="black", size=.7,
+                                        linetype=1))
+```
+
+### Differential analysis
+
+After reviewing literature and searching through different websites, the consensus pipeline that is considered to work well for ATAC-seq differential analysis consists on calling peaks with **MACS2** and then performing differential analysis with **[DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)** bioconductor package.
+
+Once we have the peaks called for the different conditions, we can merge them to create our final region set that we will use for differential analysis. The peak calling is performed in 4 different bam files:
+
+- `ctrl-2h.merged.bam`.
+- `ctrl-24h.merged.bam`.
+- `ifn-2h.merged.bam`.
+- `ifn-24h.merged.bam`.
+
+Then, we will merge the peaks called for each different experiment into a single file, having two final files: `2h.merged` and `24h.merged`. Since replicate 2 seems to be of bad quality, we are removing it from this analysis.
+
+Next, using `Rsubread` and `DESeq2`, we can easily generate the list of open regions in the samples, including the normalized counts, adjusted p-values and log2 Fold Changes. The steps that we have to follow are:
+
+1. Load `narrowPeak` data and convert to `SAF` (needed for `Rsubread::featureCounts`).
+2. Obtain counts for each sample in each region using `Rsubread::featureCounts`.
+3. Create `DESeqDataSet` object including annotation data.
+4. Perform differential analysis, obtain results and counts and save into a `data.frame`.
+
+```{r Assign counts, results=FALSE, eval=FALSE}
+## 2 HOURS
+## Create SAF with open chromatin regions
+saf.2h <- data.frame(peaks.2h)[,1:3]
+saf.2h$id <- paste0("region_", 1:nrow(saf.2h))
+colnames(saf.2h) <- c("Chr", "Start", "End", "GeneID")
+saf.2h$Strand <- "+"
+saf.2h <- saf.2h[saf.2h$Chr!="chrX" & saf.2h$Chr!="chrY",]
+
+## Obtain counts in regions
+bam.2h <- list.files("../../data/ATAC-seq/BAMs", full.names=TRUE, 
+                  pattern="*2h_[0-9]\\.bam$")[-c(2,7)]
+counts.2h <- Rsubread::featureCounts(bam.2h,
+                                  annot.ext=saf.2h,
+                                  nthreads=6)
+save(counts.2h, file="data/counts.2h.rsubread.rda")
+
+## 24 HOURS
+## Create SAF with open chromatin regions
+saf.24h <- data.frame(peaks.24h)[,1:3]
+saf.24h$id <- paste0("region_", 1:nrow(saf.24h))
+colnames(saf.24h) <- c("Chr", "Start", "End", "GeneID")
+saf.24h$Strand <- "+"
+saf.24h <- saf.24h[saf.24h$Chr!="chrX" & saf.24h$Chr!="chrY",]
+
+## Obtain counts in regions
+bam.24h <- list.files("../../data/ATAC-seq/BAMs", full.names=TRUE, 
+                  pattern="*24h_[0-9]\\.bam$")[-c(2,7)]
+counts.24h <- Rsubread::featureCounts(bam.24h,
+                                  annot.ext=saf.24h,
+                                  nthreads=6)
+save(counts.24h, file="../data/IFNa/ATAC/diffAnalysis/counts.24h.rsubread.rda")
+```
+
+```{r DESeq2 diff analysis, results=FALSE, fig.align="center", fig.width=7, fig.height=5, eval=FALSE}
+## Create DDS object and perform analysis
+cts.2h <- counts.2h$counts
+colnames(cts.2h) <- names.2h
+save(cts.2h, file="../data/IFNa/ATAC/diffAnalysis/counts.2h.matrix.rda")
+
+coldata.2h <- data.frame("treatment"=gsub("_[0-9]", "", names.2h))
+
+library(DESeq2)
+dds.2h <- DESeqDataSetFromMatrix(countData = cts.2h,
+                              colData = coldata.2h,
+                              design= ~ treatment)
+
+library("BiocParallel")
+register(MulticoreParam(6))
+dds.2h <- DESeq(dds.2h, parallel=TRUE)
+save(dds.2h, file="../data/IFNa/ATAC/diffAnalysis/dds.2h.rda")
+
+res.2h <- results(dds.2h)
+
+## 24 HOURS
+cts.24h <- counts.24h$counts
+colnames(cts.24h) <- names.24h
+save(cts.24h, file="../data/IFNa/ATAC/diffAnalysis/counts.24h.matrix.rda")
+
+coldata.24h <- data.frame("treatment"=gsub("_[0-9]", "", names.24h))
+
+library(DESeq2)
+dds.24h <- DESeqDataSetFromMatrix(countData = cts.24h,
+                              colData = coldata.24h,
+                              design= ~ treatment)
+
+library("BiocParallel")
+register(MulticoreParam(6))
+dds.24h <- DESeq(dds.24h, parallel=TRUE)
+save(dds.24h, file="../data/IFNa/ATAC/diffAnalysis/dds.24h.rda")
+
+res.24h <- results(dds.24h)
+
+res.2h.df <- data.frame(res.2h)
+res.24h.df <- data.frame(res.24h)
+
+counts.2h <- counts(dds.2h, normalized=TRUE)
+counts.2h <- data.frame(counts.2h)
+counts.24h <- counts(dds.24h, normalized=TRUE)
+counts.24h <- data.frame(counts.24h)
+
+res.2h.df <- merge(res.2h.df, counts.2h, by="row.names")
+res.24h.df <- merge(res.24h.df, counts.24h, by="row.names")
+
+res.2h.df <- res.2h.df[res.2h.df$baseMean!=0,]
+res.24h.df <- res.24h.df[res.24h.df$baseMean!=0,]
+
+## Classify regions
+res.2h.df$type <- "stable"
+res.2h.df$type[res.2h.df$padj<=0.05 & res.2h.df$log2FoldChange>=1] <- "gained"
+res.2h.df$type[res.2h.df$padj<=0.05 & res.2h.df$log2FoldChange<=-1] <- "lost"
+
+res.24h.df$type <- "stable"
+res.24h.df$type[res.24h.df$padj<=0.05 & res.24h.df$log2FoldChange>=1] <- "gained"
+res.24h.df$type[res.24h.df$padj<=0.05 & res.24h.df$log2FoldChange<=-1] <- "lost"
+
+## Add coordinates
+colnames(res.2h.df)[1] <- "GeneID"
+res.2h.df <- merge(res.2h.df, saf.2h)
+res.2h.df <- res.2h.df[!(is.na(res.2h.df$padj)),]
+save(res.2h.df, file="../data/IFNa/ATAC/diffAnalysis/res.2h.rda")
+
+colnames(res.24h.df)[1] <- "GeneID"
+res.24h.df <- merge(res.24h.df, saf.24h)
+res.24h.df <- res.24h.df[!(is.na(res.24h.df$padj)),]
+save(res.24h.df, file="../data/IFNa/ATAC/diffAnalysis/res.24h.rda")
+
+res.2h.gr <- regioneR::toGRanges(res.2h.df[,c(17:19,1:7,16)])
+save(res.2h.gr, file="../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda")
+res.24h.gr <- regioneR::toGRanges(res.24h.df[,c(17:19,1:7,16)])
+save(res.24h.gr, file="../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda")
+```
+
+
+```{r atac-tab-ec, results=FALSE}
+load("../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda")
+h2 <- res.gr
+h2$time <- "2 hours"
+
+load("../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda")
+h24 <- res.gr
+h24$time <- "24 hours"
+
+res.gr <- c(h2, h24)
+
+## Get coding genes list
+library(biomaRt)
+grch37 <- useMart(biomart="ENSEMBL_MART_ENSEMBL",
+                  host="grch37.ensembl.org",
+                  path="/biomart/martservice",
+                  dataset="hsapiens_gene_ensembl")
+
+genes <- getBM(attributes=c("chromosome_name", "start_position", "end_position",
+                            "ensembl_gene_id", "external_gene_name"),
+               filters="biotype", values="protein_coding",
+               mart=grch37)
+
+genes <- regioneR::toGRanges(genes)
+genes <- genes[seqnames(genes) %in% c(1:22, "X", "Y"),]
+seqlevelsStyle(genes) <- "UCSC"
+
+## Annotate ATAC-seq regions to nearest gene
+anno <- data.frame(ChIPseeker::annotatePeak(res.gr, TxDb=genes))
+anno <- anno[,c(6,14,22,20:21)]
+mcols(res.gr) <- dplyr::left_join(as.data.frame(mcols(res.gr)), anno, by=c(GeneID="GeneID", time="time"))
+res.gr$annotation <- "Promoter"
+res.gr$annotation[abs(res.gr$distanceToTSS)>2e3] <- "Distal"
+
+save(res.gr, file="../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda")
+
+table(res.gr[res.gr$time=="2 hours"]$type, res.gr$annotation[res.gr$time=="2 hours"]) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               caption = "Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples (2 hours).") %>% 
+  kable_styling(full_width = FALSE) %>% 
+  add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
+
+table(res.gr[res.gr$time=="24 hours"]$type, res.gr$annotation[res.gr$time=="24 hours"]) %>% 
+  knitr::kable(format="html",
+               format.args = list(big.mark = ","),
+               caption = "Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples (24 hours).") %>% 
+  kable_styling(full_width = FALSE) %>% 
+  add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
+```
+
+```{r atac-volc-plot-ec, fig.height=4, fig.width=8}
+volc_ec <- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name="OCR type") +
+  geom_vline(xintercept=c(1,-1), linetype=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color="dark grey") +
+  xlab(expression(Log[2]*" fold-change")) + ylab(expression(-Log[10]*" FDR adjusted P")) +
+  ggtitle(expression("ATAC-seq EndoC-"*beta*H1)) +
+  facet_wrap(~time) + 
+  theme(legend.position="none")
+
+volc_ec
+```
+
+## Characterization of OCRs
+
+- Distance to TSS
+
+```{r tss-plot, fig.width=4, eval=FALSE}
+load("../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda")
+re.df <- as.data.frame(res.gr)
+
+## Make groups
+re.tss <- unique(re.df[!is.na(re.df$type),])
+
+re.tss$anno.group <- NA
+re.tss$anno.group[abs(re.tss$distanceToTSS)>200e3] <- ">200kb"
+re.tss$anno.group[abs(re.tss$distanceToTSS)<=200e3 &
+                    abs(re.tss$distanceToTSS)>20e3] <- "20-200kb"
+re.tss$anno.group[abs(re.tss$distanceToTSS)<=20e3 &
+                    abs(re.tss$distanceToTSS)>2e3] <- "2-20kb"
+re.tss$anno.group[abs(re.tss$distanceToTSS)<=2e3] <- "0-2kb"
+
+len.g <- sum(grepl("gained", re.tss$type))
+len.s <- sum(grepl("stable", re.tss$type))
+
+sum.tss <- re.tss %>%
+  group_by(type, anno.group, time) %>%
+  summarise(num=length(unique(GeneID)))
+
+sum.tss$perc <- NA
+sum.tss$perc[grep("gained", sum.tss$type)] <- sum.tss$num[grep("gained", sum.tss$type)]/len.g*100
+sum.tss$perc[grep("stable", sum.tss$type)] <- sum.tss$num[grep("stable", sum.tss$type)]/len.s*100
+
+sum.tss$anno.group <- factor(sum.tss$anno.group,
+                             levels=c("0-2kb", "2-20kb", "20-200kb", ">200kb"))
+
+tss.plot <- 
+  ggplot(sum.tss,
+       aes(anno.group, perc)) +
+  geom_bar(aes(fill=type), color="black", lwd=0.7, stat="identity", position="dodge") +
+  geom_vline(xintercept=1.5, lty=2, color="dark red") +
+  scale_fill_manual(values=pals$differential,
+                    name="OCR type") +
+  theme(legend.position="top") +
+  xlab("Distance to TSS") + 
+  scale_y_continuous(name="Percentage of RE",
+                     labels=function(x) paste0(x, "%"),
+                     breaks=scales::pretty_breaks()) +
+  facet_wrap(~time)
+
+tss.plot
+```
+
+- Conservation
+
+```{r calculate-cons, eval=FALSE}
+library(GenomicRanges)
+devtools::load_all("~/tools/pipelineNGS/")
+
+scope <- 1e3
+bin <- 25
+
+load("../2017-08-10_diffAnalysis-sep/data/res_2h_granges.rda")
+g2h <- res.2h.gr[res.2h.gr$type=="gained",]
+g2h.cons <- calculateMeanCons(g2h,
+                              scope=scope, bin=bin)
+g2h.cons$type <- "gained"
+g2h.cons$time <- "2h"
+
+g2h.rnd <- regioneR::randomizeRegions(g2h,
+                                       allow.overlaps = FALSE)
+g2h.rnd.cons <- calculateMeanCons(g2h.rnd,
+                              scope=scope, bin=bin)
+g2h.rnd.cons$type <- "random"
+g2h.rnd.cons$time <- "2h"
+
+load("../2017-08-10_diffAnalysis-sep/data/res_24h_granges.rda")
+g24h <- res.24h.gr[res.24h.gr$type=="gained",]
+g24h.cons <- calculateMeanCons(g24h,
+                              scope=scope, bin=bin)
+g24h.cons$type <- "gained"
+g24h.cons$time <- "24h"
+
+g24h.rnd <- regioneR::randomizeRegions(g24h,
+                                       allow.overlaps = FALSE)
+g24h.rnd.cons <- calculateMeanCons(g24h.rnd,
+                              scope=scope, bin=bin)
+g24h.rnd.cons$type <- "random"
+g24h.rnd.cons$time <- "24h"
+
+g.cons <- rbind(g2h.cons, g2h.rnd.cons,
+                g24h.cons, g24h.rnd.cons)
+
+g.cons$time <- factor(g.cons$time, levels=c("2h", "24h"))
+```
+
+```{r plot-cons, fig.height=3.5, fig.width=3.5, eval=F}
+load(file.path(out_dir, "IRE_endoc_fc1_conservation.rda"))
+
+ggplot(g.cons) +
+  geom_line(aes(position, meanCons, color=type, group=type),
+            lwd=0.7) +
+  facet_wrap(~time) +
+  scale_color_discrete(name="Region type",
+                       labels=function(x) Hmisc::capitalize(x)) +
+  xlab("Position from peak center (bp)") +
+  ylab("Mean PhastCons46way score") +
+  theme(legend.position="top")
+
+ggsave(file="conservtion_mean.pdf", 
+       width=6, height=4, units="in")
+
+ggplot(g.cons) +
+  geom_line(aes(position, medianCons, color=type, group=type),
+            lwd=0.7) +
+  facet_wrap(~time)
+```
+
+- Motifs

@@ -961,7 +961,7 @@ deNovoMotifHOMER(bed=paste0("../data/CYT/bedfiles/IREs_endoc_fc1_padj0.05.bed"),
                  path_homer="~/tools/homer/")
 ```
 
-```{r de-novo-results, eval=FALSE}
+```{r de-novo-results, eval=TRUE}
 htmltools::includeHTML(file.path(out_dir, "HOMER_IREs_endoc_fc1_padj0.05_mask/homerResults.html"))
 ```
 

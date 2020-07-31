@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Mireia Ramos-Rodríguez" />
+
+
+<title>#1 Chromatin remodeling induced by IFN-α</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">β-cells and T1D</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    IFN-α
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="index_ifna.html">Description</a>
+    </li>
+    <li>
+      <a href="ifn_01_accessibility.html">#1 Chromatin remodeling induced by IFN-α</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    IFN-γ + IL-1β
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="index_cyt.html">Description</a>
+    </li>
+    <li>
+      <a href="cyt_01_remodeling.html">#1 Chromatin remodeling induced by cytokines</a>
+    </li>
+    <li>
+      <a href="cyt_02_transcription.html">#2 Changes in transcription and translation</a>
+    </li>
+    <li>
+      <a href="cyt_03_subclassification.html">#3 Subclassification of IREs</a>
+    </li>
+    <li>
+      <a href="cyt_04_contacts.html">#4 Changes in 3D chormatin structure</a>
+    </li>
+    <li>
+      <a href="cyt_05_t1d.html">#5 IREs and T1D risk</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    IRB
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="index_irb.html">Description</a>
+    </li>
+    <li>
+      <a href="https://mireia-bioinfo.github.io/plotRegulome">plotRegulome R package</a>
+    </li>
+    <li>
+      <a href="https://github.com/mireia-bioinfo/isletregulome_shiny">IRB Shiny App code</a>
+    </li>
+    <li>
+      <a href="http://www.isletregulome.org">Islet Regulome Browser</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/mireia-bioinfo/phdthesis_code">
+    <span class="fa fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">#1 Chromatin remodeling induced by IFN-α</h1>
+<h3 class="subtitle">IFN-α induces early changes in chromatin accessibility</h3>
+<h4 class="author">Mireia Ramos-Rodríguez</h4>
+
+</div>
+
+
+<div id="analysis-of-atac-seq-data" class="section level2">
+<h2>Analysis of ATAC-seq data</h2>
+<div id="quality-control" class="section level3">
+<h3>Quality control</h3>
+<p>Run Rscript for generating the necessary quality control measures.</p>
+<pre><code>Rscript code/IFNa_QC_ATAC.R</code></pre>
+<pre class="r"><code># Get RSC and NSC indexes
+# source(&quot;QC_phantom_peak.R&quot;) # Runs code to generate files
+load(&quot;../data/IFNa/ATAC/QC/QC_scores.rda&quot;)
+sc &lt;- txt[,c(&quot;sampleID&quot;, &quot;NSC&quot;, &quot;RSC&quot;)]
+
+# Load alignment stats
+load(&quot;../data/IFNa/ATAC/QC/summary.rda&quot;)
+stats &lt;- sum.df[!grepl(&quot;_2$&quot;, sum.df$samples),c(&quot;samples&quot;, &quot;al.raw&quot;, &quot;perc.align&quot;, &quot;perc.filtOut&quot;)]
+colnames(stats) &lt;- c(&quot;sampleID&quot;, &quot;Lib Size&quot;, &quot;% Align&quot;, &quot;% Mito&quot;)
+
+nms &lt;- unique(stats$sampleID)
+lvl &lt;- rev(nms[c(grep(&quot;ctrl-2h&quot;, nms),
+             grep(&quot;ctrl-24h&quot;, nms),
+             grep(&quot;ifn-2h&quot;, nms),
+             grep(&quot;ifn-24h&quot;, nms))])
+
+stats &lt;- dplyr::left_join(stats, sc)
+stats$sampleID &lt;- factor(stats$sampleID,
+                         levels=lvl)
+
+lib_size &lt;-
+  ggplot(stats,
+       aes(&quot;Lib Size&quot;, sampleID)) +
+  geom_tile(aes(fill=`Lib Size`), color=&quot;black&quot;, size=.7) +
+  geom_text(aes(label=round(`Lib Size`/1e6, 2))) +
+  scale_fill_gradient(low=&quot;white&quot;, high=&quot;darkorchid4&quot;,
+                      limits=c(0, max(stats$`Lib Size`)),
+                      breaks=c(0, max(stats$`Lib Size`)),
+                      labels=c(&quot;0&quot;, &quot;Max&quot;),
+                      name=expression(&quot;Library size (x&quot;*10^6*&quot;)&quot;),
+                      guide = guide_colorbar(direction=&quot;horizontal&quot;,
+                                             title.position = &quot;bottom&quot;,
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = &quot;top&quot;,
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour=&quot;black&quot;,
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = &quot;bottom&quot;,
+        axis.title = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line = element_blank())
+
+align &lt;-
+  ggplot(stats,
+                aes(&quot;% Align&quot;, sampleID)) +
+  geom_tile(aes(fill=`% Align`), color=&quot;black&quot;, size=.7) +
+  geom_text(aes(label=round(`% Align`, 1))) +
+  scale_fill_gradient(low=&quot;white&quot;, high=&quot;darkorange3&quot;,
+                      limits=c(0, max(stats$`% Align`)),
+                      breaks=c(0, max(stats$`% Align`)),
+                      labels=c(&quot;0&quot;, &quot;Max&quot;),
+                      name=&quot;% alignment&quot;,
+                      guide = guide_colorbar(direction=&quot;horizontal&quot;,
+                                             title.position = &quot;bottom&quot;,
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = &quot;top&quot;,
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour=&quot;black&quot;,
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = &quot;bottom&quot;,
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+mito &lt;-
+  ggplot(stats,
+         aes(&quot;% Mito&quot;, sampleID)) +
+  geom_tile(aes(fill=`% Mito`), color=&quot;black&quot;, size=.7) +
+  geom_text(aes(label=round(`% Mito`, 1))) +
+  scale_fill_gradient(low=&quot;dodgerblue3&quot;, high=&quot;white&quot;,
+                      limits=c(0, max(stats$`% Mito`)),
+                      breaks=c(0, max(stats$`% Mito`)),
+                      labels=c(&quot;0&quot;, &quot;Max&quot;),
+                      name=&quot;% mitochondrial&quot;,
+                      guide = guide_colorbar(direction=&quot;horizontal&quot;,
+                                             title.position = &quot;bottom&quot;,
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = &quot;top&quot;,
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour=&quot;black&quot;,
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = &quot;bottom&quot;,
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+nsc &lt;-
+  ggplot(stats,
+         aes(&quot;NSC&quot;, sampleID)) +
+  geom_tile(aes(fill=NSC), color=&quot;black&quot;, size=.7) +
+  geom_text(aes(label=round(NSC, 1))) +
+  scale_fill_gradient(low=&quot;white&quot;, high=&quot;brown3&quot;,
+                      limits=c(1, max(stats$NSC)),
+                      breaks=c(1, max(stats$NSC)),
+                      labels=c(&quot;1&quot;, &quot;Max&quot;),
+                      name=&quot;NSC&quot;,
+                      guide = guide_colorbar(direction=&quot;horizontal&quot;,
+                                             title.position = &quot;bottom&quot;,
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = &quot;top&quot;,
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour=&quot;black&quot;,
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = &quot;bottom&quot;,
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+rsc &lt;-
+  ggplot(stats,
+         aes(&quot;RSC&quot;, sampleID)) +
+  geom_tile(aes(fill=RSC), color=&quot;black&quot;, size=.7) +
+  geom_text(aes(label=round(RSC, 1))) +
+  scale_fill_gradient(low=&quot;white&quot;, high=&quot;aquamarine4&quot;,
+                      limits=c(1, max(stats$RSC)),
+                      breaks=c(1, max(stats$RSC)),
+                      labels=c(&quot;0&quot;, &quot;Max&quot;),
+                      name=&quot;RSC&quot;,
+                      guide = guide_colorbar(direction=&quot;horizontal&quot;,
+                                             title.position = &quot;bottom&quot;,
+                                             title.vjust = 1,
+                                             title.hjust = 0.5,
+                                             label.position = &quot;top&quot;,
+                                             label.vjust=0,
+                                             label.hjust = c(0,1),
+                                             frame.colour=&quot;black&quot;,
+                                             frame.linewidth = 0.7,
+                                             ticks=FALSE)) +
+  theme(legend.position = &quot;bottom&quot;,
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        axis.text.y = element_blank())
+
+
+plot_grid(lib_size,
+          align,
+          mito,
+          nsc,
+          rsc,
+          nrow=1,
+          rel_widths=c(0.3, rep(0.175, 4)),
+          align=&quot;h&quot;)</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/ifn_01_accessibility.Rmd/atac-heatmap-1.png" alt="Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC)." width="672" />
+<p class="caption">
+Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC).
+</p>
+</div>
+<pre class="r"><code>load(&quot;../data/IFNa/ATAC/QC/ATAC_tss_enrichment.rda&quot;)
+tss &lt;- enr
+
+tss$dataset &lt;- factor(tss$dataset, levels=c(&quot;TSS annotation&quot;, &quot;Random control&quot;))
+tss$group &lt;- factor(tss$condition,
+                        levels=c(&quot;ctrl-2h&quot;, &quot;ctrl-24h&quot;, &quot;ifn-2h&quot;, &quot;ifn-24h&quot;),
+                        labels=c(&quot;&#39;Control 2h&#39;&quot;, &quot;&#39;Control 24h&#39;&quot;,
+                                 &quot;&#39;IFN-&#39;*alpha*&#39; 2h&#39;&quot;, &quot;&#39;IFN-&#39;*alpha*&#39; 24h&#39;&quot;))
+tss &lt;- tss %&gt;% 
+  group_by(dataset, group, Position) %&gt;%
+  summarise(mean=mean(mean))
+
+tss.plot &lt;- 
+  ggplot(tss,
+       aes(Position, mean)) +
+  geom_line(aes(group=dataset, color=dataset), lwd=0.7) +
+  scale_color_manual(values=c(&quot;seagreen4&quot;, &quot;goldenrod3&quot;), name=&quot;Dataset&quot;) +
+  facet_wrap(~group, scales=&quot;free_y&quot;, labeller= label_parsed) +
+  theme(legend.position=&quot;top&quot;) +
+  ylab(&quot;Mean ATAC-seq read counts&quot;) + xlab(&quot;Position relative to TSS (bp)&quot;)
+
+tss.plot</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/ifn_01_accessibility.Rmd/atac-tss-enrichment-1.png" alt="Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions." width="576" />
+<p class="caption">
+Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions.
+</p>
+</div>
+<pre class="r"><code>load(&quot;../data/IFNa/ATAC/QC/ATAC_noise.rda&quot;)
+
+stats$condition &lt;- factor(stats$condition,
+                              levels=c(&quot;ctrl-2h&quot;, &quot;ifn-2h&quot;, &quot;ctrl-24h&quot;, &quot;ifn-24h&quot;, &quot;Random&quot;),
+                              labels=c(&quot;&#39;Ctrl 2h&#39;&quot;, &quot;&#39;IFN-&#39;*alpha*&#39; 2h&#39;&quot;,
+                                       &quot;&#39;Ctrl 24h&#39;&quot;, &quot;&#39;IFN-&#39;*alpha*&#39; 24h&#39;&quot;, &quot;Random&quot;))
+
+noise &lt;- 
+  ggplot(stats[stats$Annotation!=&quot;Unassigned&quot;,],
+       aes(condition, mean)) +
+  geom_bar(aes(fill=Annotation), stat=&quot;identity&quot;,
+           position=&quot;stack&quot;,
+           color=&quot;black&quot;, lwd=0.7) +
+  geom_errorbar(aes(ymin=cumsum, ymax=cumsum+sd,
+                    group=Annotation),
+                width=.3, lwd=0.5) +
+  scale_fill_manual(values=c(&quot;violetred&quot;, &quot;dark orange&quot;)) +
+  scale_y_continuous(name=&quot;Percentage of reads in peaks (%)&quot;) +
+  scale_x_discrete(labels=function(x) parse(text=x)) +
+  theme(axis.text.x=element_text(angle=30, hjust=1),
+        legend.position=&quot;top&quot;,
+        axis.title.x=element_blank())
+
+noise</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/ifn_01_accessibility.Rmd/atac-signal-to-noise-1.png" alt="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks." width="384" />
+<p class="caption">
+Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks.
+</p>
+</div>
+<pre class="r"><code> get_upper_tri &lt;- function(cormat){
+    cormat[lower.tri(cormat)]&lt;- NA
+    return(cormat)
+ }
+ 
+  get_lower_tri &lt;- function(cormat){
+    cormat[upper.tri(cormat)]&lt;- NA
+    return(cormat)
+  }</code></pre>
+<pre class="r"><code>load(&quot;../data/IFNa/ATAC/QC/ATAC_10kb_correlation_rsubread.rda&quot;)
+mat &lt;- cor(counts$counts, method=&quot;pearson&quot;)
+mat[lower.tri(mat, diag=FALSE)] &lt;- NA
+
+df &lt;- reshape2::melt(mat)
+df &lt;- df[!is.na(df$value),]
+df$condition &lt;- gsub(&quot;_[[:digit:]]&quot;, &quot;&quot;, df$Var1)
+
+df &lt;- df[gsub(&quot;_[[:digit:]]&quot;, &quot;&quot;, df$Var2)==df$condition,]
+
+
+df$condition &lt;- factor(df$condition,
+                       levels=c(&quot;ctrl-2h&quot;, &quot;ctrl-24h&quot;, &quot;ifn-2h&quot;, &quot;ifn-24h&quot;),
+                       labels=c(&quot;&#39;Ctrl 2h&#39;&quot;, &quot;&#39;Ctrl 24h&#39;&quot;,
+                                &quot;&#39;IFN-&#39;*alpha*&#39; 2h&#39;&quot;, &quot;&#39;IFN-&#39;*alpha*&#39; 24h&#39;&quot;))
+
+ggplot(df,
+       aes(Var1, Var2)) +
+  geom_tile(aes(fill=value), color=&quot;black&quot;, size=.7) +
+  geom_text(aes(label=round(value, 2)), color=&quot;white&quot;) +
+  scale_fill_gradient2(low=&quot;white&quot;, high=&quot;royalblue4&quot;,
+                       mid=&quot;steelblue2&quot;, midpoint=0.5,
+                       limits=c(0,1),
+                       breaks=scales::pretty_breaks(n=3),
+                       name=&quot;Pearson&#39;s correlation&quot;,
+                       guide=guide_colorbar(title.vjust = 1,
+                                            label.hjust=0.5,
+                                            label.vjust=1,
+                                            frame.colour=&quot;black&quot;,
+                                            frame.linewidth=.7)) +
+  facet_wrap(~condition, scales=&quot;free&quot;, labeller=label_parsed) +
+  theme(axis.title=element_blank(),
+        axis.text.x=element_text(angle=30, hjust=1),
+        legend.position=&quot;bottom&quot;,
+        legend.justification=&quot;center&quot;,
+        axis.line=element_blank(),
+        strip.background = element_rect(fill=&quot;white&quot;,
+                                        color=&quot;black&quot;, size=.7,
+                                        linetype=1))</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/ifn_01_accessibility.Rmd/atac-genome-corr-1.png" alt="ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
+<p class="caption">
+ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+</p>
+</div>
+</div>
+<div id="differential-analysis" class="section level3">
+<h3>Differential analysis</h3>
+<p>After reviewing literature and searching through different websites, the consensus pipeline that is considered to work well for ATAC-seq differential analysis consists on calling peaks with <strong>MACS2</strong> and then performing differential analysis with <strong><a href="https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html">DESeq2</a></strong> bioconductor package.</p>
+<p>Once we have the peaks called for the different conditions, we can merge them to create our final region set that we will use for differential analysis. The peak calling is performed in 4 different bam files:</p>
+<ul>
+<li><code>ctrl-2h.merged.bam</code>.</li>
+<li><code>ctrl-24h.merged.bam</code>.</li>
+<li><code>ifn-2h.merged.bam</code>.</li>
+<li><code>ifn-24h.merged.bam</code>.</li>
+</ul>
+<p>Then, we will merge the peaks called for each different experiment into a single file, having two final files: <code>2h.merged</code> and <code>24h.merged</code>. Since replicate 2 seems to be of bad quality, we are removing it from this analysis.</p>
+<p>Next, using <code>Rsubread</code> and <code>DESeq2</code>, we can easily generate the list of open regions in the samples, including the normalized counts, adjusted p-values and log2 Fold Changes. The steps that we have to follow are:</p>
+<ol style="list-style-type: decimal">
+<li>Load <code>narrowPeak</code> data and convert to <code>SAF</code> (needed for <code>Rsubread::featureCounts</code>).</li>
+<li>Obtain counts for each sample in each region using <code>Rsubread::featureCounts</code>.</li>
+<li>Create <code>DESeqDataSet</code> object including annotation data.</li>
+<li>Perform differential analysis, obtain results and counts and save into a <code>data.frame</code>.</li>
+</ol>
+<pre class="r"><code>## 2 HOURS
+## Create SAF with open chromatin regions
+saf.2h &lt;- data.frame(peaks.2h)[,1:3]
+saf.2h$id &lt;- paste0(&quot;region_&quot;, 1:nrow(saf.2h))
+colnames(saf.2h) &lt;- c(&quot;Chr&quot;, &quot;Start&quot;, &quot;End&quot;, &quot;GeneID&quot;)
+saf.2h$Strand &lt;- &quot;+&quot;
+saf.2h &lt;- saf.2h[saf.2h$Chr!=&quot;chrX&quot; &amp; saf.2h$Chr!=&quot;chrY&quot;,]
+
+## Obtain counts in regions
+bam.2h &lt;- list.files(&quot;../../data/ATAC-seq/BAMs&quot;, full.names=TRUE, 
+                  pattern=&quot;*2h_[0-9]\\.bam$&quot;)[-c(2,7)]
+counts.2h &lt;- Rsubread::featureCounts(bam.2h,
+                                  annot.ext=saf.2h,
+                                  nthreads=6)
+save(counts.2h, file=&quot;data/counts.2h.rsubread.rda&quot;)
+
+## 24 HOURS
+## Create SAF with open chromatin regions
+saf.24h &lt;- data.frame(peaks.24h)[,1:3]
+saf.24h$id &lt;- paste0(&quot;region_&quot;, 1:nrow(saf.24h))
+colnames(saf.24h) &lt;- c(&quot;Chr&quot;, &quot;Start&quot;, &quot;End&quot;, &quot;GeneID&quot;)
+saf.24h$Strand &lt;- &quot;+&quot;
+saf.24h &lt;- saf.24h[saf.24h$Chr!=&quot;chrX&quot; &amp; saf.24h$Chr!=&quot;chrY&quot;,]
+
+## Obtain counts in regions
+bam.24h &lt;- list.files(&quot;../../data/ATAC-seq/BAMs&quot;, full.names=TRUE, 
+                  pattern=&quot;*24h_[0-9]\\.bam$&quot;)[-c(2,7)]
+counts.24h &lt;- Rsubread::featureCounts(bam.24h,
+                                  annot.ext=saf.24h,
+                                  nthreads=6)
+save(counts.24h, file=&quot;../data/IFNa/ATAC/diffAnalysis/counts.24h.rsubread.rda&quot;)</code></pre>
+<pre class="r"><code>## Create DDS object and perform analysis
+cts.2h &lt;- counts.2h$counts
+colnames(cts.2h) &lt;- names.2h
+save(cts.2h, file=&quot;../data/IFNa/ATAC/diffAnalysis/counts.2h.matrix.rda&quot;)
+
+coldata.2h &lt;- data.frame(&quot;treatment&quot;=gsub(&quot;_[0-9]&quot;, &quot;&quot;, names.2h))
+
+library(DESeq2)
+dds.2h &lt;- DESeqDataSetFromMatrix(countData = cts.2h,
+                              colData = coldata.2h,
+                              design= ~ treatment)
+
+library(&quot;BiocParallel&quot;)
+register(MulticoreParam(6))
+dds.2h &lt;- DESeq(dds.2h, parallel=TRUE)
+save(dds.2h, file=&quot;../data/IFNa/ATAC/diffAnalysis/dds.2h.rda&quot;)
+
+res.2h &lt;- results(dds.2h)
+
+## 24 HOURS
+cts.24h &lt;- counts.24h$counts
+colnames(cts.24h) &lt;- names.24h
+save(cts.24h, file=&quot;../data/IFNa/ATAC/diffAnalysis/counts.24h.matrix.rda&quot;)
+
+coldata.24h &lt;- data.frame(&quot;treatment&quot;=gsub(&quot;_[0-9]&quot;, &quot;&quot;, names.24h))
+
+library(DESeq2)
+dds.24h &lt;- DESeqDataSetFromMatrix(countData = cts.24h,
+                              colData = coldata.24h,
+                              design= ~ treatment)
+
+library(&quot;BiocParallel&quot;)
+register(MulticoreParam(6))
+dds.24h &lt;- DESeq(dds.24h, parallel=TRUE)
+save(dds.24h, file=&quot;../data/IFNa/ATAC/diffAnalysis/dds.24h.rda&quot;)
+
+res.24h &lt;- results(dds.24h)
+
+res.2h.df &lt;- data.frame(res.2h)
+res.24h.df &lt;- data.frame(res.24h)
+
+counts.2h &lt;- counts(dds.2h, normalized=TRUE)
+counts.2h &lt;- data.frame(counts.2h)
+counts.24h &lt;- counts(dds.24h, normalized=TRUE)
+counts.24h &lt;- data.frame(counts.24h)
+
+res.2h.df &lt;- merge(res.2h.df, counts.2h, by=&quot;row.names&quot;)
+res.24h.df &lt;- merge(res.24h.df, counts.24h, by=&quot;row.names&quot;)
+
+res.2h.df &lt;- res.2h.df[res.2h.df$baseMean!=0,]
+res.24h.df &lt;- res.24h.df[res.24h.df$baseMean!=0,]
+
+## Classify regions
+res.2h.df$type &lt;- &quot;stable&quot;
+res.2h.df$type[res.2h.df$padj&lt;=0.05 &amp; res.2h.df$log2FoldChange&gt;=1] &lt;- &quot;gained&quot;
+res.2h.df$type[res.2h.df$padj&lt;=0.05 &amp; res.2h.df$log2FoldChange&lt;=-1] &lt;- &quot;lost&quot;
+
+res.24h.df$type &lt;- &quot;stable&quot;
+res.24h.df$type[res.24h.df$padj&lt;=0.05 &amp; res.24h.df$log2FoldChange&gt;=1] &lt;- &quot;gained&quot;
+res.24h.df$type[res.24h.df$padj&lt;=0.05 &amp; res.24h.df$log2FoldChange&lt;=-1] &lt;- &quot;lost&quot;
+
+## Add coordinates
+colnames(res.2h.df)[1] &lt;- &quot;GeneID&quot;
+res.2h.df &lt;- merge(res.2h.df, saf.2h)
+res.2h.df &lt;- res.2h.df[!(is.na(res.2h.df$padj)),]
+save(res.2h.df, file=&quot;../data/IFNa/ATAC/diffAnalysis/res.2h.rda&quot;)
+
+colnames(res.24h.df)[1] &lt;- &quot;GeneID&quot;
+res.24h.df &lt;- merge(res.24h.df, saf.24h)
+res.24h.df &lt;- res.24h.df[!(is.na(res.24h.df$padj)),]
+save(res.24h.df, file=&quot;../data/IFNa/ATAC/diffAnalysis/res.24h.rda&quot;)
+
+res.2h.gr &lt;- regioneR::toGRanges(res.2h.df[,c(17:19,1:7,16)])
+save(res.2h.gr, file=&quot;../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda&quot;)
+res.24h.gr &lt;- regioneR::toGRanges(res.24h.df[,c(17:19,1:7,16)])
+save(res.24h.gr, file=&quot;../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda&quot;)
+h2 &lt;- res.gr
+h2$time &lt;- &quot;2 hours&quot;
+
+load(&quot;../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda&quot;)
+h24 &lt;- res.gr
+h24$time &lt;- &quot;24 hours&quot;
+
+res.gr &lt;- c(h2, h24)
+
+## Get coding genes list
+library(biomaRt)
+grch37 &lt;- useMart(biomart=&quot;ENSEMBL_MART_ENSEMBL&quot;,
+                  host=&quot;grch37.ensembl.org&quot;,
+                  path=&quot;/biomart/martservice&quot;,
+                  dataset=&quot;hsapiens_gene_ensembl&quot;)
+
+genes &lt;- getBM(attributes=c(&quot;chromosome_name&quot;, &quot;start_position&quot;, &quot;end_position&quot;,
+                            &quot;ensembl_gene_id&quot;, &quot;external_gene_name&quot;),
+               filters=&quot;biotype&quot;, values=&quot;protein_coding&quot;,
+               mart=grch37)
+
+genes &lt;- regioneR::toGRanges(genes)
+genes &lt;- genes[seqnames(genes) %in% c(1:22, &quot;X&quot;, &quot;Y&quot;),]
+seqlevelsStyle(genes) &lt;- &quot;UCSC&quot;
+
+## Annotate ATAC-seq regions to nearest gene
+anno &lt;- data.frame(ChIPseeker::annotatePeak(res.gr, TxDb=genes))
+anno &lt;- anno[,c(6,14,22,20:21)]
+mcols(res.gr) &lt;- dplyr::left_join(as.data.frame(mcols(res.gr)), anno, by=c(GeneID=&quot;GeneID&quot;, time=&quot;time&quot;))
+res.gr$annotation &lt;- &quot;Promoter&quot;
+res.gr$annotation[abs(res.gr$distanceToTSS)&gt;2e3] &lt;- &quot;Distal&quot;
+
+save(res.gr, file=&quot;../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda&quot;)
+
+table(res.gr[res.gr$time==&quot;2 hours&quot;]$type, res.gr$annotation[res.gr$time==&quot;2 hours&quot;]) %&gt;% 
+  knitr::kable(format=&quot;html&quot;,
+               format.args = list(big.mark = &quot;,&quot;),
+               caption = &quot;Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples (2 hours).&quot;) %&gt;% 
+  kable_styling(full_width = FALSE) %&gt;% 
+  add_header_above(c(&quot;Region type&quot; = 1, &quot;Location respect TSS&quot; = 2))
+
+table(res.gr[res.gr$time==&quot;24 hours&quot;]$type, res.gr$annotation[res.gr$time==&quot;24 hours&quot;]) %&gt;% 
+  knitr::kable(format=&quot;html&quot;,
+               format.args = list(big.mark = &quot;,&quot;),
+               caption = &quot;Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples (24 hours).&quot;) %&gt;% 
+  kable_styling(full_width = FALSE) %&gt;% 
+  add_header_above(c(&quot;Region type&quot; = 1, &quot;Location respect TSS&quot; = 2))</code></pre>
+<pre class="r"><code>volc_ec &lt;- 
+  ggplot(data.frame(res.gr),
+       aes(log2FoldChange, -log10(padj))) +
+  geom_point(aes(color=type), size=0.4) + 
+  scale_color_manual(values=pals$differential,
+                    name=&quot;OCR type&quot;) +
+  geom_vline(xintercept=c(1,-1), linetype=2, color=&quot;dark grey&quot;) +
+  geom_hline(yintercept=-log10(0.05), linetype=2, color=&quot;dark grey&quot;) +
+  xlab(expression(Log[2]*&quot; fold-change&quot;)) + ylab(expression(-Log[10]*&quot; FDR adjusted P&quot;)) +
+  ggtitle(expression(&quot;ATAC-seq EndoC-&quot;*beta*H1)) +
+  facet_wrap(~time) + 
+  theme(legend.position=&quot;none&quot;)
+
+volc_ec</code></pre>
+<p><img src="figure/ifn_01_accessibility.Rmd/atac-volc-plot-ec-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="characterization-of-ocrs" class="section level2">
+<h2>Characterization of OCRs</h2>
+<ul>
+<li>Distance to TSS</li>
+</ul>
+<pre class="r"><code>load(&quot;../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda&quot;)
+re.df &lt;- as.data.frame(res.gr)
+
+## Make groups
+re.tss &lt;- unique(re.df[!is.na(re.df$type),])
+
+re.tss$anno.group &lt;- NA
+re.tss$anno.group[abs(re.tss$distanceToTSS)&gt;200e3] &lt;- &quot;&gt;200kb&quot;
+re.tss$anno.group[abs(re.tss$distanceToTSS)&lt;=200e3 &amp;
+                    abs(re.tss$distanceToTSS)&gt;20e3] &lt;- &quot;20-200kb&quot;
+re.tss$anno.group[abs(re.tss$distanceToTSS)&lt;=20e3 &amp;
+                    abs(re.tss$distanceToTSS)&gt;2e3] &lt;- &quot;2-20kb&quot;
+re.tss$anno.group[abs(re.tss$distanceToTSS)&lt;=2e3] &lt;- &quot;0-2kb&quot;
+
+len.g &lt;- sum(grepl(&quot;gained&quot;, re.tss$type))
+len.s &lt;- sum(grepl(&quot;stable&quot;, re.tss$type))
+
+sum.tss &lt;- re.tss %&gt;%
+  group_by(type, anno.group, time) %&gt;%
+  summarise(num=length(unique(GeneID)))
+
+sum.tss$perc &lt;- NA
+sum.tss$perc[grep(&quot;gained&quot;, sum.tss$type)] &lt;- sum.tss$num[grep(&quot;gained&quot;, sum.tss$type)]/len.g*100
+sum.tss$perc[grep(&quot;stable&quot;, sum.tss$type)] &lt;- sum.tss$num[grep(&quot;stable&quot;, sum.tss$type)]/len.s*100
+
+sum.tss$anno.group &lt;- factor(sum.tss$anno.group,
+                             levels=c(&quot;0-2kb&quot;, &quot;2-20kb&quot;, &quot;20-200kb&quot;, &quot;&gt;200kb&quot;))
+
+tss.plot &lt;- 
+  ggplot(sum.tss,
+       aes(anno.group, perc)) +
+  geom_bar(aes(fill=type), color=&quot;black&quot;, lwd=0.7, stat=&quot;identity&quot;, position=&quot;dodge&quot;) +
+  geom_vline(xintercept=1.5, lty=2, color=&quot;dark red&quot;) +
+  scale_fill_manual(values=pals$differential,
+                    name=&quot;OCR type&quot;) +
+  theme(legend.position=&quot;top&quot;) +
+  xlab(&quot;Distance to TSS&quot;) + 
+  scale_y_continuous(name=&quot;Percentage of RE&quot;,
+                     labels=function(x) paste0(x, &quot;%&quot;),
+                     breaks=scales::pretty_breaks()) +
+  facet_wrap(~time)
+
+tss.plot</code></pre>
+<ul>
+<li>Conservation</li>
+</ul>
+<pre class="r"><code>library(GenomicRanges)
+devtools::load_all(&quot;~/tools/pipelineNGS/&quot;)
+
+scope &lt;- 1e3
+bin &lt;- 25
+
+load(&quot;../2017-08-10_diffAnalysis-sep/data/res_2h_granges.rda&quot;)
+g2h &lt;- res.2h.gr[res.2h.gr$type==&quot;gained&quot;,]
+g2h.cons &lt;- calculateMeanCons(g2h,
+                              scope=scope, bin=bin)
+g2h.cons$type &lt;- &quot;gained&quot;
+g2h.cons$time &lt;- &quot;2h&quot;
+
+g2h.rnd &lt;- regioneR::randomizeRegions(g2h,
+                                       allow.overlaps = FALSE)
+g2h.rnd.cons &lt;- calculateMeanCons(g2h.rnd,
+                              scope=scope, bin=bin)
+g2h.rnd.cons$type &lt;- &quot;random&quot;
+g2h.rnd.cons$time &lt;- &quot;2h&quot;
+
+load(&quot;../2017-08-10_diffAnalysis-sep/data/res_24h_granges.rda&quot;)
+g24h &lt;- res.24h.gr[res.24h.gr$type==&quot;gained&quot;,]
+g24h.cons &lt;- calculateMeanCons(g24h,
+                              scope=scope, bin=bin)
+g24h.cons$type &lt;- &quot;gained&quot;
+g24h.cons$time &lt;- &quot;24h&quot;
+
+g24h.rnd &lt;- regioneR::randomizeRegions(g24h,
+                                       allow.overlaps = FALSE)
+g24h.rnd.cons &lt;- calculateMeanCons(g24h.rnd,
+                              scope=scope, bin=bin)
+g24h.rnd.cons$type &lt;- &quot;random&quot;
+g24h.rnd.cons$time &lt;- &quot;24h&quot;
+
+g.cons &lt;- rbind(g2h.cons, g2h.rnd.cons,
+                g24h.cons, g24h.rnd.cons)
+
+g.cons$time &lt;- factor(g.cons$time, levels=c(&quot;2h&quot;, &quot;24h&quot;))</code></pre>
+<pre class="r"><code>load(file.path(out_dir, &quot;IRE_endoc_fc1_conservation.rda&quot;))
+
+ggplot(g.cons) +
+  geom_line(aes(position, meanCons, color=type, group=type),
+            lwd=0.7) +
+  facet_wrap(~time) +
+  scale_color_discrete(name=&quot;Region type&quot;,
+                       labels=function(x) Hmisc::capitalize(x)) +
+  xlab(&quot;Position from peak center (bp)&quot;) +
+  ylab(&quot;Mean PhastCons46way score&quot;) +
+  theme(legend.position=&quot;top&quot;)
+
+ggsave(file=&quot;conservtion_mean.pdf&quot;, 
+       width=6, height=4, units=&quot;in&quot;)
+
+ggplot(g.cons) +
+  geom_line(aes(position, medianCons, color=type, group=type),
+            lwd=0.7) +
+  facet_wrap(~time)</code></pre>
+<ul>
+<li>Motifs</li>
+</ul>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.0.2 (2020-06-22)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 18362)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
+[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
+[5] LC_TIME=Spanish_Spain.1252    
+
+attached base packages:
+ [1] grid      parallel  stats4    stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
+
+other attached packages:
+ [1] biomaRt_2.45.2              DESeq2_1.29.7              
+ [3] SummarizedExperiment_1.19.6 DelayedArray_0.15.7        
+ [5] matrixStats_0.56.0          Matrix_1.2-18              
+ [7] Biobase_2.49.0              ComplexHeatmap_2.5.3       
+ [9] dplyr_1.0.0                 kableExtra_1.1.0           
+[11] cowplot_1.0.0               ggplot2_3.3.2              
+[13] GenomicRanges_1.41.5        GenomeInfoDb_1.25.8        
+[15] IRanges_2.23.10             S4Vectors_0.27.12          
+[17] BiocGenerics_0.35.4         workflowr_1.6.2            
+
+loaded via a namespace (and not attached):
+  [1] ChIPseeker_1.25.0                      
+  [2] backports_1.1.8                        
+  [3] circlize_0.4.10                        
+  [4] fastmatch_1.1-0                        
+  [5] BiocFileCache_1.13.0                   
+  [6] plyr_1.8.6                             
+  [7] igraph_1.2.5                           
+  [8] splines_4.0.0                          
+  [9] BiocParallel_1.23.2                    
+ [10] urltools_1.7.3                         
+ [11] digest_0.6.25                          
+ [12] htmltools_0.5.0                        
+ [13] GOSemSim_2.15.1                        
+ [14] viridis_0.5.1                          
+ [15] GO.db_3.11.4                           
+ [16] gdata_2.18.0                           
+ [17] magrittr_1.5                           
+ [18] memoise_1.1.0                          
+ [19] BSgenome_1.57.5                        
+ [20] cluster_2.1.0                          
+ [21] Biostrings_2.57.2                      
+ [22] readr_1.3.1                            
+ [23] annotate_1.67.0                        
+ [24] graphlayouts_0.7.0                     
+ [25] askpass_1.1                            
+ [26] enrichplot_1.9.1                       
+ [27] prettyunits_1.1.1                      
+ [28] colorspace_1.4-1                       
+ [29] blob_1.2.1                             
+ [30] rvest_0.3.6                            
+ [31] rappdirs_0.3.1                         
+ [32] ggrepel_0.8.2                          
+ [33] xfun_0.16                              
+ [34] jsonlite_1.7.0                         
+ [35] crayon_1.3.4                           
+ [36] RCurl_1.98-1.2                         
+ [37] scatterpie_0.1.4                       
+ [38] TxDb.Hsapiens.UCSC.hg19.knownGene_3.2.2
+ [39] genefilter_1.71.0                      
+ [40] survival_3.2-3                         
+ [41] glue_1.4.1                             
+ [42] polyclip_1.10-0                        
+ [43] gtable_0.3.0                           
+ [44] zlibbioc_1.35.0                        
+ [45] XVector_0.29.3                         
+ [46] webshot_0.5.2                          
+ [47] GetoptLong_1.0.2                       
+ [48] shape_1.4.4                            
+ [49] scales_1.1.1                           
+ [50] DOSE_3.15.0                            
+ [51] DBI_1.1.0                              
+ [52] Rcpp_1.0.5                             
+ [53] plotrix_3.7-8                          
+ [54] viridisLite_0.3.0                      
+ [55] xtable_1.8-4                           
+ [56] progress_1.2.2                         
+ [57] clue_0.3-57                            
+ [58] gridGraphics_0.5-0                     
+ [59] europepmc_0.4                          
+ [60] bit_1.1-15.2                           
+ [61] httr_1.4.2                             
+ [62] fgsea_1.15.0                           
+ [63] gplots_3.0.4                           
+ [64] RColorBrewer_1.1-2                     
+ [65] ellipsis_0.3.1                         
+ [66] pkgconfig_2.0.3                        
+ [67] XML_3.99-0.5                           
+ [68] farver_2.0.3                           
+ [69] dbplyr_1.4.4                           
+ [70] locfit_1.5-9.4                         
+ [71] ggplotify_0.0.5                        
+ [72] tidyselect_1.1.0                       
+ [73] labeling_0.3                           
+ [74] rlang_0.4.7                            
+ [75] reshape2_1.4.4                         
+ [76] later_1.1.0.1                          
+ [77] AnnotationDbi_1.51.3                   
+ [78] munsell_0.5.0                          
+ [79] tools_4.0.0                            
+ [80] generics_0.0.2                         
+ [81] RSQLite_2.2.0                          
+ [82] ggridges_0.5.2                         
+ [83] evaluate_0.14                          
+ [84] stringr_1.4.0                          
+ [85] yaml_2.2.1                             
+ [86] knitr_1.29                             
+ [87] bit64_0.9-7.1                          
+ [88] fs_1.4.2                               
+ [89] tidygraph_1.2.0                        
+ [90] caTools_1.18.0                         
+ [91] purrr_0.3.4                            
+ [92] ggraph_2.0.3                           
+ [93] DO.db_2.9                              
+ [94] xml2_1.3.2                             
+ [95] compiler_4.0.0                         
+ [96] rstudioapi_0.11                        
+ [97] curl_4.3                               
+ [98] png_0.1-7                              
+ [99] tibble_3.0.3                           
+[100] tweenr_1.0.1                           
+[101] geneplotter_1.67.0                     
+[102] stringi_1.4.6                          
+[103] highr_0.8                              
+[104] GenomicFeatures_1.41.2                 
+[105] lattice_0.20-41                        
+[106] vctrs_0.3.2                            
+[107] pillar_1.4.6                           
+[108] lifecycle_0.2.0                        
+[109] BiocManager_1.30.10                    
+[110] triebeard_0.3.0                        
+[111] GlobalOptions_0.1.2                    
+[112] data.table_1.13.0                      
+[113] bitops_1.0-6                           
+[114] qvalue_2.21.0                          
+[115] httpuv_1.5.4                           
+[116] rtracklayer_1.49.4                     
+[117] R6_2.4.1                               
+[118] promises_1.1.1                         
+[119] KernSmooth_2.23-17                     
+[120] gridExtra_2.3                          
+[121] gtools_3.8.2                           
+[122] boot_1.3-25                            
+[123] MASS_7.3-51.6                          
+[124] assertthat_0.2.1                       
+[125] openssl_1.4.2                          
+[126] rprojroot_1.3-2                        
+[127] rjson_0.2.20                           
+[128] withr_2.2.0                            
+[129] regioneR_1.21.1                        
+[130] GenomicAlignments_1.25.3               
+[131] Rsamtools_2.5.3                        
+[132] GenomeInfoDbData_1.2.3                 
+[133] hms_0.5.3                              
+[134] tidyr_1.1.0                            
+[135] rvcheck_0.1.8                          
+[136] rmarkdown_2.3                          
+[137] git2r_0.27.1                           
+[138] ggforce_0.3.2                          </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
