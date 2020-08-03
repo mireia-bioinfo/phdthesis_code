@@ -1,0 +1,28 @@
+---
+title: '#3 IRF1, STAT1 and STAT2 are key regulators of IFN-α signaling'
+subtitle: 
+author: "Mireia Ramos-Rodríguez"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE,
+                      eval = TRUE,
+                      fig.height = 4)
+
+library(GenomicRanges)
+library(ggplot2)
+library(cowplot)
+library(kableExtra)
+library(dplyr)
+library(ComplexHeatmap)
+library(DESeq2)
+
+
+theme_set(cowplot::theme_cowplot(font_size = 10))
+load("../code/IFNa_color_palettes.rda")
+
+## Create directory to save results
+out_dir <- "../output/ifn_03_footprint/"
+dir.create(out_dir, F)
+```

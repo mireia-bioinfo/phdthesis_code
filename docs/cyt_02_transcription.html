@@ -377,6 +377,18 @@ div.tocify {
     <li>
       <a href="index_ifna.html">Description</a>
     </li>
+    <li>
+      <a href="ifn_01_accessibility.html">#1 Chromatin remodeling induced by IFN-α</a>
+    </li>
+    <li>
+      <a href="ifn_02_transcription.html">#2 Chromatin remodeling correlates with transcription changes</a>
+    </li>
+    <li>
+      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFNα signaling</a>
+    </li>
+    <li>
+      <a href="ifn_04_modules.html">#4 mRNA and protein modules regulated by IFN-α</a>
+    </li>
   </ul>
 </li>
 <li class="dropdown">
@@ -983,7 +995,7 @@ prot.bar</code></pre>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>R version 4.0.0 (2020-04-24)
+<pre><code>R version 4.0.2 (2020-06-22)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 10 x64 (build 18362)
 
@@ -1000,52 +1012,52 @@ attached base packages:
 
 other attached packages:
  [1] purrr_0.3.4          dplyr_1.0.0          kableExtra_1.1.0    
- [4] cowplot_1.0.0        ggplot2_3.3.1        GenomicRanges_1.41.1
- [7] GenomeInfoDb_1.25.0  IRanges_2.23.5       S4Vectors_0.27.8    
-[10] BiocGenerics_0.35.2  workflowr_1.6.2     
+ [4] cowplot_1.0.0        ggplot2_3.3.2        GenomicRanges_1.41.5
+ [7] GenomeInfoDb_1.25.8  IRanges_2.23.10      S4Vectors_0.27.12   
+[10] BiocGenerics_0.35.4  workflowr_1.6.2     
 
 loaded via a namespace (and not attached):
- [1] Biobase_2.49.0              httr_1.4.1                 
- [3] bit64_0.9-7                 viridisLite_0.3.0          
- [5] splines_4.0.0               highr_0.8                  
+ [1] Biobase_2.49.0              httr_1.4.2                 
+ [3] splines_4.0.0               bit64_0.9-7.1              
+ [5] viridisLite_0.3.0           highr_0.8                  
  [7] blob_1.2.1                  GenomeInfoDbData_1.2.3     
  [9] ggrepel_0.8.2               yaml_2.2.1                 
-[11] pillar_1.4.4                RSQLite_2.2.0              
-[13] backports_1.1.7             lattice_0.20-41            
+[11] pillar_1.4.6                RSQLite_2.2.0              
+[13] backports_1.1.8             lattice_0.20-41            
 [15] glue_1.4.1                  digest_0.6.25              
-[17] RColorBrewer_1.1-2          promises_1.1.0             
-[19] XVector_0.29.1              rvest_0.3.6                
+[17] RColorBrewer_1.1-2          promises_1.1.1             
+[19] XVector_0.29.3              rvest_0.3.6                
 [21] colorspace_1.4-1            plyr_1.8.6                 
-[23] htmltools_0.5.0             httpuv_1.5.3.1             
-[25] Matrix_1.2-18               DESeq2_1.29.4              
-[27] XML_3.99-0.3                pkgconfig_2.0.3            
+[23] htmltools_0.5.0             httpuv_1.5.4               
+[25] Matrix_1.2-18               DESeq2_1.29.7              
+[27] XML_3.99-0.5                pkgconfig_2.0.3            
 [29] genefilter_1.71.0           zlibbioc_1.35.0            
 [31] xtable_1.8-4                scales_1.1.1               
-[33] webshot_0.5.2               later_1.0.0                
-[35] BiocParallel_1.23.0         git2r_0.27.1               
-[37] tibble_3.0.1                annotate_1.67.0            
+[33] webshot_0.5.2               later_1.1.0.1              
+[35] BiocParallel_1.23.2         git2r_0.27.1               
+[37] tibble_3.0.3                annotate_1.67.0            
 [39] farver_2.0.3                generics_0.0.2             
 [41] ellipsis_0.3.1              withr_2.2.0                
-[43] SummarizedExperiment_1.19.4 survival_3.1-12            
+[43] SummarizedExperiment_1.19.6 survival_3.2-3             
 [45] magrittr_1.5                crayon_1.3.4               
 [47] memoise_1.1.0               evaluate_0.14              
-[49] fs_1.4.1                    xml2_1.3.2                 
+[49] fs_1.4.2                    xml2_1.3.2                 
 [51] tools_4.0.0                 hms_0.5.3                  
 [53] lifecycle_0.2.0             matrixStats_0.56.0         
 [55] stringr_1.4.0               locfit_1.5-9.4             
-[57] munsell_0.5.0               DelayedArray_0.15.1        
-[59] AnnotationDbi_1.51.0        compiler_4.0.0             
-[61] rlang_0.4.6                 grid_4.0.0                 
+[57] munsell_0.5.0               DelayedArray_0.15.7        
+[59] AnnotationDbi_1.51.3        compiler_4.0.0             
+[61] rlang_0.4.7                 grid_4.0.0                 
 [63] RCurl_1.98-1.2              rstudioapi_0.11            
 [65] labeling_0.3                bitops_1.0-6               
 [67] rmarkdown_2.3               gtable_0.3.0               
 [69] DBI_1.1.0                   reshape2_1.4.4             
-[71] R6_2.4.1                    knitr_1.28                 
+[71] R6_2.4.1                    knitr_1.29                 
 [73] bit_1.1-15.2                rprojroot_1.3-2            
 [75] readr_1.3.1                 stringi_1.4.6              
-[77] Rcpp_1.0.4.6                geneplotter_1.67.0         
-[79] vctrs_0.3.0                 tidyselect_1.1.0           
-[81] xfun_0.14                  </code></pre>
+[77] Rcpp_1.0.5                  geneplotter_1.67.0         
+[79] vctrs_0.3.2                 tidyselect_1.1.0           
+[81] xfun_0.16                  </code></pre>
 </div>
 </div>
 </div>

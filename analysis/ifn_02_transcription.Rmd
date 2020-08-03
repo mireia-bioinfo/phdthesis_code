@@ -1,0 +1,330 @@
+---
+title: "#2 Chromatin remodeling correlates with transcription changes"
+subtitle: "IFN-α "
+author: "Mireia Ramos-Rodríguez"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE,
+                      eval = TRUE,
+                      fig.height = 4)
+
+library(GenomicRanges)
+library(ggplot2)
+library(cowplot)
+library(kableExtra)
+library(dplyr)
+library(ComplexHeatmap)
+library(DESeq2)
+
+
+theme_set(cowplot::theme_cowplot(font_size = 10))
+load("../code/IFNa_color_palettes.rda")
+
+## Create directory to save results
+out_dir <- "../output/ifn_02_transcription/"
+dir.create(out_dir, F)
+```
+
+## Analysis of RNA-seq data
+
+### Differential analysis
+
+Using `Rsubread` and `DESeq2`, we can easily generate the list of open regions in the samples, including the normalized counts, adjusted p-values and log2 Fold Changes. The steps that we have to follow are:
+
+1. Obtain counts per gene using RSubread::featureCounts. (! Careful with the arguments, check that they are correct). We annotate to ENSEMBL GRCh37 GTF `Homo_sapiens.GRCh37.87.gtf`
+2. Create `DESeqDataSet` object including annotation data.
+3. Perform differential analysis, obtain results and counts and save into a `data.frame`.
+
+**Note**: This differential analysis of RNA-seq data was only used to correlate gene expression with open chromatin. For the methods used throughout the paper to detect differential gene expression, please see Supplementary Methods section _RNA sequencing processing and analysis_, in _Colli et al, 2020_.
+
+```{r perform-diff-analysis-rna, results=FALSE, eval=FALSE}
+###############################################################################
+## 1) Obtain counts for each gene ---------------------------------------------
+anno <- "/home/labs/lplab/mramos/data/Homo_sapiens.GRCh37.87.gtf"
+files <- list.files("../../data/RNA-seq/BAMs", full.names=TRUE,
+                        pattern="*.bam$")
+bam_files_2h <- files[grep("_2h_", files)]
+bam_files_24h <- files[grep("_24h_", files)]
+bam_files_8h <- files[grep("_8h_", files)]
+
+counts_2h <- Rsubread::featureCounts(bam_files_2h,
+                                  annot.ext=anno,
+                                  isGTFAnnotationFile=TRUE,
+                                  isPairedEnd=TRUE,
+                                  nthreads=6)
+
+counts_8h <- Rsubread::featureCounts(bam_files_8h,
+                                  annot.ext=anno,
+                                  isGTFAnnotationFile=TRUE,
+                                  isPairedEnd=TRUE,
+                                  nthreads=6)
+
+counts_24h <- Rsubread::featureCounts(bam_files_24h,
+                                  annot.ext=anno,
+                                  isGTFAnnotationFile=TRUE,
+                                  isPairedEnd=TRUE,
+                                  nthreads=6)
+
+###############################################################################
+## 2) Perform differential analysis -------------------------------------------
+## 2 hours -----------------------------------
+## Create DDS object and perform analysis
+cts <- counts_2h$counts
+colnames(cts) <- names_2h
+
+coldata <- data.frame("treatment"=gsub("_[0-9]$", "", names_2h))
+dds_2h <- DESeqDataSetFromMatrix(countData = cts,
+                              colData = coldata,
+                              design= ~ treatment)
+## Run analysis in parallel
+library("BiocParallel")
+register(MulticoreParam(6))
+dds_2h <- DESeq(dds_2h, parallel=TRUE)
+save(dds_2h, file="../data/IFNa/RNA/diffAnalysis/dds_2h.rda")
+
+res_2h <- results(dds_2h, independentFiltering=FALSE)
+
+## 8 hours -----------------------------------
+## Create DDS object and perform analysis
+cts <- counts_8h$counts
+colnames(cts) <- names_8h
+
+coldata <- data.frame("treatment"=gsub("_[0-9]$", "", names_8h))
+dds_8h <- DESeqDataSetFromMatrix(countData = cts,
+                              colData = coldata,
+                              design= ~ treatment)
+
+## Run analysis in parallel
+library("BiocParallel")
+register(MulticoreParam(6))
+dds_8h <- DESeq(dds_8h, parallel=TRUE)
+save(dds_8h, file="../data/IFNa/RNA/diffAnalysis/dds_8h.rda")
+
+res_8h <- results(dds_8h, independentFiltering=FALSE)
+
+## 24hours -----------------------------------
+## Create DDS object and perform analysis
+cts <- counts_24h$counts
+colnames(cts) <- names_24h
+
+coldata <- data.frame("treatment"=gsub("_[0-9]$", "", names_24h))
+dds_24h <- DESeqDataSetFromMatrix(countData = cts,
+                              colData = coldata,
+                              design= ~ treatment)
+
+## Run analysis in parallel
+library("BiocParallel")
+register(MulticoreParam(6))
+dds_24h <- DESeq(dds_24h, parallel=TRUE)
+save(dds_24h, file="../data/IFNa/RNA/diffAnalysis/dds_24h.rda")
+
+res_24h <- results(dds_24h, independentFiltering=FALSE)
+
+###############################################################################
+## 3) Parse results -----------------------------------------------------------
+## 2 hours --------------------------
+## Edit results
+res.df_2h <- data.frame(res_2h)
+counts_2h <- counts(dds_2h, normalized=TRUE)
+counts_2h <- data.frame(counts_2h)
+res.df_2h <- merge(res.df_2h, counts_2h, by="row.names")
+colnames(res.df_2h)[1] <- "ensembl_gene_id"
+
+## Add mean counts for conditions
+res.df_2h$mean.ctrl <- apply(res.df_2h[,8:12], 1, mean)
+res.df_2h$mean.ifna <- apply(res.df_2h[,13:17], 1, mean)
+
+## Classify regions
+res.df_2h$type <- "equal-regulated"
+res.df_2h$type[res.df_2h$padj<=0.05 & res.df_2h$log2FoldChange>=1] <- "up-regulated"
+res.df_2h$type[res.df_2h$padj<=0.05 & res.df_2h$log2FoldChange<=-1] <- "down-regulated"
+res.df_2h$type[is.na(res.df_2h$padj)] <- "not-expressed"
+
+## Add coordinates
+ensembl = biomaRt::useEnsembl(biomart = "ensembl", GRCh = 37, 
+                              dataset = "hsapiens_gene_ensembl")
+dat.hs = biomaRt::getBM(attributes = c("external_gene_name",
+                                       "ensembl_gene_id",
+                                       "chromosome_name",
+                                       "start_position",
+                                       "end_position"),
+                        filters="ensembl_gene_id",
+                        values = res.df_2h$ensembl_gene_id,
+                        mart = ensembl)
+
+
+res.df_2h <- merge(res.df_2h, dat.hs)
+res.df_2h <- res.df_2h[res.df_2h$chromosome_name %in% c(1:22),]
+res.df_2h$chromosome_name <- paste0("chr", res.df_2h$chromosome_name)
+save(res.df_2h, file="../data/IFNa/RNA/diffAnalysis/res_2h.rda")
+
+res_2h.gr <- regioneR::toGRanges(res.df_2h[,c(22:24,1,21,2:20)])
+save(res_2h.gr, file="../data/IFNa/RNA/diffAnalysis/res_2h_granges.rda")
+
+## 8 hours --------------------------
+## Edit results
+res.df_8h <- data.frame(res_8h)
+counts_8h <- counts(dds_8h, normalized=TRUE)
+counts_8h <- data.frame(counts_8h)
+res.df_8h <- merge(res.df_8h, counts_8h, by="row.names")
+colnames(res.df_8h)[1] <- "ensembl_gene_id"
+
+## Add mean counts for conditions
+res.df_8h$mean.ctrl <- apply(res.df_8h[,8:11], 1, mean)
+res.df_8h$mean.ifna <- apply(res.df_8h[,12:16], 1, mean)
+
+## Classify regions
+res.df_8h$type <- "equal-regulated"
+res.df_8h$type[res.df_8h$padj<=0.05 & res.df_8h$log2FoldChange>=1] <- "up-regulated"
+res.df_8h$type[res.df_8h$padj<=0.05 & res.df_8h$log2FoldChange<=-1] <- "down-regulated"
+res.df_8h$type[is.na(res.df_8h$padj)] <- "not-expressed"
+
+## Add coordinates
+ensembl = biomaRt::useEnsembl(biomart = "ensembl", GRCh = 37, 
+                              dataset = "hsapiens_gene_ensembl")
+dat.hs = biomaRt::getBM(attributes = c("external_gene_name",
+                                       "ensembl_gene_id",
+                                       "chromosome_name",
+                                       "start_position",
+                                       "end_position"),
+                        filters="ensembl_gene_id",
+                        values = res.df_8h$ensembl_gene_id,
+                        mart = ensembl)
+
+
+res.df_8h <- merge(res.df_8h, dat.hs)
+res.df_8h <- res.df_8h[res.df_8h$chromosome_name %in% c(1:22),]
+res.df_8h$chromosome_name <- paste0("chr", res.df_8h$chromosome_name)
+save(res.df_8h, file="../data/IFNa/RNA/diffAnalysis/res_8h.rda")
+
+res_8h.gr <- regioneR::toGRanges(res.df_8h[,c(21:23,1,20,2:19)])
+save(res_8h.gr, file="../data/IFNa/RNA/diffAnalysis/res_8h_granges.rda")
+
+## 24 hours -------------------------
+## Edit results
+res.df_24h <- data.frame(res_24h)
+counts_24h <- counts(dds_24h, normalized=TRUE)
+counts_24h <- data.frame(counts_24h)
+res.df_24h <- merge(res.df_24h, counts_24h, by="row.names")
+colnames(res.df_24h)[1] <- "ensembl_gene_id"
+
+## Add mean counts for conditions
+res.df_24h$mean.ctrl <- apply(res.df_24h[,8:12], 1, mean)
+res.df_24h$mean.ifna <- apply(res.df_24h[,13:17], 1, mean)
+
+## Classify regions
+res.df_24h$type <- "equal-regulated"
+res.df_24h$type[res.df_24h$padj<=0.05 & res.df_24h$log2FoldChange>=1] <- "up-regulated"
+res.df_24h$type[res.df_24h$padj<=0.05 & res.df_24h$log2FoldChange<=-1] <- "down-regulated"
+res.df_24h$type[is.na(res.df_24h$padj)] <- "not-expressed"
+
+## Add coordinates
+ensembl = biomaRt::useEnsembl(biomart = "ensembl", GRCh = 37, 
+                              dataset = "hsapiens_gene_ensembl")
+dat.hs = biomaRt::getBM(attributes = c("external_gene_name",
+                                       "ensembl_gene_id",
+                                       "chromosome_name",
+                                       "start_position",
+                                       "end_position"),
+                        filters="ensembl_gene_id",
+                        values = res.df_24h$ensembl_gene_id,
+                        mart = ensembl)
+
+
+res.df_24h <- merge(res.df_24h, dat.hs)
+res.df_24h <- res.df_24h[res.df_24h$chromosome_name %in% c(1:22),]
+res.df_24h$chromosome_name <- paste0("chr", res.df_24h$chromosome_name)
+save(res.df_24h, file="../data/IFNa/RNA/diffAnalysis/res_24h.rda")
+
+res_24h.gr <- regioneR::toGRanges(res.df_24h[,c(22:24,1,21,2:20)])
+save(res_24h.gr, file="../data/IFNa/RNA/diffAnalysis/res_24h_granges.rda")
+```
+
+## Correlation between OCRs and gene expression 
+
+### Annotate OCRs to genes
+
+```{r annotate-40kb-win, eval=FALSE}
+## Load genes and create windows
+load("~/data/genesCoding_gencodev18_granges.rda")
+win=40000
+genes.prom <- promoters(genes, upstream=win/2, downstream=win/2)
+
+## Load OCRs 2h
+load("../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda")
+
+ols <- findOverlaps(res.gr, genes.prom)
+ols_df <- cbind(data.frame(res.gr)[queryHits(ols), c(6,8,13)],
+                data.frame(genes)[subjectHits(ols), c(6,7)])
+
+ols_split <- split(ols_df, ols_df$GeneID)
+ols_final <- do.call(rbind,
+                     lapply(ols_split,
+                            function(x) data.frame(GeneID=unique(x$GeneID),
+                                                   ensembl_gene_id=paste0(unique(x$ensembl_gene_id),
+                                                                          collapse=", "),
+                                                   gene_name=paste0(unique(x$external_gene_name),
+                                                                    collapse=", "),
+                                                   stringsAsFactors=FALSE)))
+
+coords <- data.frame("Coordinates"=as.character(res.gr),
+                     "GeneID"=res.gr$GeneID,
+                     "log2FoldChange"=res.gr$log2FoldChange,
+                     "OCR type"=res.gr$type,
+                     stringsAsFactors=FALSE)
+
+anno <- dplyr::left_join(coords, ols_final)
+anno$ensembl_gene_id[is.na(anno$ensembl_gene_id)] <- "None"
+anno$gene_name[is.na(anno$gene_name)] <- "None"
+
+save(anno, file=file.path(out_dir, "ATAC_annotation_40kb_coding_2h.rda"))
+
+## Load OCRs 24h
+load("../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda")
+
+ols <- findOverlaps(res.gr, genes.prom)
+ols_df <- cbind(data.frame(res.gr)[queryHits(ols), c(6,8,13)],
+                data.frame(genes)[subjectHits(ols), c(6,7)])
+
+ols_split <- split(ols_df, ols_df$GeneID)
+ols_final <- do.call(rbind,
+                     lapply(ols_split,
+                            function(x) data.frame(GeneID=unique(x$GeneID),
+                                                   ensembl_gene_id=paste0(unique(x$ensembl_gene_id),
+                                                                          collapse=", "),
+                                                   gene_name=paste0(unique(x$external_gene_name),
+                                                                    collapse=", "),
+                                                   stringsAsFactors=FALSE)))
+
+coords <- data.frame("Coordinates"=as.character(res.gr),
+                     "GeneID"=res.gr$GeneID,
+                     "log2FoldChange"=res.gr$log2FoldChange,
+                     "OCR type"=res.gr$type,
+                     stringsAsFactors=FALSE)
+
+anno <- dplyr::left_join(coords, ols_final)
+anno$ensembl_gene_id[is.na(anno$ensembl_gene_id)] <- "None"
+anno$gene_name[is.na(anno$gene_name)] <- "None"
+
+save(anno, file=file.path(out_dir, "ATAC_annotation_40kb_coding_24h.rda"))
+```
+
+
+Full list in *Supplementary Data 2* [download](https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-020-16327-0/MediaObjects/41467_2020_16327_MOESM5_ESM.xlsx)
+
+```{r}
+load(file.path(out_dir, "ATAC_annotation_40kb_coding_2h.rda"))
+
+DT::datatable(anno[anno$OCR_type=="gained",],
+              caption = "Gained OCRs at 2 hours and the genes to which they are annotated, using a 40kb window.")
+```
+
+```{r}
+load(file.path(out_dir, "ATAC_annotation_40kb_coding_24h.rda"))
+
+DT::datatable(anno[anno$OCR_type=="gained",],
+              caption = "Gained OCRs at 24 hours and the genes to which they are annotated, using a 40kb window.")
+```
+
+### 

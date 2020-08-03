@@ -1,0 +1,1 @@
+cmd = data/ATAC_2h_gained.bed hg19 motifs_2h_gained -p 6 -size given -bits

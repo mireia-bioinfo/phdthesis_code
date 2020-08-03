@@ -15,9 +15,7 @@ library(ggplot2)
 library(cowplot)
 library(kableExtra)
 library(dplyr)
-library(ComplexHeatmap)
 library(DESeq2)
-
 
 theme_set(cowplot::theme_cowplot(font_size = 10))
 load("../code/IFNa_color_palettes.rda")
@@ -25,7 +23,6 @@ load("../code/IFNa_color_palettes.rda")
 ## Create directory to save results
 out_dir <- "../output/ifn_01_accessibility/"
 dir.create(out_dir, F)
-
 ```
 
 ## Analysis of ATAC-seq data
@@ -473,6 +470,10 @@ res.gr$annotation <- "Promoter"
 res.gr$annotation[abs(res.gr$distanceToTSS)>2e3] <- "Distal"
 
 save(res.gr, file="../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda")
+```
+
+```{r}
+load("../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda")
 
 table(res.gr[res.gr$time=="2 hours"]$type, res.gr$annotation[res.gr$time=="2 hours"]) %>% 
   knitr::kable(format="html",
@@ -488,6 +489,7 @@ table(res.gr[res.gr$time=="24 hours"]$type, res.gr$annotation[res.gr$time=="24 h
   kable_styling(full_width = FALSE) %>% 
   add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 ```
+
 
 ```{r atac-volc-plot-ec, fig.height=4, fig.width=8}
 volc_ec <- 
@@ -510,7 +512,7 @@ volc_ec
 
 - Distance to TSS
 
-```{r tss-plot, fig.width=4, eval=FALSE}
+```{r tss-plot, fig.width=6, fig.cap="Distribution of OCRs according to their distance to the nearest TSS."}
 load("../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda")
 re.df <- as.data.frame(res.gr)
 
@@ -525,22 +527,27 @@ re.tss$anno.group[abs(re.tss$distanceToTSS)<=20e3 &
                     abs(re.tss$distanceToTSS)>2e3] <- "2-20kb"
 re.tss$anno.group[abs(re.tss$distanceToTSS)<=2e3] <- "0-2kb"
 
-len.g <- sum(grepl("gained", re.tss$type))
-len.s <- sum(grepl("stable", re.tss$type))
+## Calculate percentages
+len.g_2h <- sum(grepl("gained", re.tss$type) & grepl("2 hours", re.tss$time))
+len.s_2h <- sum(grepl("stable", re.tss$type) & grepl("2 hours", re.tss$time))
+len.g_24h <- sum(grepl("gained", re.tss$type) & grepl("24 hours", re.tss$time))
+len.s_24h <- sum(grepl("stable", re.tss$type) & grepl("24 hours", re.tss$time))
 
 sum.tss <- re.tss %>%
   group_by(type, anno.group, time) %>%
   summarise(num=length(unique(GeneID)))
 
 sum.tss$perc <- NA
-sum.tss$perc[grep("gained", sum.tss$type)] <- sum.tss$num[grep("gained", sum.tss$type)]/len.g*100
-sum.tss$perc[grep("stable", sum.tss$type)] <- sum.tss$num[grep("stable", sum.tss$type)]/len.s*100
+sum.tss$perc[grepl("gained", sum.tss$type) & grepl("2 hours", sum.tss$time)] <- sum.tss$num[grepl("gained", sum.tss$type) & grepl("2 hours", sum.tss$time)]/len.g_2h*100
+sum.tss$perc[grepl("stable", sum.tss$type) & grepl("2 hours", sum.tss$time)] <- sum.tss$num[grepl("stable", sum.tss$type) & grepl("2 hours", sum.tss$time)]/len.s_2h*100
+sum.tss$perc[grepl("gained", sum.tss$type) & grepl("24 hours", sum.tss$time)] <- sum.tss$num[grepl("gained", sum.tss$type) & grepl("24 hours", sum.tss$time)]/len.g_24h*100
+sum.tss$perc[grepl("stable", sum.tss$type) & grepl("24 hours", sum.tss$time)] <- sum.tss$num[grepl("stable", sum.tss$type) & grepl("24 hours", sum.tss$time)]/len.s_24h*100
 
 sum.tss$anno.group <- factor(sum.tss$anno.group,
                              levels=c("0-2kb", "2-20kb", "20-200kb", ">200kb"))
 
 tss.plot <- 
-  ggplot(sum.tss,
+  ggplot(sum.tss[sum.tss$type %in% c("gained", "stable"),],
        aes(anno.group, perc)) +
   geom_bar(aes(fill=type), color="black", lwd=0.7, stat="identity", position="dodge") +
   geom_vline(xintercept=1.5, lty=2, color="dark red") +
@@ -560,36 +567,44 @@ tss.plot
 
 ```{r calculate-cons, eval=FALSE}
 library(GenomicRanges)
-devtools::load_all("~/tools/pipelineNGS/")
+library(pipelineNGS)
+
+path_bw <- "C:/Users/mirei/Documents/data/phastCons_46_placentalMammals/placental_mammals.bw"
 
 scope <- 1e3
 bin <- 25
 
-load("../2017-08-10_diffAnalysis-sep/data/res_2h_granges.rda")
+load("../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda")
+res.2h.gr <- res.gr
 g2h <- res.2h.gr[res.2h.gr$type=="gained",]
 g2h.cons <- calculateMeanCons(g2h,
-                              scope=scope, bin=bin)
+                              scope=scope, bin=bin,
+                              phastConsBW = path_bw)
 g2h.cons$type <- "gained"
 g2h.cons$time <- "2h"
 
 g2h.rnd <- regioneR::randomizeRegions(g2h,
                                        allow.overlaps = FALSE)
 g2h.rnd.cons <- calculateMeanCons(g2h.rnd,
-                              scope=scope, bin=bin)
+                              scope=scope, bin=bin,
+                              phastConsBW = path_bw)
 g2h.rnd.cons$type <- "random"
 g2h.rnd.cons$time <- "2h"
 
-load("../2017-08-10_diffAnalysis-sep/data/res_24h_granges.rda")
+load("../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda")
+res.24h.gr <- res.gr
 g24h <- res.24h.gr[res.24h.gr$type=="gained",]
 g24h.cons <- calculateMeanCons(g24h,
-                              scope=scope, bin=bin)
+                              scope=scope, bin=bin,
+                              phastConsBW = path_bw)
 g24h.cons$type <- "gained"
 g24h.cons$time <- "24h"
 
 g24h.rnd <- regioneR::randomizeRegions(g24h,
                                        allow.overlaps = FALSE)
 g24h.rnd.cons <- calculateMeanCons(g24h.rnd,
-                              scope=scope, bin=bin)
+                              scope=scope, bin=bin,
+                              phastConsBW = path_bw)
 g24h.rnd.cons$type <- "random"
 g24h.rnd.cons$time <- "24h"
 
@@ -597,10 +612,11 @@ g.cons <- rbind(g2h.cons, g2h.rnd.cons,
                 g24h.cons, g24h.rnd.cons)
 
 g.cons$time <- factor(g.cons$time, levels=c("2h", "24h"))
+save(g.cons, file=file.path(out_dir, "IFN_conservation.rda"))
 ```
 
 ```{r plot-cons, fig.height=3.5, fig.width=3.5, eval=F}
-load(file.path(out_dir, "IRE_endoc_fc1_conservation.rda"))
+load(file.path(out_dir, "IFN_conservation.rda"))
 
 ggplot(g.cons) +
   geom_line(aes(position, meanCons, color=type, group=type),
@@ -611,14 +627,42 @@ ggplot(g.cons) +
   xlab("Position from peak center (bp)") +
   ylab("Mean PhastCons46way score") +
   theme(legend.position="top")
-
-ggsave(file="conservtion_mean.pdf", 
-       width=6, height=4, units="in")
-
-ggplot(g.cons) +
-  geom_line(aes(position, medianCons, color=type, group=type),
-            lwd=0.7) +
-  facet_wrap(~time)
 ```
 
-- Motifs
+```{r echo=FALSE, fig.cap="Mean phastCons sequence conservation scores of gained OCRs."}
+knitr::include_graphics("figure/ifn_01_accessibility.Rmd/plot-cons.png", error=FALSE)
+```
+
+- *de Novo* Motifs
+
+**Note**: This analysis has been re-run and thus, results might slightly differ from the ones presented in the original publication, as the *de Novo* motif finding includes some randomicity in its calculations. However, the main results, that is, the finding of both inflammatory and islet-specific TFs in gained OCRs is still maintained.
+
+```{r de-novo-motif-2h, eval=FALSE}
+library(maRge)
+
+out_homer <- file.path(out_dir, "motifs_2h_gained/")
+
+deNovoMotifHOMER(bed=paste0("../data/IFNa/bedfiles/OCRs_gained_2h.bed"),
+                 path_output=out_homer,
+                 other_param="-mask",
+                 path_homer="~/tools/homer/")
+```
+
+```{r de-novo-results-2h, eval=TRUE}
+htmltools::includeHTML(file.path(out_dir, "motifs_2h_gained/homerResults.html"))
+```
+
+```{r de-novo-motif-24h, eval=FALSE}
+library(maRge)
+
+out_homer <- file.path(out_dir, "motifs_24h_gained/")
+
+deNovoMotifHOMER(bed=paste0("../data/IFNa/bedfiles/OCRs_gained_2h.bed"),
+                 path_output=out_homer,
+                 other_param="-mask",
+                 path_homer="~/tools/homer/")
+```
+
+```{r de-novo-results-24h, eval=TRUE}
+htmltools::includeHTML(file.path(out_dir, "motifs_24h_gained/homerResults.html"))
+```
