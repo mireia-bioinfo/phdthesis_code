@@ -327,4 +327,136 @@ DT::datatable(anno[anno$OCR_type=="gained",],
               caption = "Gained OCRs at 24 hours and the genes to which they are annotated, using a 40kb window.")
 ```
 
-### 
+Annotate to different RNA-seq timepoints
+
+```{r, eval=FALSE}
+load(file.path(out_dir, "ATAC_annotation_40kb_coding_2h.rda"))
+colnames(anno)[6] <- "OCR_type"
+anno$time <- "ATAC 2 h"
+anno_all <- anno
+
+load(file.path(out_dir, "ATAC_annotation_40kb_coding_24h.rda"))
+colnames(anno)[6] <- "OCR_type"
+anno$time <- "ATAC 24 h"
+anno_all <- rbind(anno_all, anno)
+anno_all <- anno_all[,c("Region_ID", "OCR_type", "ensembl_gene_id", "time")]
+
+## Separate ensmbl ids
+ids <- strsplit(anno_all$ensembl_gene_id, ", ")
+len <- sapply(ids, length)
+
+anno_all <- anno_all[unlist(mapply(rep, x=1:nrow(anno_all), each=len)),]
+anno_all$ensembl_gene_id <-  unlist(ids)
+anno_all <- anno_all[anno_all$ensembl_gene_id!="None",]
+
+## Load gene expression data
+load("../data/IFNa/RNA/diffAnalysis/res_2h.rda")
+res_2h <- res.df_2h[,c("ensembl_gene_id", "log2FoldChange", "type")]
+colnames(res_2h)[2:3] <- paste0("RNA_", colnames(res_2h)[2:3])
+res_2h$RNA_time <- "RNA 2 h"
+
+load("../data/IFNa/RNA/diffAnalysis/res_8h.rda")
+res_8h <- res.df_8h[,c("ensembl_gene_id", "log2FoldChange", "type")]
+colnames(res_8h)[2:3] <- paste0("RNA_", colnames(res_8h)[2:3])
+res_8h$RNA_time <- "RNA 8 h"
+
+load("../data/IFNa/RNA/diffAnalysis/res_24h.rda")
+res_24h <- res.df_24h[,c("ensembl_gene_id", "log2FoldChange", "type")]
+colnames(res_24h)[2:3] <- paste0("RNA_", colnames(res_24h)[2:3])
+res_24h$RNA_time <- "RNA 24 h"
+
+rna_all <- rbind(res_2h, res_8h, res_24h)
+save(rna_all, file=file.path(out_dir, "RNA_merged_datasets.rda"))
+
+## Intersect RNA-seq with ATAC-seq data
+anno_all <- dplyr::left_join(anno_all, rna_all)
+anno_all$time <- factor(anno_all$time, levels=c("ATAC 2 h", "ATAC 24 h"))
+anno_all$RNA_time <- factor(anno_all$RNA_time, levels=c("RNA 2 h", "RNA 8 h", "RNA 24 h"))
+anno_all$OCR_type <- factor(anno_all$OCR_type, levels=c("stable", "gained", "lost"))
+
+save(anno_all, file=file.path(out_dir, "ATAC-RNA_intersection_40kb.rda"))
+```
+
+
+### Correlation with RNA-seq data
+
+```{r, fig.width=3.5}
+load(file.path(out_dir, "ATAC-RNA_intersection_40kb.rda"))
+
+ggplot(anno_all[anno_all$OCR_type!="lost",],
+       aes(OCR_type, ..count.., fill=RNA_type)) + 
+  geom_bar(position="fill", color="black", lwd=0.7) +
+  scale_fill_manual(values=pals$diff_rna,
+                    name="RNA type") +
+  facet_grid(RNA_time~time) +
+  theme(legend.position="top") +
+  xlab("OCR type") + ylab("Proportion") +
+  guides(fill=guide_legend(nrow=2, byrow=T))
+```
+Group by number of gained IREs in vicinity
+
+```{r make-groups, fig.width=4}
+load(file.path(out_dir, "ATAC-RNA_intersection_40kb.rda"))
+
+counts <- anno_all %>% 
+  filter(OCR_type != "lost") %>% 
+  group_by(RNA_time, ensembl_gene_id, RNA_log2FoldChange, RNA_type, time, OCR_type) %>% 
+  summarise(num = n())
+
+ids_no_gained <- counts$ensembl_gene_id[!(unique(counts$ensembl_gene_id[counts$OCR_type=="stable"]) %in% unique(counts$ensembl_gene_id[counts$OCR_type=="gained"]))]
+ids_no_stable <- counts$ensembl_gene_id[!(unique(counts$ensembl_gene_id[counts$OCR_type=="gained"]) %in% unique(counts$ensembl_gene_id[counts$OCR_type=="stable"]))]
+
+## Add genes with 0 gained OCRs but stable OCRs
+rep <- counts[which(counts$ensembl_gene_id %in% ids_no_gained),]
+rep$OCR_type <- "gained"
+rep$num <- 0
+counts <- rbind(counts, rep)
+
+## Add genes with 0 stable OCRs but gained OCRs
+rep <- counts[which(counts$ensembl_gene_id %in% ids_no_stable),]
+rep$OCR_type <- "stable"
+rep$num <- 0
+counts <- rbind(counts, rep)
+
+## Add genes with 0 OCRs
+load(file.path(out_dir, "RNA_merged_datasets.rda"))
+no_ocr <- rna_all[!(rna_all$ensembl_gene_id %in% unique(counts$ensembl_gene_id)),
+                  c("RNA_time", "ensembl_gene_id", "RNA_log2FoldChange", "RNA_type")]
+len <- nrow(no_ocr)
+no_ocr <- rbind(no_ocr, no_ocr, no_ocr, no_ocr)
+no_ocr$time <- rep(c("ATAC 2 h", "ATAC 24 h"), each=len*2)
+no_ocr$OCR_type <- rep(c("stable", "gained", "stable", "gained"), each=len)
+counts <- rbind(counts, no_ocr)
+
+## Group according to number of OCRs
+counts$group <- "0"
+counts$group[counts$num==1] <- "1"
+counts$group[counts$num>1] <- ">1"
+counts$group <- factor(counts$group, levels=c("0", "1", ">1"))
+
+counts$OCR_type <- factor(counts$OCR_type, levels=c("stable", "gained"))
+
+ggplot(counts, aes(group, ..count.., fill=RNA_type)) +
+  geom_bar(position="fill", color="black", lwd=0.7) +
+    scale_fill_manual(values=pals$diff_rna,
+                    name="RNA Type") +
+  theme(axis.text.x=element_text(angle=30, hjust=1),
+        legend.position = "top") +
+  guides(fill=guide_legend(nrow=2, byrow=T)) +
+  xlab("# OCRs of same type") +
+  ylab("Proportion") +
+  facet_grid(RNA_time~time+OCR_type)
+```
+
+```{r, fig.width=4}
+## Plot results
+ggplot(counts, 
+       aes(group, RNA_log2FoldChange)) +
+  geom_hline(yintercept=0, lty=2, color="grey") +
+  geom_boxplot(outlier.shape=NA, lwd=0.7) +
+  coord_cartesian(ylim=c(-1, 11)) +
+  xlab("# OCRs of same type") +
+  ylab("RNA-seq log2 Fold-Change") +
+  facet_grid(RNA_time~time+OCR_type)
+```
+## Correlation with proteomics
