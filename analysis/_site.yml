@@ -48,7 +48,9 @@ navbar:
     text: Source code
     href: https://github.com/mireia-bioinfo/phdthesis_code
 output:
-  workflowr::wflow_html:
+  bookdown::html_document2:
+    base_format: workflowr::wflow_html
+    number_sections: false
     toc: yes
     toc_float: yes
     code_folding: hide

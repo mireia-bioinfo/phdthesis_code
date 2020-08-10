@@ -1,6 +1,5 @@
 ---
 title: "#2 Chromatin remodeling correlates with transcription changes"
-subtitle: "IFN-α "
 author: "Mireia Ramos-Rodríguez"
 ---
 ```{r setup, include=FALSE}
@@ -26,6 +25,22 @@ out_dir <- "../output/ifn_02_transcription/"
 dir.create(out_dir, F)
 ```
 
+***
+
+## Details
+
+- **Original publication**:
+
+  > Colli, M.L., **Ramos-Rodríguez, M.**, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. *Nat Commun* **11**, 2584 (2020). https://doi.org/10.1038/s41467-020-16327-0
+
+- **Contents**: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:
+
+  + **Results**: "Interferon-$\alpha$ induces early changes in chromatin accessibility".
+  + **Figure 1**: "Exposure of EndoC-$\beta$H1 cells to interferon-$\alpha$ promotes changes in chromatin accessibility, which are correlated with gene transcription and translation". Panel **c** and **d**.
+  + **Supplementary Figure 3**: "Gained open chromatin regions are mainly localized distally to gene transcription starting sites (TSSs), evolutionary conserved and enriched in transcription factors (TFs) binding motifs". Panel **e**.
+
+***
+
 ## Analysis of RNA-seq data
 
 ### Differential analysis
@@ -36,7 +51,7 @@ Using `Rsubread` and `DESeq2`, we can easily generate the list of open regions i
 2. Create `DESeqDataSet` object including annotation data.
 3. Perform differential analysis, obtain results and counts and save into a `data.frame`.
 
-**Note**: This differential analysis of RNA-seq data was only used to correlate gene expression with open chromatin. For the methods used throughout the paper to detect differential gene expression, please see Supplementary Methods section _RNA sequencing processing and analysis_, in _Colli et al, 2020_.
+`r icon::fa("sticky-note")` **Note**: This differential analysis of RNA-seq data was only used to correlate gene expression with open chromatin. For the methods used throughout the paper to detect differential gene expression, please see Supplementary Methods section _RNA sequencing processing and analysis_, in _Colli et al, 2020_.
 
 ```{r perform-diff-analysis-rna, results=FALSE, eval=FALSE}
 ###############################################################################
@@ -245,6 +260,14 @@ save(res_24h.gr, file="../data/IFNa/RNA/diffAnalysis/res_24h_granges.rda")
 
 ### Annotate OCRs to genes
 
+As OCRs can regulate more than one gene and a single gene can be regulated by several OCRs, to associate genes and OCRs we used a 40kb window.
+This means that a gene i is associated to all the OCRs that overlap with a 40kb window centered on the gene's TSS.
+
+```{r echo=FALSE}
+knitr::include_graphics("figure/ifn_02_transcription.Rmd/association_ocr_genes.png", error=FALSE)
+```
+
+
 ```{r annotate-40kb-win, eval=FALSE}
 ## Load genes and create windows
 load("~/data/genesCoding_gencodev18_granges.rda")
@@ -311,12 +334,13 @@ save(anno, file=file.path(out_dir, "ATAC_annotation_40kb_coding_24h.rda"))
 ```
 
 
-Full list in *Supplementary Data 2* [download](https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-020-16327-0/MediaObjects/41467_2020_16327_MOESM5_ESM.xlsx)
+The following tables contain a list of all the gained OCRs and the genes to which they have been annotated. For a full list of OCRs please go to the original publication *Supplementary Data 2* ([Download](https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-020-16327-0/MediaObjects/41467_2020_16327_MOESM5_ESM.xlsx))
 
 ```{r}
 load(file.path(out_dir, "ATAC_annotation_40kb_coding_2h.rda"))
 
 DT::datatable(anno[anno$OCR_type=="gained",],
+              rownames=FALSE,
               caption = "Gained OCRs at 2 hours and the genes to which they are annotated, using a 40kb window.")
 ```
 
@@ -324,10 +348,11 @@ DT::datatable(anno[anno$OCR_type=="gained",],
 load(file.path(out_dir, "ATAC_annotation_40kb_coding_24h.rda"))
 
 DT::datatable(anno[anno$OCR_type=="gained",],
+              rownames=FALSE,
               caption = "Gained OCRs at 24 hours and the genes to which they are annotated, using a 40kb window.")
 ```
 
-Annotate to different RNA-seq timepoints
+Next, we intersect the OCRs annotated to genes with the RNA-seq data in the different time points (2, 8 and 24 hours) generated in the section above.
 
 ```{r, eval=FALSE}
 load(file.path(out_dir, "ATAC_annotation_40kb_coding_2h.rda"))
@@ -378,9 +403,9 @@ save(anno_all, file=file.path(out_dir, "ATAC-RNA_intersection_40kb.rda"))
 ```
 
 
-### Correlation with RNA-seq data
+## Correlation with gene expression
 
-```{r, fig.width=3.5}
+```{r, fig.width=3.5, fig.cap="Frequency of upregulated, downregulated or stable transcripts in the vicinity (<20 kb transcription start site (TSS) distance) of differnt types of OCRs."}
 load(file.path(out_dir, "ATAC-RNA_intersection_40kb.rda"))
 
 ggplot(anno_all[anno_all$OCR_type!="lost",],
@@ -393,9 +418,10 @@ ggplot(anno_all[anno_all$OCR_type!="lost",],
   xlab("OCR type") + ylab("Proportion") +
   guides(fill=guide_legend(nrow=2, byrow=T))
 ```
-Group by number of gained IREs in vicinity
 
-```{r make-groups, fig.width=4}
+To see the if there exists and additive effect of OCRs regulating a specific transcript, we group genes by number of gained or stable OCRs in the vicinity. 
+
+```{r make-groups, fig.width=4, fig.cap="Frequency of transcripts of each type classified by the number gained or stable OCRs located in the vicinity, at different time points."}
 load(file.path(out_dir, "ATAC-RNA_intersection_40kb.rda"))
 
 counts <- anno_all %>% 
@@ -448,7 +474,7 @@ ggplot(counts, aes(group, ..count.., fill=RNA_type)) +
   facet_grid(RNA_time~time+OCR_type)
 ```
 
-```{r, fig.width=4}
+```{r, fig.width=4, fig.cap="mRNA log2 fold-changes detected by RNA-seq are related to the type and the number of OCRs."}
 ## Plot results
 ggplot(counts, 
        aes(group, RNA_log2FoldChange)) +
@@ -459,4 +485,3 @@ ggplot(counts,
   ylab("RNA-seq log2 Fold-Change") +
   facet_grid(RNA_time~time+OCR_type)
 ```
-## Correlation with proteomics

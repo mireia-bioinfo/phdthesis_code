@@ -1,0 +1,57 @@
+Name,RNAseq 8h,RNAseq 24h,Prot 8h,Prot 24h
+SAMHD1,Up,Up,Up,Up
+XIAP,Up,Not regulated,Up,Not regulated
+NAMPT,Up,Up,Up,Up
+CYTH1,Up,Up,Up,Up
+XRN1,Up,Up,Up,Not regulated
+MASTL,Up,Up,Up,Up
+TMOD1,Up,Not regulated,Up,Up
+RIPK1,Up,Up,Up,Up
+GTF2B,Up,Up,Up,Up
+DYNLT1,Up,Up,Up,Up
+DCLRE1C,Up,Up,Up,Up
+PXK,Up,Up,Up,Up
+STAT3,Up,Up,Up,Up
+PCGF5,Up,Up,Up,Up
+CXORF38,Up,Up,Up,Up
+C4B,Up,Up,Up,Not regulated
+TRIM26,Up,Up,Up,Up
+C4A,Up,Up,Up,Up
+ACTR3B,Down,Not regulated,Down,Not regulated
+BIRC3,Up,Up,Not regulated,Up
+UBR2,Up,Up,Not regulated,Up
+UHRF1BP1,Up,Up,Not regulated,Up
+TUBE1,Up,Up,Not regulated,Up
+CHMP5,Up,Up,Not regulated,Up
+PSME1,Up,Up,Not regulated,Up
+RNF31,Up,Up,Not regulated,Up
+GTPBP1,Up,Up,Not regulated,Up
+NFKBIA,Up,Up,Not regulated,Up
+PSME2,Up,Up,Not regulated,Up
+N4BP1,Up,Up,Not regulated,Up
+QKI,Up,Up,Not regulated,Up
+TARS,Not regulated,Up,Not regulated,Up
+WBP4,Up,Up,Not regulated,Up
+DNPEP,Up,Up,Not regulated,Up
+GMPR,Up,Up,Not regulated,Up
+WARS,Up,Up,Not regulated,Up
+LYSMD2,Up,Up,Not regulated,Up
+LRSAM1,Up,Up,Not regulated,Up
+INPP1,Up,Up,Not regulated,Up
+MOV10,Up,Up,Not regulated,Up
+FAM83B,Up,Up,Not regulated,Up
+FAM84B,Up,Up,Not regulated,Up
+SERPINB9,Up,Up,Not regulated,Up
+ANKFY1,Up,Up,Not regulated,Up
+PPP2R2A,Up,Up,Not regulated,Up
+REEP1,Down,Down,Not regulated,Down
+MMRN1,Not regulated,Down,Not regulated,Down
+HPDL,Down,Down,Not regulated,Down
+CWF19L1,Up,Not regulated,Not regulated,Up
+CHORDC1,Up,Not regulated,Not regulated,Up
+PANX1,Up,Not regulated,Not regulated,Up
+TJP2,Up,Not regulated,Not regulated,Up
+IMPA1,Up,Not regulated,Not regulated,Up
+PSMA5,Up,Not regulated,Not regulated,Up
+UBE2O,Up,Not regulated,Not regulated,Up
+IPO4,Up,Not regulated,Not regulated,Up

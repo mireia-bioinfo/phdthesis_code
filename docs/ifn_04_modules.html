@@ -473,10 +473,667 @@ div.tocify {
 </div>
 
 
+<hr />
+<div id="details" class="section level2">
+<h2>Details</h2>
+<ul>
+<li><p><strong>Original publication</strong>:</p>
+<blockquote>
+<p>Colli, M.L., <strong>Ramos-Rodríguez, M.</strong>, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. <em>Nat Commun</em> <strong>11</strong>, 2584 (2020). <a href="https://doi.org/10.1038/s41467-020-16327-0" class="uri">https://doi.org/10.1038/s41467-020-16327-0</a></p>
+</blockquote></li>
+<li><p><strong>Contents</strong>: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:</p>
+<ul>
+<li><strong>Results</strong>: “mRNA and protein modules regulated by interferon-<span class="math inline">\(\alpha\)</span>”.</li>
+<li><strong>Figure 4</strong>: Weighted correlation network analysis (WGCNA) identifies IFN<span class="math inline">\(\alpha\)</span>-regulated mRNA and protein modules. Panels <strong>d</strong> and <strong>e</strong>.</li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="open-chromatin-in-mrnaprotein-modules" class="section level2">
+<h2>Open chromatin in mRNA–protein modules</h2>
+<div id="association-of-chromatin-accessibility-with-mrnaprotein-modules" class="section level3">
+<h3>Association of chromatin accessibility with mRNA–protein modules</h3>
+<p>ATAC-seq-identified open chromatin regions were linked to gene transcription start sites (TSSs) in a 40 kb window.
+These genes and their open chromatin regions were associated to the modules of DEG and DAP.</p>
+<pre class="r"><code>load(&quot;../data/IFNa/clusters_RNAProt/gene-protein_granges.rda&quot;)
+load(&quot;../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda&quot;)
+res.2h.gr &lt;- res.gr
+load(&quot;../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda&quot;)
+res.24h.gr &lt;- res.gr
+
+## Annotate to 40kb window
+win &lt;- 40000
+gp.prom &lt;- promoters(gp, upstream=win/2, downstream=win/2)
+
+hits.2h &lt;- findOverlaps(res.2h.gr, gp.prom)
+hits.24h &lt;- findOverlaps(res.24h.gr, gp.prom)
+
+anno.2h &lt;- cbind(data.frame(res.2h.gr)[queryHits(hits.2h),c(6,8,12:13)],
+                 data.frame(gp.prom)[subjectHits(hits.2h),c(6:11)])
+anno.24h &lt;- cbind(data.frame(res.24h.gr)[queryHits(hits.24h),c(6,8,12:13)],
+                 data.frame(gp.prom)[subjectHits(hits.24h),c(6:11)])
+
+## Melt data.frames
+load(&quot;../data/IFNa/ATAC/diffAnalysis/res.2h.rda&quot;)
+load(&quot;../data/IFNa/ATAC/diffAnalysis/res.24h.rda&quot;)
+
+anno.2h &lt;- dplyr::left_join(anno.2h, res.2h.df[,c(1,8:15)])
+anno.2h$log2FoldChange[is.na(anno.2h$log2FoldChange)] &lt;- 0
+anno.2h$mean.ctrl &lt;- unlist(apply(anno.2h[,11:14], 1, mean))
+anno.2h$mean.ifn &lt;- unlist(apply(anno.2h[,15:18], 1, mean))
+anno.2h &lt;- anno.2h[,c(1:10,19:20)]
+anno.2h.m &lt;- reshape2::melt(anno.2h,
+                            id.vars=1:10,
+                            value.vars=11:12,
+                            value.name=&quot;counts&quot;,
+                            variable.name=&quot;treatment&quot;)
+anno.2h.m$treatment &lt;- gsub(&quot;mean.&quot;, &quot;&quot;, anno.2h.m$treatment)
+
+anno.24h &lt;- dplyr::left_join(anno.24h, res.24h.df[,c(1,8:15)])
+anno.24h$log2FoldChange[is.na(anno.24h$log2FoldChange)] &lt;- 0
+anno.24h$mean.ctrl &lt;- unlist(apply(anno.24h[,11:14], 1, mean))
+anno.24h$mean.ifn &lt;- unlist(apply(anno.24h[,15:18], 1, mean))
+anno.24h &lt;- anno.24h[,c(1:10,19:20)]
+anno.24h.m &lt;- reshape2::melt(anno.24h,
+                            id.vars=1:10,
+                            value.vars=11:12,
+                            value.name=&quot;counts&quot;,
+                            variable.name=&quot;treatment&quot;)
+anno.24h.m$treatment &lt;- gsub(&quot;mean.&quot;, &quot;&quot;, anno.24h.m$treatment)</code></pre>
+<p>The enrichment for gained open chromatin regions was then evaluated using Chi-squared tests.</p>
+<pre class="r"><code>files &lt;- list.files(&quot;../data/IFNa/clusters_RNAProt/&quot;,
+                    pattern=&quot;^cluster*&quot;, full.names=TRUE)
+
+mod &lt;- lapply(files, read.csv, stringsAsFactors=F)
+names &lt;- pipelineNGS::getNameFromPath(files, suffix=&quot;.csv&quot;, prefix=&quot;cluster&quot;)
+
+mod.comb &lt;- do.call(rbind, mod)
+mod.comb$cluster &lt;- unlist(mapply(rep, names, each=sapply(mod, nrow)))
+colnames(mod.comb)[1] &lt;- &quot;external_gene_name&quot;
+
+anno.2h &lt;- dplyr::left_join(anno.2h, mod.comb[c(1,6)])
+
+chisq.test(table(anno.2h$cluster, anno.2h$type))</code></pre>
+<pre><code>
+    Pearson&#39;s Chi-squared test
+
+data:  table(anno.2h$cluster, anno.2h$type)
+X-squared = 15.583, df = 4, p-value = 0.003633</code></pre>
+<pre class="r"><code>ggplot(anno.2h[!is.na(anno.2h$cluster),], 
+       aes(cluster, ..count.., fill=type)) +
+  scale_fill_manual(values=c(&quot;gained&quot;=&quot;dark green&quot;,
+                             &quot;lost&quot;=&quot;dark red&quot;,
+                             &quot;stable&quot;=&quot;grey&quot;),
+                    name=&quot;Chromatin Type&quot;) +
+  geom_bar(lwd=0.7, color=&quot;black&quot;) +
+  ylab(&quot;# Regions&quot;) +
+  theme(legend.position=&quot;top&quot;,
+        axis.text.x=element_text(angle=30, hjust=1))</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:plot-modules"></span>
+<img src="figure/ifn_04_modules.Rmd/plot-modules-1.png" alt="Type of OCRs associated to each RNA-Prot module." width="384" />
+<p class="caption">
+Figure 1: Type of OCRs associated to each RNA-Prot module.
+</p>
+</div>
+</div>
+<div id="characterization-of-tf-motifs-found-in-module-2" class="section level3">
+<h3>Characterization of TF motifs found in module #2</h3>
+<p>As module #2 (Rna1Prot5) showed significant enrichment of gained OCRs, a <em>de novo</em> motif analysis was performed to determine the TF motifs present in such ATAC-seq regions.</p>
+<pre class="r"><code>library(maRge)
+
+deNovoMotifHOMER(bed=&quot;gainedATAC_RNA1Prot5.bed&quot;,
+                 path_output=file.path(out_dir, &quot;motifs_gainedATAC-RNA1Prot5&quot;),
+                 path_homer=&quot;~/tools/homer/&quot;)</code></pre>
+<pre class="r"><code>htmltools::includeHTML(file.path(out_dir, &quot;motifs_gainedATAC-RNA1Prot5/homerResults.html&quot;))</code></pre>
+<BODY>
+<H4>Homer <i>de novo</i> Motif Results (motifs_gainedATAC-RNA1Prot5/)</H4>
+<A HREF="knownResults.html">Known Motif Enrichment Results</A><BR/>
+<A HREF="geneOntology.html">Gene Ontology Enrichment Results</A><BR/>
+If Homer is having trouble matching a motif to a known motif, try copy/pasting the matrix file into
+<A HREF="http://www.benoslab.pitt.edu/stamp/">STAMP</A><BR/>
+More information on motif finding results: <A HREF="http://biowhat.ucsd.edu/homer/">HOMER</A>
+ | <A HREF="http://biowhat.ucsd.edu/homer/motif/index.html">Description of Results</A>
+ | <A HREF="http://biowhat.ucsd.edu/homer/motif/practicalTips.html">Tips</A>
+<BR/>
+Total target sequences = 55<BR/>
+Total background sequences = 49704<BR/>
+<FONT color="red">* - possible false positive</FONT><BR/>
+<TABLE border="1" cellpading="0" cellspacing="0">
+<TR><TD>Rank</TD><TD>Motif</TD><TD>P-value</TD><TD>log P-pvalue</TD><TD>% of Targets</TD><TD>% of Background</TD>
+<TD>STD(Bg STD)</TD>
+<TD>Best Match/Details</TD><TD>Motif File</TD></TR>
+<TR><TD>1
+</TD><TD><svg width="305" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000891441023443988,0,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000891441023443988,1,48.9554279488278)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0267432307033196,0,48.9108558976556)">C</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.86291491069378,2,47.5736943624896)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000490496834060656,27,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000490496834060656,26,48.975475158297)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.232495499344751,25,48.9509503165939)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.257020341047784,25,37.3261753493564)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,52,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,50,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,50,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,51,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,77,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,75,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,75,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,76,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,102,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,100,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,100,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,101,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,127,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,125,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,126,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,125,48.852566420451)">C</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,150,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,150,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,151,48.9017109469674)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.979941858735478,152,48.852566420451)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000490010819599577,177,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000490010819599577,176,48.97549945902)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.236185215046996,175,48.95099891804)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.252845582913382,175,37.1417381656902)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,202,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,200,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,200,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,201,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,227,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,225,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,225,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,226,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,252,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,250,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,250,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,251,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000492928750446809,277,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000492928750446809,275,48.9753535624777)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.222310866451511,276,48.9507071249553)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.269632026494405,275,37.8351638023798)">C</text>
+
+ </g>
+</svg>
+</TD><TD>1e-26</TD><TD>-6.082e+01</TD><TD>45.45%</TD><TD>2.16%</TD><TD>114.3bp (175.5bp)</TD><TD>IRF1(IRF)/PBMC-IRF1-ChIP-Seq(GSE43036)/Homer(0.959)<BR/><A target="_blank" HREF="homerResults/motif1.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif1.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif1.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>2
+<FONT color="red">*</FONT></TD><TD><svg width="255" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,2,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,0,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,1,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,0,48.852566420451)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,27,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,25,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,26,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,25,48.852566420451)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000751096555191309,52,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000751096555191309,50,48.9624451722404)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0766118486295135,50,48.9248903444809)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.672982513451413,51,45.0942979130052)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000369822528755045,77,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0443787034506054,75,48.9815088735622)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0828402464411302,75,46.762573701032)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.242233756334555,76,42.6205613789755)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000586562550056475,102,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000586562550056475,101,48.9706718724972)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.144294387313893,100,48.9413437449944)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.441095037642469,100,41.7266243792997)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,127,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,125,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,126,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,125,48.852566420451)">C</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,150,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,150,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,151,48.9017109469674)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.979941858735478,152,48.852566420451)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,177,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,175,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,176,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,175,48.852566420451)">C</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000696691385142409,200,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000696691385142409,201,48.9651654307429)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0975367939199373,202,48.9303308614858)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.597761208452187,200,44.0534911654889)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,227,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,225,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,226,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,225,48.852566420451)">C</text>
+
+ </g>
+</svg>
+</TD><TD>1e-8</TD><TD>-1.847e+01</TD><TD>23.64%</TD><TD>3.08%</TD><TD>255.1bp (176.7bp)</TD><TD>Egr2(Zf)/Thymocytes-Egr2-ChIP-Seq(GSE34254)/Homer(0.666)<BR/><A target="_blank" HREF="homerResults/motif2.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif2.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif2.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>3
+<FONT color="red">*</FONT></TD><TD><svg width="305" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000359778066542951,2,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0410146995858964,0,48.9820110966728)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0892249605026518,0,46.931276117378)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.22917862838786,1,42.4700280922454)">T</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0102513986485828,25,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0251625239556122,25,48.4874300675709)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.0316861412774376,26,47.2293038697903)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0660349835025591,27,45.6449968059184)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000732835519727359,52,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000732835519727359,50,48.9633582240136)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.083543249248919,51,48.9267164480273)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.647826599438986,50,44.7495539855813)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000951561828645827,77,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000951561828645827,76,48.9524219085677)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.00856405645781244,75,48.9048438171354)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.941094648530723,75,48.4766409942448)">G</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,100,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,100,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,101,48.9017109469674)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.979941858735478,102,48.852566420451)">A</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000677521233635624,125,49)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.0386187103172305,126,48.9661239383182)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0399737527845018,125,47.0351884224567)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.598251249300256,127,45.0365007832316)">A</text>
+
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000498005499987342,151,49)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0283863134992785,150,48.9750997250006)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.093127028497633,150,47.5557840500367)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.375994152490443,152,42.8994326251551)">A</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000351247838104329,175,49)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0396910057057892,177,48.9824376080948)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0923781814214385,175,46.9978873228053)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.218827403138997,176,42.3789782517334)">T</text>
+
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000368880024630776,201,49)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0490610432758933,202,48.9815559987685)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0759892850739399,200,46.5285038349738)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.243460816256312,200,42.7290395812768)">C</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.00033310651536837,225,49)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0456355926054667,225,48.9833446742316)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.0826104158113558,226,46.7015650439582)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.204527400436179,227,42.5710442533905)">A</text>
+
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000654713261078783,251,49)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0386280824036482,250,48.9672643369461)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.045175215014436,252,47.0358602167637)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.57025525039962,250,44.7770994660418)">C</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000312826541490033,275,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.0509907262628754,276,48.9843586729255)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0747655434161179,277,46.4348223597817)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.18675744526955,275,42.6965451889758)">C</text>
+
+ </g>
+</svg>
+</TD><TD>1e-6</TD><TD>-1.499e+01</TD><TD>27.27%</TD><TD>5.73%</TD><TD>215.6bp (177.4bp)</TD><TD>REL/MA0101.1/Jaspar(0.786)<BR/><A target="_blank" HREF="homerResults/motif3.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif3.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif3.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>4
+<FONT color="red">*</FONT></TD><TD><svg width="255" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000487969860841524,1,49)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0536766846925676,2,48.9756015069579)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0595323230226659,0,46.2917672723295)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.374272883265449,0,43.3151511211963)">G</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000740313509494132,25,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000740313509494132,26,48.9629843245253)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0806941725348604,27,48.9259686490506)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.658138709940283,25,44.8912600223076)">C</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000495345836452407,50,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000495345836452407,50,48.9752327081774)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.215970784693249,52,48.9504654163548)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.278384360086253,51,38.1519261816923)">T</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0309737088553109,75,49)">C</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0316257869364753,77,47.4513145572345)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.0342340992611331,76,45.8700252104107)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.2292054455293,75,44.158320247354)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000785868460754116,102,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000785868460754116,101,48.9607065769623)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0636553453210834,100,48.9214131539246)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.720641378511525,100,45.7386458878704)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000704647234364246,127,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000704647234364246,125,48.9647676382818)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0944227294048089,125,48.9295352765636)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.608815210490708,126,44.2083988063231)">T</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000322456941646604,150,49)">C</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0322456941646604,152,48.9838771529177)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.117051869817717,151,47.3715924446847)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.17283692072258,150,41.5189989537988)">G</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.00768801226215905,175,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0282809022500851,175,48.6155993868921)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.0370672019782668,176,47.2015542743878)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0641125308290763,177,45.3481941754745)">A</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000752690872980268,200,49)">C</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0173118900785462,202,48.962365456351)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0451614523788161,200,48.0967709524237)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.689464839649926,201,45.8386983334829)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000670169639164498,227,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0020105089174935,225,48.9664915180418)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.103206124431333,226,48.8659660721671)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.564282836176508,225,43.7056598506005)">C</text>
+
+ </g>
+</svg>
+</TD><TD>1e-5</TD><TD>-1.286e+01</TD><TD>27.27%</TD><TD>6.79%</TD><TD>175.5bp (181.2bp)</TD><TD>Ascl2/MA0816.1/Jaspar(0.741)<BR/><A target="_blank" HREF="homerResults/motif4.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif4.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif4.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>5
+<FONT color="red">*</FONT></TD><TD><svg width="205" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,2,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,0,48.9508554734837)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,1,48.9017109469674)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.979941858735478,0,48.852566420451)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000773846693353154,27,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000773846693353154,25,48.9613076653323)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0680985090150776,25,48.9226153306647)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.70420049095137,26,45.5176898799108)">T</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.00069022669040229,50,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.00069022669040229,50,48.9654886654799)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.100082870108332,51,48.9309773309598)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.588763366913153,52,43.9268338255432)">A</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,75,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,75,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,76,48.9017109469674)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.979941858735478,77,48.852566420451)">A</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000576409120681368,100,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000576409120681368,101,48.9711795439659)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.149289962256474,102,48.9423590879319)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.425966340183531,100,41.4778609751081)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000752667969999211,127,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000752667969999211,125,48.9623666015)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.0760194649699203,125,48.9247332030001)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.675143169089292,126,45.1237599545041)">T</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,150,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,150,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,151,48.9017109469674)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.979941858735478,152,48.852566420451)">A</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000569753527815392,175,49)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000569753527815392,176,48.9715123236092)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.152693945454525,177,48.9430246472185)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.415920075305236,175,41.3083273744922)">G</text>
+
+ </g>
+</svg>
+</TD><TD>1e-4</TD><TD>-1.094e+01</TD><TD>27.27%</TD><TD>7.96%</TD><TD>292.8bp (177.2bp)</TD><TD>HMBOX1/MA0895.1/Jaspar(0.865)<BR/><A target="_blank" HREF="homerResults/motif5.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif5.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif5.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>6
+<FONT color="red">*</FONT></TD><TD><svg width="305" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000590641604644266,2,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000590641604644266,0,48.9704679197678)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.142344626719268,1,48.9409358395356)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.44711569471571,0,41.8237045035722)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000590641604644266,27,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000590641604644266,25,48.9704679197678)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.142344626719268,25,48.9409358395356)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.44711569471571,26,41.8237045035722)">T</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000590641604644266,50,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000590641604644266,50,48.9704679197678)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.142344626719268,51,48.9409358395356)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.44711569471571,52,41.8237045035722)">A</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000237997966330159,75,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0573575098855683,75,48.9881001016835)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0654494407407938,77,46.1202246074051)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.114953017737467,76,42.8477525703654)">T</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000590641604644266,100,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000590641604644266,101,48.9704679197678)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.142344626719268,100,48.9409358395356)">C</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.44711569471571,102,41.8237045035722)">A</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,125,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,125,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,126,48.9017109469674)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.979941858735478,127,48.852566420451)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,152,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,150,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,150,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,151,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,177,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,175,48.9508554734837)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,176,48.9017109469674)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.979941858735478,175,48.852566420451)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000489801148815569,202,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000489801148815569,201,48.9755099425592)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.238533159473182,200,48.9510198851184)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.250288387044756,200,37.0243619114593)">C</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000568315212303144,225,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000568315212303144,226,48.9715842393848)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.153445107321849,225,48.9431684787697)">C</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.413733474556689,227,41.2709131126772)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000490010819599577,252,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000490010819599577,250,48.97549945902)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.236185215046996,251,48.95099891804)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.252845582913382,250,37.1417381656902)">C</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000893959540546913,275,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000893959540546913,276,48.9553020229727)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.0259248266758605,277,48.9106040459453)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.866246794789959,275,47.6143627121523)">C</text>
+
+ </g>
+</svg>
+</TD><TD>1e-4</TD><TD>-1.052e+01</TD><TD>7.27%</TD><TD>0.31%</TD><TD>50.2bp (168.1bp)</TD><TD>PB0137.1_Irf3_2/Jaspar(0.598)<BR/><A target="_blank" HREF="homerResults/motif6.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif6.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif6.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>7
+<FONT color="red">*</FONT></TD><TD><svg width="255" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000499357312396184,0,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000499357312396184,1,48.9750321343802)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.208231999269209,2,48.9500642687604)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.290126598502183,0,38.5384643052999)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,27,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,25,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,26,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,25,48.852566420451)">C</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.00052490440741559,50,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.00052490440741559,51,48.9737547796292)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.180567116150963,52,48.9475095592584)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.343287482449796,50,39.9191537517103)">C</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000602592418718721,75,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000602592418718721,75,48.9698703790641)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.13678847904915,77,48.9397407581281)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.464598754832134,76,42.1003168056706)">T</text>
+
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000593136302668362,100,49)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000593136302668362,101,48.9703431848666)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.14116644003507,102,48.9406863697332)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.450783590027955,100,41.8823643679796)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,127,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,125,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,126,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,125,48.852566420451)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,152,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,150,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,150,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,151,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000492664366013668,177,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.00689730112419136,176,48.9753667816993)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.158145261490388,175,48.6305017254897)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.327129139033076,175,40.7232386509704)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,202,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,200,48.9508554734837)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,200,48.9017109469674)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.979941858735478,201,48.852566420451)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000737300433773909,227,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000737300433773909,226,48.9631349783113)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.0818403481489039,225,48.9262699566226)">G</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.653985484757457,225,44.8342525491774)">C</text>
+
+ </g>
+</svg>
+</TD><TD>1e-4</TD><TD>-1.015e+01</TD><TD>18.18%</TD><TD>3.81%</TD><TD>161.2bp (175.0bp)</TD><TD>Ets1-distal(ETS)/CD4+-PolII-ChIP-Seq(Barski_et_al.)/Homer(0.733)<BR/><A target="_blank" HREF="homerResults/motif7.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif7.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif7.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>8
+<FONT color="red">*</FONT></TD><TD><svg width="305" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,0,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.032161017527648,0,47.3919491236176)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,1,45.7838982472352)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.225127122693536,2,44.1758473708528)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,27,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,25,47.3919491236176)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,26,45.7838982472352)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.225127122693536,25,44.1758473708528)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,52,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,50,47.3919491236176)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,51,45.7838982472352)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.225127122693536,50,44.1758473708528)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,77,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,75,47.3919491236176)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,76,45.7838982472352)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.225127122693536,75,44.1758473708528)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,102,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,100,47.3919491236176)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,101,45.7838982472352)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.225127122693536,100,44.1758473708528)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,127,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.032161017527648,125,47.3919491236176)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,126,45.7838982472352)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.225127122693536,125,44.1758473708528)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,152,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,150,47.3919491236176)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.032161017527648,150,45.7838982472352)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.225127122693536,151,44.1758473708528)">T</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,177,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,175,47.3919491236176)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,176,45.7838982472352)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.225127122693536,175,44.1758473708528)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,202,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.032161017527648,200,47.3919491236176)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,201,45.7838982472352)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.225127122693536,200,44.1758473708528)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,227,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,225,47.3919491236176)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,226,45.7838982472352)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.225127122693536,225,44.1758473708528)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,252,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,250,47.3919491236176)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.032161017527648,251,45.7838982472352)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.225127122693536,250,44.1758473708528)">G</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.032161017527648,277,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.032161017527648,275,47.3919491236176)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.032161017527648,275,45.7838982472352)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.225127122693536,276,44.1758473708528)">T</text>
+
+ </g>
+</svg>
+</TD><TD>1e-2</TD><TD>-6.114e+00</TD><TD>1.82%</TD><TD>0.01%</TD><TD>17.1bp (116.8bp)</TD><TD>PB0110.1_Bcl6b_2/Jaspar(0.629)<BR/><A target="_blank" HREF="homerResults/motif8.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif8.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif8.motif">motif file (matrix)</A></TD></TR>
+<TR><TD>9
+<FONT color="red">*</FONT></TD><TD><svg width="205" height="50">
+ <g font-family="Arial" font-weight="bold" font-size="66.5">
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.00050991322740403,2,49)">A</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.00050991322740403,1,48.9745043386298)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.194276939640935,0,48.9490086772596)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.314616461308286,0,39.2351616952128)">G</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000526309150133463,25,49)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000526309150133463,26,48.9736845424933)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.179471420195511,25,48.9473690849866)">G</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.345785111637685,27,39.9737980752111)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,52,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,50,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,51,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,50,48.852566420451)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,77,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,75,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,76,48.9017109469674)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.979941858735478,75,48.852566420451)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000603476496807352,102,49)">A</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000603476496807352,100,48.9698261751596)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.136385688278461,101,48.9396523503193)">T</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.465883855535276,100,42.1203679363962)">C</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,127,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,125,48.9508554734837)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,126,48.9017109469674)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.979941858735478,125,48.852566420451)">G</text>
+
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,150,49)">C</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.000982890530326457,150,48.9508554734837)">G</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,151,48.9017109469674)">T</text>
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.979941858735478,152,48.852566420451)">A</text>
+
+  <text fill="#00BB00" x="0" y="0"  transform="matrix(0.53,0,0,0.000982890530326457,177,49)">A</text>
+  <text fill="#0000EE" x="0" y="0"  transform="matrix(0.59,0,0,0.000982890530326457,175,48.9508554734837)">C</text>
+  <text fill="#DD0000" x="0" y="0"  transform="matrix(0.65,0,0,0.000982890530326457,176,48.9017109469674)">T</text>
+  <text fill="#F9A500" x="0" y="0"  transform="matrix(0.55,0,0,0.979941858735478,175,48.852566420451)">G</text>
+
+ </g>
+</svg>
+</TD><TD>1e-2</TD><TD>-5.656e+00</TD><TD>14.55%</TD><TD>4.59%</TD><TD>122.1bp (171.2bp)</TD><TD>PB0138.1_Irf4_2/Jaspar(0.667)<BR/><A target="_blank" HREF="homerResults/motif9.info.html">More Information</A> | <A target="blank" HREF="homerResults/motif9.similar.html">Similar Motifs Found</A></TD><TD><A target="_blank" HREF="homerResults/motif9.motif">motif file (matrix)</A></TD></TR>
+</TABLE>
+<P></P>
+</BODY></HTML>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
-<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
@@ -508,32 +1165,36 @@ other attached packages:
 [17] workflowr_1.6.2            
 
 loaded via a namespace (and not attached):
- [1] httr_1.4.2             splines_4.0.0          bit64_0.9-7.1         
- [4] viridisLite_0.3.0      blob_1.2.1             GenomeInfoDbData_1.2.3
- [7] yaml_2.2.1             RSQLite_2.2.0          pillar_1.4.6          
-[10] backports_1.1.8        lattice_0.20-41        glue_1.4.1            
-[13] digest_0.6.25          RColorBrewer_1.1-2     promises_1.1.1        
-[16] XVector_0.29.3         rvest_0.3.6            colorspace_1.4-1      
-[19] htmltools_0.5.0        httpuv_1.5.4           XML_3.99-0.5          
-[22] pkgconfig_2.0.3        GetoptLong_1.0.2       genefilter_1.71.0     
-[25] zlibbioc_1.35.0        xtable_1.8-4           purrr_0.3.4           
-[28] scales_1.1.1           webshot_0.5.2          later_1.1.0.1         
-[31] BiocParallel_1.23.2    annotate_1.67.0        git2r_0.27.1          
-[34] tibble_3.0.3           generics_0.0.2         ellipsis_0.3.1        
-[37] withr_2.2.0            survival_3.2-3         magrittr_1.5          
-[40] crayon_1.3.4           memoise_1.1.0          evaluate_0.14         
-[43] fs_1.4.2               xml2_1.3.2             tools_4.0.0           
-[46] hms_0.5.3              GlobalOptions_0.1.2    lifecycle_0.2.0       
-[49] stringr_1.4.0          locfit_1.5-9.4         munsell_0.5.0         
-[52] cluster_2.1.0          AnnotationDbi_1.51.3   compiler_4.0.0        
-[55] rlang_0.4.7            RCurl_1.98-1.2         rstudioapi_0.11       
-[58] rjson_0.2.20           circlize_0.4.10        bitops_1.0-6          
-[61] rmarkdown_2.3          gtable_0.3.0           DBI_1.1.0             
-[64] R6_2.4.1               knitr_1.29             bit_1.1-15.2          
-[67] clue_0.3-57            rprojroot_1.3-2        shape_1.4.4           
-[70] readr_1.3.1            stringi_1.4.6          Rcpp_1.0.5            
-[73] geneplotter_1.67.0     vctrs_0.3.2            png_0.1-7             
-[76] tidyselect_1.1.0       xfun_0.16             </code></pre>
+ [1] bitops_1.0-6           fs_1.4.2               bit64_0.9-7.1         
+ [4] webshot_0.5.2          RColorBrewer_1.1-2     httr_1.4.2            
+ [7] rprojroot_1.3-2        tools_4.0.0            backports_1.1.8       
+[10] R6_2.4.1               DBI_1.1.0              colorspace_1.4-1      
+[13] GetoptLong_1.0.2       withr_2.2.0            tidyselect_1.1.0      
+[16] bit_1.1-15.2           compiler_4.0.0         git2r_0.27.1          
+[19] rvest_0.3.6            xml2_1.3.2             labeling_0.3          
+[22] bookdown_0.20          scales_1.1.1           readr_1.3.1           
+[25] genefilter_1.71.0      pipelineNGS_0.0.0.9000 stringr_1.4.0         
+[28] digest_0.6.25          rmarkdown_2.3          XVector_0.29.3        
+[31] pkgconfig_2.0.3        htmltools_0.5.0        highr_0.8             
+[34] rlang_0.4.7            GlobalOptions_0.1.2    rstudioapi_0.11       
+[37] RSQLite_2.2.0          farver_2.0.3           shape_1.4.4           
+[40] generics_0.0.2         BiocParallel_1.23.2    RCurl_1.98-1.2        
+[43] magrittr_1.5           GenomeInfoDbData_1.2.3 Rcpp_1.0.5            
+[46] munsell_0.5.0          lifecycle_0.2.0        stringi_1.4.6         
+[49] yaml_2.2.1             zlibbioc_1.35.0        plyr_1.8.6            
+[52] blob_1.2.1             promises_1.1.1         crayon_1.3.4          
+[55] lattice_0.20-41        splines_4.0.0          annotate_1.67.0       
+[58] circlize_0.4.10        hms_0.5.3              locfit_1.5-9.4        
+[61] knitr_1.29             pillar_1.4.6           rjson_0.2.20          
+[64] geneplotter_1.67.0     reshape2_1.4.4         XML_3.99-0.5          
+[67] glue_1.4.1             evaluate_0.14          png_0.1-7             
+[70] vctrs_0.3.2            httpuv_1.5.4           gtable_0.3.0          
+[73] purrr_0.3.4            clue_0.3-57            xfun_0.16             
+[76] xtable_1.8-4           later_1.1.0.1          survival_3.2-3        
+[79] viridisLite_0.3.0      tibble_3.0.3           AnnotationDbi_1.51.3  
+[82] memoise_1.1.0          cluster_2.1.0          ellipsis_0.3.1        </code></pre>
+</div>
+</div>
 </div>
 
 

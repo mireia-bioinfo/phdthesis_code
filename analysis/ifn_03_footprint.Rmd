@@ -26,3 +26,351 @@ load("../code/IFNa_color_palettes.rda")
 out_dir <- "../output/ifn_03_footprint/"
 dir.create(out_dir, F)
 ```
+
+***
+
+## Details
+
+- **Original publication**:
+
+  > Colli, M.L., **Ramos-Rodríguez, M.**, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. *Nat Commun* **11**, 2584 (2020). https://doi.org/10.1038/s41467-020-16327-0
+
+- **Contents**: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:
+
+  + **Results**: "IRF1, STAT1 and STAT2 are key regulators of IFN-$\alpha$ signaling".
+  + **Figure 2**: "IRF1, STAT1 and STAT2 regulate IFN$\alpha$-induced transcription and the expression of checkpoint proteins". Panel **b**.
+
+***
+
+
+## Methods
+
+1. **Assign each open chromatin region** (stable/gained/lost) to the nearest gene that is annotated in any of the clusters. Such open chromatin region will also be annotated to the **cluster where the gene belongs**. Filter out the open chromatin regions that are more than 1Mb away from the TSS of any gene.
+    - In the case of open chromatin present at 2h we are annotating them to clusters defined at two hours. The same with 24h (see table below).
+2. Perform **footprint analysis** of the TF regulating the cluster in the open chromatin regions that were annotated to the cluster.
+
+| 2 hours | 24 hours |
+| --------|-----------|
+| Cluster 1 | Cluster 1A |
+|           | Cluster 1B |
+|           | Cluster 1C |
+| Cluster 2 | Cluster 2A |
+|           | Cluster 2B |
+| Cluster 3 | Cluster 3 |
+
+
+```{r echo=FALSE}
+knitr::include_graphics("figure/ifn_03_footprint.Rmd/footprint_methods.png", error=FALSE)
+```
+
+
+```{r tidy-cluster-data, eval=FALSE}
+clusters <- c("cluster1", "cluster2", "cluster3", "cluster1A", "cluster1B", "cluster1C", "cluster2B")
+tf <- read.csv("../data/IFNa/clusters_RNA/tf_clusters_ifna.csv",
+               stringsAsFactors=FALSE)
+colnames(tf) <- clusters
+
+genes <- read.csv("../data/IFNa/clusters_RNA/gene_clusters_ifna.csv",
+                  stringsAsFactors=FALSE)
+colnames(genes) <- clusters
+
+## Create df for TF
+cluster <- c()
+for (i in clusters) cluster <- c(cluster, rep(i, nrow(tf[tf[,i]!="",])))
+tfs <- c()
+for (i in 1:length(clusters)) tfs <- c(tfs, tf[tf[,i]!="",i])
+
+clust.tf <- data.frame("cluster"=cluster,
+                       "TFs"=tfs)
+save(clust.tf, file="../data/IFNa/clusters_RNA/tf_clusters_ifna.rda")
+
+## Create df for genes
+cluster <- c()
+for (i in clusters) cluster <- c(cluster, rep(i, nrow(genes[genes[,i]!="",])))
+tfs <- c()
+for (i in 1:length(clusters)) tfs <- c(tfs, genes[genes[,i]!="",i])
+
+clust.genes <- data.frame("cluster"=cluster,
+                       "external_gene_name"=tfs)
+save(clust.genes, file="../data/IFNa/clusters_RNA/gene_clusters_ifna.rda")
+
+
+## Obtain coordinates for genes
+load("../data/IFNa/RNA/diffAnalysis/res_2h.rda")
+coord <- res.df_2h[,c(21:24)]
+coord$external_gene_name <- toupper(coord$external_gene_name)
+
+
+table(clust.genes$external_gene_name %in% coord$external_gene_name)
+
+na <- clust.genes[!(clust.genes$external_gene_name %in% unique(coord$external_gene_name)),]
+alt <- getNameFromAlias(na$external_gene_name)
+
+## Replace for symbols
+clust.genes$external_gene_name <- as.character(clust.genes$external_gene_name)
+clust.genes <- clust.genes[order(clust.genes$external_gene_name),]
+alt <- alt[order(alt$alias_symbol),]
+
+for (i in 1:nrow(alt)) {
+  clust.genes$external_gene_name[clust.genes$external_gene_name==alt$alias_symbol[i]] <- alt$symbol[i]
+}
+
+table(clust.genes$external_gene_name %in% coord$external_gene_name)
+
+clust.genes.coord <- dplyr::inner_join(clust.genes, coord)
+clust.genes.coord$cluster <- as.character(clust.genes.coord$cluster)
+clust.genes.gr <- regioneR::toGRanges(clust.genes.coord[,c(3:5, 1:2)])
+save(clust.genes.gr, file="../data/IFNa/clusters_RNA/gene_clusters_ifna_granges.rda")
+table(clust.genes.gr$cluster)
+
+## Annotate open chromatin regions to closest gene in corresponding cluster
+rm(list=ls())
+load("../data/IFNa/clusters_RNA/gene_clusters_ifna_granges.rda")
+
+load("../data/IFNa/ATAC/diffAnalysis/res.2h.rda")
+res.2h <- regioneR::toGRanges(res.2h.df[,c(17:19, 1:16)])
+load("../data/IFNa/ATAC/diffAnalysis/res.24h.rda")
+res.24h <- regioneR::toGRanges(res.24h.df[,c(17:19, 1:16)])
+rm(res.24h.df, res.2h.df)
+
+c2 <- c("cluster1", "cluster2", "cluster3") ## clusters at 2h
+c24 <- c("cluster3", "cluster1A", "cluster1B", "cluster1C", "cluster2B") ## clusters at 24h
+cl.atac.2h <- ChIPseeker::annotatePeak(res.2h, TxDb=clust.genes.gr[clust.genes.gr$cluster %in% c2],
+                                       verbose=FALSE)
+cl.atac.24h <- ChIPseeker::annotatePeak(res.24h, TxDb=clust.genes.gr[clust.genes.gr$cluster %in% c24],
+                                        verbose=FALSE)
+
+## Filter out regions if distanceToTSS > 1Mb
+dist <- 1000000
+cl.atac.2h <- data.frame(cl.atac.2h)
+cl.atac.24h <- data.frame(cl.atac.24h)
+
+cl.atac.2h <- unique(cl.atac.2h[abs(cl.atac.2h$distanceToTSS) <= dist,])
+cl.atac.24h <- unique(cl.atac.24h[abs(cl.atac.24h$distanceToTSS) <= dist,])
+
+save(cl.atac.2h, file=file.path(out_dir, "atac_clusters_ifna_2h.rda"))
+save(cl.atac.24h, file=file.path(out_dir, "atac_clusters_ifna_24h.rda"))
+```
+
+The number of regions annotated to each RNA cluster is:
+
+```{r}
+load(file.path(out_dir, "atac_clusters_ifna_2h.rda"))
+load(file.path(out_dir, "atac_clusters_ifna_24h.rda"))
+
+cl.atac.2h.gr <- regioneR::toGRanges(cl.atac.2h[,-c(4:5)])
+cl.atac.24h.gr <- regioneR::toGRanges(cl.atac.24h[,-c(4:5)])
+
+knitr::kable(table(cl.atac.2h$cluster, cl.atac.2h$type),
+             caption="OCRs at 2h annotated to each RNA-seq cluster.")
+knitr::kable(table(cl.atac.24h$cluster, cl.atac.24h$type),
+             caption="OCRs at 24h annotated to each RNA-seq cluster.")
+```
+
+
+## Footprint analysis
+
+The code used for calculating the footprints of all TFs outputed by the DREM model was ran using the following Rscript:
+
+```
+Rscript code/IFNa_TF_footprint.R
+```
+
+**Warning**: Currently, `TFBSTools` is not working as expected...
+
+```{r plot-footprints, fig.align="center", fig.width=7, fig.height=7, eval=FALSE}
+library(TFBSTools)
+library(ggseqlogo)
+
+## Load data ---------------------------------
+load("../data/IFNa/clusters_RNA/tf_clusters_ifna.rda")
+clust.tf$cluster <- as.character(clust.tf$cluster)
+clust.tf$TFs <- as.character(clust.tf$TFs)
+
+opts <- list()
+opts[["species"]] <- 9606
+opts[["matrixtype"]] <- "PWM"
+opts[["all_versions"]] <- TRUE
+matJaspar <- getMatrixSet(JASPAR2016::JASPAR2016, opts)
+
+## Load matrix FOXA2
+mot.f <- read.delim("../data/IFNa/TF_motifs/fox2.motif", header=FALSE)
+mot.f <- t(mot.f)
+rownames(mot.f) <- c("A", "C", "G", "T")
+mot <- mot.f*1000
+
+pfm.foxa2 <- PFMatrix(ID="Human-Islets-FOXA2",
+                name="FOXA2",
+                profileMatrix=mot)
+
+## Obtain list of TF and TF IDs
+tf.id <- data.frame("tf"=unique(clust.tf$TFs),
+                    "id"=NA,
+                    stringsAsFactors=FALSE)
+tf.id <- rbind(tf.id, c("FOXA2", "HumanIslet-FOXA2"))
+
+sel <- c("STAT1", "STAT2", "IRF1")
+tf.id <- tf.id[tf.id$tf %in% sel,]
+
+for (i in unique(clust.tf$TFs)) {
+  mot <- matJaspar[grep(i, name(matJaspar))]
+    
+    if (length(mot) > 0) {
+      name <- ID(mot)[[1]]
+      tf.id$id[tf.id$tf==i] <- name
+    } else {
+      next
+    }
+}
+
+tf.id <- tf.id[!is.na(tf.id$id),]
+
+##------------------------------------------------
+## 2 hours
+##------------------------------------------------
+## Plot footprints (manually)
+# dir.create("Figs_2h/", F)
+
+## Set labels
+upstream=100
+downstream=100
+
+for (i in c2) {
+  for (j in unique(clust.tf$TFs[clust.tf$cluster==i])) {
+    if (!(j %in% tf.id$tf)) next
+    else {
+      v <- matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))]
+      
+      if (length(v)==0) {
+        mot <- pfm.foxa2
+      } else {
+        mot <- Matrix(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]])
+      }
+      
+      load(file.path(out_dir, paste0("footprint_", i, "_", j, "_2h.rda")))
+      ctrl$Treatment <- "CTRL"
+      ifn$Treatment <- "IFNa"
+      df <- rbind(ctrl, ifn)
+      
+      ## Set breaks and labels
+      nmotif = ncol(mot)
+      breaks <- c(min(ctrl$Position), (upstream+1), (upstream+nmotif), max(ctrl$Position))
+      breaks <- c(breaks, round(breaks[2]/2, 0), round((breaks[4]-breaks[3])/2 + breaks[3], 0))
+      breaks <- sort(breaks)
+      labels <- c(paste0("-", upstream), 
+                  paste0("-", upstream/2), 
+                  "0", "0", 
+                  paste(downstream/2), 
+                  paste(downstream))
+      
+      xlab = "Dist. to motif (bp)"
+      ylab = "Cut-site probability"
+      
+      profile <- ggplot(df, aes(Position, Probability)) +
+                  geom_line(aes(color=Treatment, lty=Strand), lwd=1, alpha=0.8) +
+                  scale_linetype_manual(values=c("Forward"=1, "Reverse"=6)) +
+                  scale_color_manual(values=c("CTRL"="steelblue3", "IFNa"="tomato2")) +
+                  geom_vline(xintercept=breaks[3], lty=2, color="dark grey") +
+                  geom_vline(xintercept=breaks[4], lty=2, color="dark grey") +
+                  theme(legend.position="bottom") +
+                  scale_x_continuous(breaks=breaks,
+                             labels=labels) +
+                  xlab(xlab) + ylab(ylab)
+      
+        logo <- ggseqlogo(mot, seq_type="dna") +
+        ggtitle(paste0(j, " (", ID(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]]), ")")) +
+        theme(plot.title = element_text(size=35))
+      
+      final <- plot_grid(logo, profile, ncol=1, rel_heights=c(1,3))
+    }
+  }
+}
+
+final
+
+##-----------------------------------------------------
+## 24 hours
+##-----------------------------------------------------
+# dir.create("Figs_24h/", F)
+
+for (i in c24) {
+  for (j in unique(clust.tf$TFs[clust.tf$cluster==i])) {
+    if (!(j %in% tf.id$tf)) next
+    else {
+      v <- matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))]
+      
+      if (length(v)==0) {
+        mot <- pfm.foxa2
+      } else {
+        mot <- Matrix(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]])
+      }
+      
+      load(file.path(out_dir, paste0("footprint_", i, "_", j, "_24h.rda")))
+      ctrl$Treatment <- "CTRL"
+      ifn$Treatment <- "IFNa"
+      df <- rbind(ctrl, ifn)
+      
+      ## Set breaks and labels
+      nmotif = ncol(mot)
+      breaks <- c(min(ctrl$Position), (upstream+1), (upstream+nmotif), max(ctrl$Position))
+      breaks <- c(breaks, round(breaks[2]/2, 0), round((breaks[4]-breaks[3])/2 + breaks[3], 0))
+      breaks <- sort(breaks)
+      labels <- c(paste0("-", upstream), 
+                  paste0("-", upstream/2), 
+                  "0", "0", 
+                  paste(downstream/2), 
+                  paste(downstream))
+      
+      xlab = "Dist. to motif (bp)"
+      ylab = "Cut-site probability"
+      
+      profile <- ggplot(df, aes(Position, Probability)) +
+                  geom_line(aes(color=Treatment, lty=Strand), lwd=1, alpha=0.8) +
+                  scale_linetype_manual(values=c("Forward"=1, "Reverse"=6)) +
+                  scale_color_manual(values=c("CTRL"="steelblue3", "IFNa"="tomato2")) +
+                  geom_vline(xintercept=breaks[3], lty=2, color="dark grey") +
+                  geom_vline(xintercept=breaks[4], lty=2, color="dark grey") +
+                  theme(legend.position="bottom") +
+                  scale_x_continuous(breaks=breaks,
+                             labels=labels) +
+                  xlab(xlab) + ylab(ylab)
+      
+        logo <- ggseqlogo(mot, seq_type="dna") +
+        ggtitle(paste0(j, " (", ID(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]]), ")")) +
+        theme(plot.title = element_text(size=35))
+      
+      final <- plot_grid(logo, profile, ncol=1, rel_heights=c(1,3))
+    }
+  }
+}
+
+final
+
+```
+
+
+```{r plot-results, echo=FALSE}
+files <- list.files("../docs/figure/ifn_03_footprint.Rmd/", full.names=TRUE)
+h2 <- files[grep("2h", files)]
+h24 <- files[grep("24h", files)]
+
+library(cowplot)
+
+plot_grid(ggdraw() + draw_image(h2[1]),
+          ggdraw() + draw_image(h2[2]),
+          ggdraw() + draw_image(h2[3]),
+          labels = c(gsub("_", " ", gsub(".png", "", basename(h2[1]))),
+                     gsub("_", " ", gsub(".png", "", basename(h2[2]))),
+                     gsub("_", " ", gsub(".png", "", basename(h2[3])))),
+          hjust = -0.1,
+          nrow = 1)
+
+plot_grid(ggdraw() + draw_image(h24[1]),
+          ggdraw() + draw_image(h24[2]),
+          labels = c(gsub("_", " ", gsub(".png", "", basename(h24[1]))),
+                     gsub("_", " ", gsub(".png", "", basename(h24[2])))),
+          hjust = -0.1,
+          nrow = 1)
+```
+
+

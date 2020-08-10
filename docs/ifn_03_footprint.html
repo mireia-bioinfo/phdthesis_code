@@ -473,10 +473,484 @@ div.tocify {
 </div>
 
 
+<hr />
+<div id="details" class="section level2">
+<h2>Details</h2>
+<ul>
+<li><p><strong>Original publication</strong>:</p>
+<blockquote>
+<p>Colli, M.L., <strong>Ramos-Rodríguez, M.</strong>, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. <em>Nat Commun</em> <strong>11</strong>, 2584 (2020). <a href="https://doi.org/10.1038/s41467-020-16327-0" class="uri">https://doi.org/10.1038/s41467-020-16327-0</a></p>
+</blockquote></li>
+<li><p><strong>Contents</strong>: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:</p>
+<ul>
+<li><strong>Results</strong>: “IRF1, STAT1 and STAT2 are key regulators of IFN-<span class="math inline">\(\alpha\)</span> signaling”.</li>
+<li><strong>Figure 2</strong>: “IRF1, STAT1 and STAT2 regulate IFN<span class="math inline">\(\alpha\)</span>-induced transcription and the expression of checkpoint proteins”. Panel <strong>b</strong>.</li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="methods" class="section level2">
+<h2>Methods</h2>
+<ol style="list-style-type: decimal">
+<li><strong>Assign each open chromatin region</strong> (stable/gained/lost) to the nearest gene that is annotated in any of the clusters. Such open chromatin region will also be annotated to the <strong>cluster where the gene belongs</strong>. Filter out the open chromatin regions that are more than 1Mb away from the TSS of any gene.
+<ul>
+<li>In the case of open chromatin present at 2h we are annotating them to clusters defined at two hours. The same with 24h (see table below).</li>
+</ul></li>
+<li>Perform <strong>footprint analysis</strong> of the TF regulating the cluster in the open chromatin regions that were annotated to the cluster.</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>2 hours</th>
+<th>24 hours</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Cluster 1</td>
+<td>Cluster 1A</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Cluster 1B</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Cluster 1C</td>
+</tr>
+<tr class="even">
+<td>Cluster 2</td>
+<td>Cluster 2A</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Cluster 2B</td>
+</tr>
+<tr class="even">
+<td>Cluster 3</td>
+<td>Cluster 3</td>
+</tr>
+</tbody>
+</table>
+<p><img src="figure/ifn_03_footprint.Rmd/footprint_methods.png" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>clusters &lt;- c(&quot;cluster1&quot;, &quot;cluster2&quot;, &quot;cluster3&quot;, &quot;cluster1A&quot;, &quot;cluster1B&quot;, &quot;cluster1C&quot;, &quot;cluster2B&quot;)
+tf &lt;- read.csv(&quot;../data/IFNa/clusters_RNA/tf_clusters_ifna.csv&quot;,
+               stringsAsFactors=FALSE)
+colnames(tf) &lt;- clusters
+
+genes &lt;- read.csv(&quot;../data/IFNa/clusters_RNA/gene_clusters_ifna.csv&quot;,
+                  stringsAsFactors=FALSE)
+colnames(genes) &lt;- clusters
+
+## Create df for TF
+cluster &lt;- c()
+for (i in clusters) cluster &lt;- c(cluster, rep(i, nrow(tf[tf[,i]!=&quot;&quot;,])))
+tfs &lt;- c()
+for (i in 1:length(clusters)) tfs &lt;- c(tfs, tf[tf[,i]!=&quot;&quot;,i])
+
+clust.tf &lt;- data.frame(&quot;cluster&quot;=cluster,
+                       &quot;TFs&quot;=tfs)
+save(clust.tf, file=&quot;../data/IFNa/clusters_RNA/tf_clusters_ifna.rda&quot;)
+
+## Create df for genes
+cluster &lt;- c()
+for (i in clusters) cluster &lt;- c(cluster, rep(i, nrow(genes[genes[,i]!=&quot;&quot;,])))
+tfs &lt;- c()
+for (i in 1:length(clusters)) tfs &lt;- c(tfs, genes[genes[,i]!=&quot;&quot;,i])
+
+clust.genes &lt;- data.frame(&quot;cluster&quot;=cluster,
+                       &quot;external_gene_name&quot;=tfs)
+save(clust.genes, file=&quot;../data/IFNa/clusters_RNA/gene_clusters_ifna.rda&quot;)
+
+
+## Obtain coordinates for genes
+load(&quot;../data/IFNa/RNA/diffAnalysis/res_2h.rda&quot;)
+coord &lt;- res.df_2h[,c(21:24)]
+coord$external_gene_name &lt;- toupper(coord$external_gene_name)
+
+
+table(clust.genes$external_gene_name %in% coord$external_gene_name)
+
+na &lt;- clust.genes[!(clust.genes$external_gene_name %in% unique(coord$external_gene_name)),]
+alt &lt;- getNameFromAlias(na$external_gene_name)
+
+## Replace for symbols
+clust.genes$external_gene_name &lt;- as.character(clust.genes$external_gene_name)
+clust.genes &lt;- clust.genes[order(clust.genes$external_gene_name),]
+alt &lt;- alt[order(alt$alias_symbol),]
+
+for (i in 1:nrow(alt)) {
+  clust.genes$external_gene_name[clust.genes$external_gene_name==alt$alias_symbol[i]] &lt;- alt$symbol[i]
+}
+
+table(clust.genes$external_gene_name %in% coord$external_gene_name)
+
+clust.genes.coord &lt;- dplyr::inner_join(clust.genes, coord)
+clust.genes.coord$cluster &lt;- as.character(clust.genes.coord$cluster)
+clust.genes.gr &lt;- regioneR::toGRanges(clust.genes.coord[,c(3:5, 1:2)])
+save(clust.genes.gr, file=&quot;../data/IFNa/clusters_RNA/gene_clusters_ifna_granges.rda&quot;)
+table(clust.genes.gr$cluster)
+
+## Annotate open chromatin regions to closest gene in corresponding cluster
+rm(list=ls())
+load(&quot;../data/IFNa/clusters_RNA/gene_clusters_ifna_granges.rda&quot;)
+
+load(&quot;../data/IFNa/ATAC/diffAnalysis/res.2h.rda&quot;)
+res.2h &lt;- regioneR::toGRanges(res.2h.df[,c(17:19, 1:16)])
+load(&quot;../data/IFNa/ATAC/diffAnalysis/res.24h.rda&quot;)
+res.24h &lt;- regioneR::toGRanges(res.24h.df[,c(17:19, 1:16)])
+rm(res.24h.df, res.2h.df)
+
+c2 &lt;- c(&quot;cluster1&quot;, &quot;cluster2&quot;, &quot;cluster3&quot;) ## clusters at 2h
+c24 &lt;- c(&quot;cluster3&quot;, &quot;cluster1A&quot;, &quot;cluster1B&quot;, &quot;cluster1C&quot;, &quot;cluster2B&quot;) ## clusters at 24h
+cl.atac.2h &lt;- ChIPseeker::annotatePeak(res.2h, TxDb=clust.genes.gr[clust.genes.gr$cluster %in% c2],
+                                       verbose=FALSE)
+cl.atac.24h &lt;- ChIPseeker::annotatePeak(res.24h, TxDb=clust.genes.gr[clust.genes.gr$cluster %in% c24],
+                                        verbose=FALSE)
+
+## Filter out regions if distanceToTSS &gt; 1Mb
+dist &lt;- 1000000
+cl.atac.2h &lt;- data.frame(cl.atac.2h)
+cl.atac.24h &lt;- data.frame(cl.atac.24h)
+
+cl.atac.2h &lt;- unique(cl.atac.2h[abs(cl.atac.2h$distanceToTSS) &lt;= dist,])
+cl.atac.24h &lt;- unique(cl.atac.24h[abs(cl.atac.24h$distanceToTSS) &lt;= dist,])
+
+save(cl.atac.2h, file=file.path(out_dir, &quot;atac_clusters_ifna_2h.rda&quot;))
+save(cl.atac.24h, file=file.path(out_dir, &quot;atac_clusters_ifna_24h.rda&quot;))</code></pre>
+<p>The number of regions annotated to each RNA cluster is:</p>
+<pre class="r"><code>load(file.path(out_dir, &quot;atac_clusters_ifna_2h.rda&quot;))
+load(file.path(out_dir, &quot;atac_clusters_ifna_24h.rda&quot;))
+
+cl.atac.2h.gr &lt;- regioneR::toGRanges(cl.atac.2h[,-c(4:5)])
+cl.atac.24h.gr &lt;- regioneR::toGRanges(cl.atac.24h[,-c(4:5)])
+
+knitr::kable(table(cl.atac.2h$cluster, cl.atac.2h$type),
+             caption=&quot;OCRs at 2h annotated to each RNA-seq cluster.&quot;)</code></pre>
+<table>
+<caption>
+<span id="tab:unnamed-chunk-2">Table 1: </span>OCRs at 2h annotated to each RNA-seq cluster.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+gained
+</th>
+<th style="text-align:right;">
+stable
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+cluster1
+</td>
+<td style="text-align:right;">
+419
+</td>
+<td style="text-align:right;">
+24609
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cluster2
+</td>
+<td style="text-align:right;">
+947
+</td>
+<td style="text-align:right;">
+55003
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cluster3
+</td>
+<td style="text-align:right;">
+146
+</td>
+<td style="text-align:right;">
+14001
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>knitr::kable(table(cl.atac.24h$cluster, cl.atac.24h$type),
+             caption=&quot;OCRs at 24h annotated to each RNA-seq cluster.&quot;)</code></pre>
+<table>
+<caption>
+<span id="tab:unnamed-chunk-2">Table 1: </span>OCRs at 24h annotated to each RNA-seq cluster.
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+gained
+</th>
+<th style="text-align:right;">
+lost
+</th>
+<th style="text-align:right;">
+stable
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+cluster1A
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4991
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cluster1B
+</td>
+<td style="text-align:right;">
+65
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+12765
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cluster1C
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+11738
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cluster2B
+</td>
+<td style="text-align:right;">
+97
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+28204
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cluster3
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+15537
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="footprint-analysis" class="section level2">
+<h2>Footprint analysis</h2>
+<p>The code used for calculating the footprints of all TFs outputed by the DREM model was ran using the following Rscript:</p>
+<pre><code>Rscript code/IFNa_TF_footprint.R</code></pre>
+<p><strong>Warning</strong>: Currently, <code>TFBSTools</code> is not working as expected…</p>
+<pre class="r"><code>library(TFBSTools)
+library(ggseqlogo)
+
+## Load data ---------------------------------
+load(&quot;../data/IFNa/clusters_RNA/tf_clusters_ifna.rda&quot;)
+clust.tf$cluster &lt;- as.character(clust.tf$cluster)
+clust.tf$TFs &lt;- as.character(clust.tf$TFs)
+
+opts &lt;- list()
+opts[[&quot;species&quot;]] &lt;- 9606
+opts[[&quot;matrixtype&quot;]] &lt;- &quot;PWM&quot;
+opts[[&quot;all_versions&quot;]] &lt;- TRUE
+matJaspar &lt;- getMatrixSet(JASPAR2016::JASPAR2016, opts)
+
+## Load matrix FOXA2
+mot.f &lt;- read.delim(&quot;../data/IFNa/TF_motifs/fox2.motif&quot;, header=FALSE)
+mot.f &lt;- t(mot.f)
+rownames(mot.f) &lt;- c(&quot;A&quot;, &quot;C&quot;, &quot;G&quot;, &quot;T&quot;)
+mot &lt;- mot.f*1000
+
+pfm.foxa2 &lt;- PFMatrix(ID=&quot;Human-Islets-FOXA2&quot;,
+                name=&quot;FOXA2&quot;,
+                profileMatrix=mot)
+
+## Obtain list of TF and TF IDs
+tf.id &lt;- data.frame(&quot;tf&quot;=unique(clust.tf$TFs),
+                    &quot;id&quot;=NA,
+                    stringsAsFactors=FALSE)
+tf.id &lt;- rbind(tf.id, c(&quot;FOXA2&quot;, &quot;HumanIslet-FOXA2&quot;))
+
+sel &lt;- c(&quot;STAT1&quot;, &quot;STAT2&quot;, &quot;IRF1&quot;)
+tf.id &lt;- tf.id[tf.id$tf %in% sel,]
+
+for (i in unique(clust.tf$TFs)) {
+  mot &lt;- matJaspar[grep(i, name(matJaspar))]
+    
+    if (length(mot) &gt; 0) {
+      name &lt;- ID(mot)[[1]]
+      tf.id$id[tf.id$tf==i] &lt;- name
+    } else {
+      next
+    }
+}
+
+tf.id &lt;- tf.id[!is.na(tf.id$id),]
+
+##------------------------------------------------
+## 2 hours
+##------------------------------------------------
+## Plot footprints (manually)
+# dir.create(&quot;Figs_2h/&quot;, F)
+
+## Set labels
+upstream=100
+downstream=100
+
+for (i in c2) {
+  for (j in unique(clust.tf$TFs[clust.tf$cluster==i])) {
+    if (!(j %in% tf.id$tf)) next
+    else {
+      v &lt;- matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))]
+      
+      if (length(v)==0) {
+        mot &lt;- pfm.foxa2
+      } else {
+        mot &lt;- Matrix(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]])
+      }
+      
+      load(file.path(out_dir, paste0(&quot;footprint_&quot;, i, &quot;_&quot;, j, &quot;_2h.rda&quot;)))
+      ctrl$Treatment &lt;- &quot;CTRL&quot;
+      ifn$Treatment &lt;- &quot;IFNa&quot;
+      df &lt;- rbind(ctrl, ifn)
+      
+      ## Set breaks and labels
+      nmotif = ncol(mot)
+      breaks &lt;- c(min(ctrl$Position), (upstream+1), (upstream+nmotif), max(ctrl$Position))
+      breaks &lt;- c(breaks, round(breaks[2]/2, 0), round((breaks[4]-breaks[3])/2 + breaks[3], 0))
+      breaks &lt;- sort(breaks)
+      labels &lt;- c(paste0(&quot;-&quot;, upstream), 
+                  paste0(&quot;-&quot;, upstream/2), 
+                  &quot;0&quot;, &quot;0&quot;, 
+                  paste(downstream/2), 
+                  paste(downstream))
+      
+      xlab = &quot;Dist. to motif (bp)&quot;
+      ylab = &quot;Cut-site probability&quot;
+      
+      profile &lt;- ggplot(df, aes(Position, Probability)) +
+                  geom_line(aes(color=Treatment, lty=Strand), lwd=1, alpha=0.8) +
+                  scale_linetype_manual(values=c(&quot;Forward&quot;=1, &quot;Reverse&quot;=6)) +
+                  scale_color_manual(values=c(&quot;CTRL&quot;=&quot;steelblue3&quot;, &quot;IFNa&quot;=&quot;tomato2&quot;)) +
+                  geom_vline(xintercept=breaks[3], lty=2, color=&quot;dark grey&quot;) +
+                  geom_vline(xintercept=breaks[4], lty=2, color=&quot;dark grey&quot;) +
+                  theme(legend.position=&quot;bottom&quot;) +
+                  scale_x_continuous(breaks=breaks,
+                             labels=labels) +
+                  xlab(xlab) + ylab(ylab)
+      
+        logo &lt;- ggseqlogo(mot, seq_type=&quot;dna&quot;) +
+        ggtitle(paste0(j, &quot; (&quot;, ID(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]]), &quot;)&quot;)) +
+        theme(plot.title = element_text(size=35))
+      
+      final &lt;- plot_grid(logo, profile, ncol=1, rel_heights=c(1,3))
+    }
+  }
+}
+
+final
+
+##-----------------------------------------------------
+## 24 hours
+##-----------------------------------------------------
+# dir.create(&quot;Figs_24h/&quot;, F)
+
+for (i in c24) {
+  for (j in unique(clust.tf$TFs[clust.tf$cluster==i])) {
+    if (!(j %in% tf.id$tf)) next
+    else {
+      v &lt;- matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))]
+      
+      if (length(v)==0) {
+        mot &lt;- pfm.foxa2
+      } else {
+        mot &lt;- Matrix(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]])
+      }
+      
+      load(file.path(out_dir, paste0(&quot;footprint_&quot;, i, &quot;_&quot;, j, &quot;_24h.rda&quot;)))
+      ctrl$Treatment &lt;- &quot;CTRL&quot;
+      ifn$Treatment &lt;- &quot;IFNa&quot;
+      df &lt;- rbind(ctrl, ifn)
+      
+      ## Set breaks and labels
+      nmotif = ncol(mot)
+      breaks &lt;- c(min(ctrl$Position), (upstream+1), (upstream+nmotif), max(ctrl$Position))
+      breaks &lt;- c(breaks, round(breaks[2]/2, 0), round((breaks[4]-breaks[3])/2 + breaks[3], 0))
+      breaks &lt;- sort(breaks)
+      labels &lt;- c(paste0(&quot;-&quot;, upstream), 
+                  paste0(&quot;-&quot;, upstream/2), 
+                  &quot;0&quot;, &quot;0&quot;, 
+                  paste(downstream/2), 
+                  paste(downstream))
+      
+      xlab = &quot;Dist. to motif (bp)&quot;
+      ylab = &quot;Cut-site probability&quot;
+      
+      profile &lt;- ggplot(df, aes(Position, Probability)) +
+                  geom_line(aes(color=Treatment, lty=Strand), lwd=1, alpha=0.8) +
+                  scale_linetype_manual(values=c(&quot;Forward&quot;=1, &quot;Reverse&quot;=6)) +
+                  scale_color_manual(values=c(&quot;CTRL&quot;=&quot;steelblue3&quot;, &quot;IFNa&quot;=&quot;tomato2&quot;)) +
+                  geom_vline(xintercept=breaks[3], lty=2, color=&quot;dark grey&quot;) +
+                  geom_vline(xintercept=breaks[4], lty=2, color=&quot;dark grey&quot;) +
+                  theme(legend.position=&quot;bottom&quot;) +
+                  scale_x_continuous(breaks=breaks,
+                             labels=labels) +
+                  xlab(xlab) + ylab(ylab)
+      
+        logo &lt;- ggseqlogo(mot, seq_type=&quot;dna&quot;) +
+        ggtitle(paste0(j, &quot; (&quot;, ID(matJaspar[grep(tf.id$id[tf.id$tf==j], ID(matJaspar))][[1]]), &quot;)&quot;)) +
+        theme(plot.title = element_text(size=35))
+      
+      final &lt;- plot_grid(logo, profile, ncol=1, rel_heights=c(1,3))
+    }
+  }
+}
+
+final</code></pre>
+<p><img src="figure/ifn_03_footprint.Rmd/plot-results-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/ifn_03_footprint.Rmd/plot-results-2.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
-<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
@@ -508,32 +982,37 @@ other attached packages:
 [17] workflowr_1.6.2            
 
 loaded via a namespace (and not attached):
- [1] httr_1.4.2             splines_4.0.0          bit64_0.9-7.1         
- [4] viridisLite_0.3.0      blob_1.2.1             GenomeInfoDbData_1.2.3
- [7] yaml_2.2.1             RSQLite_2.2.0          pillar_1.4.6          
-[10] backports_1.1.8        lattice_0.20-41        glue_1.4.1            
-[13] digest_0.6.25          RColorBrewer_1.1-2     promises_1.1.1        
-[16] XVector_0.29.3         rvest_0.3.6            colorspace_1.4-1      
-[19] htmltools_0.5.0        httpuv_1.5.4           XML_3.99-0.5          
-[22] pkgconfig_2.0.3        GetoptLong_1.0.2       genefilter_1.71.0     
-[25] zlibbioc_1.35.0        xtable_1.8-4           purrr_0.3.4           
-[28] scales_1.1.1           webshot_0.5.2          later_1.1.0.1         
-[31] BiocParallel_1.23.2    annotate_1.67.0        git2r_0.27.1          
-[34] tibble_3.0.3           generics_0.0.2         ellipsis_0.3.1        
-[37] withr_2.2.0            survival_3.2-3         magrittr_1.5          
-[40] crayon_1.3.4           memoise_1.1.0          evaluate_0.14         
-[43] fs_1.4.2               xml2_1.3.2             tools_4.0.0           
-[46] hms_0.5.3              GlobalOptions_0.1.2    lifecycle_0.2.0       
-[49] stringr_1.4.0          locfit_1.5-9.4         munsell_0.5.0         
-[52] cluster_2.1.0          AnnotationDbi_1.51.3   compiler_4.0.0        
-[55] rlang_0.4.7            RCurl_1.98-1.2         rstudioapi_0.11       
-[58] rjson_0.2.20           circlize_0.4.10        bitops_1.0-6          
-[61] rmarkdown_2.3          gtable_0.3.0           DBI_1.1.0             
-[64] R6_2.4.1               knitr_1.29             bit_1.1-15.2          
-[67] clue_0.3-57            rprojroot_1.3-2        shape_1.4.4           
-[70] readr_1.3.1            stringi_1.4.6          Rcpp_1.0.5            
-[73] geneplotter_1.67.0     vctrs_0.3.2            png_0.1-7             
-[76] tidyselect_1.1.0       xfun_0.16             </code></pre>
+ [1] bitops_1.0-6             fs_1.4.2                 bit64_0.9-7.1           
+ [4] webshot_0.5.2            RColorBrewer_1.1-2       httr_1.4.2              
+ [7] rprojroot_1.3-2          tools_4.0.0              backports_1.1.8         
+[10] R6_2.4.1                 DBI_1.1.0                colorspace_1.4-1        
+[13] GetoptLong_1.0.2         withr_2.2.0              tidyselect_1.1.0        
+[16] bit_1.1-15.2             compiler_4.0.0           git2r_0.27.1            
+[19] rvest_0.3.6              xml2_1.3.2               labeling_0.3            
+[22] rtracklayer_1.49.4       bookdown_0.20            scales_1.1.1            
+[25] readr_1.3.1              genefilter_1.71.0        Rsamtools_2.5.3         
+[28] stringr_1.4.0            digest_0.6.25            rmarkdown_2.3           
+[31] XVector_0.29.3           pkgconfig_2.0.3          htmltools_0.5.0         
+[34] highr_0.8                BSgenome_1.57.5          regioneR_1.21.1         
+[37] rlang_0.4.7              GlobalOptions_0.1.2      rstudioapi_0.11         
+[40] RSQLite_2.2.0            farver_2.0.3             shape_1.4.4             
+[43] generics_0.0.2           BiocParallel_1.23.2      RCurl_1.98-1.2          
+[46] magrittr_1.5             GenomeInfoDbData_1.2.3   Rcpp_1.0.5              
+[49] munsell_0.5.0            lifecycle_0.2.0          stringi_1.4.6           
+[52] yaml_2.2.1               zlibbioc_1.35.0          blob_1.2.1              
+[55] promises_1.1.1           crayon_1.3.4             lattice_0.20-41         
+[58] Biostrings_2.57.2        splines_4.0.0            annotate_1.67.0         
+[61] circlize_0.4.10          hms_0.5.3                magick_2.4.0            
+[64] locfit_1.5-9.4           knitr_1.29               pillar_1.4.6            
+[67] rjson_0.2.20             geneplotter_1.67.0       XML_3.99-0.5            
+[70] glue_1.4.1               evaluate_0.14            png_0.1-7               
+[73] vctrs_0.3.2              httpuv_1.5.4             gtable_0.3.0            
+[76] purrr_0.3.4              clue_0.3-57              xfun_0.16               
+[79] xtable_1.8-4             later_1.1.0.1            survival_3.2-3          
+[82] viridisLite_0.3.0        tibble_3.0.3             GenomicAlignments_1.25.3
+[85] AnnotationDbi_1.51.3     memoise_1.1.0            cluster_2.1.0           
+[88] ellipsis_0.3.1          </code></pre>
+</div>
 </div>
 
 

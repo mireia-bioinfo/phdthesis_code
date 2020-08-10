@@ -1,0 +1,26 @@
+Name,RNAseq 8h,RNAseq 24h,Prot 8h,Prot 24h
+MUC13,Up,Up,Up,Up
+ZNF267,Up,Up,Up,Not regulated
+LRP10,Up,Up,Up,Up
+TPPP3,Down,Not regulated,Down,Not regulated
+MAP6,Down,Down,Down,Not regulated
+PROCR,Up,Up,Not regulated,Up
+HTATIP2,Up,Up,Not regulated,Up
+CD68,Up,Up,Not regulated,Up
+PRPH,Up,Up,Not regulated,Up
+TMEM27,Up,Up,Not regulated,Up
+HABP2,Up,Up,Not regulated,Up
+PRKCE,Up,Up,Not regulated,Up
+FAM3B,Up,Up,Not regulated,Up
+CPNE4,Not regulated,Up,Not regulated,Up
+HMGB3,Not regulated,Down,Not regulated,Down
+FAM172A,Not regulated,Down,Not regulated,Down
+SCD5,Not regulated,Down,Not regulated,Down
+DPYSL5,Not regulated,Down,Not regulated,Down
+OTUD3,Down,Down,Not regulated,Down
+SAPCD2,Down,Down,Not regulated,Down
+PRSS23,Up,Not regulated,Not regulated,Up
+KRT8,Up,Not regulated,Not regulated,Up
+SOGA1,Down,Not regulated,Not regulated,Down
+GPSM1,Down,Not regulated,Not regulated,Down
+GC,Not regulated,Up,Down,Not regulated

@@ -26,3 +26,123 @@ load("../code/IFNa_color_palettes.rda")
 out_dir <- "../output/ifn_04_modules/"
 dir.create(out_dir, F)
 ```
+
+***
+
+## Details
+
+- **Original publication**:
+
+  > Colli, M.L., **Ramos-Rodríguez, M.**, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. *Nat Commun* **11**, 2584 (2020). https://doi.org/10.1038/s41467-020-16327-0
+
+- **Contents**: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:
+
+  + **Results**: "mRNA and protein modules regulated by interferon-$\alpha$".
+  + **Figure 4**: Weighted correlation network analysis (WGCNA) identifies IFN$\alpha$-regulated mRNA and protein modules. Panels **d** and **e**.
+
+***
+
+## Open chromatin in mRNA--protein modules
+
+### Association of chromatin accessibility with mRNA--protein modules
+
+ATAC-seq-identified open chromatin regions were linked to gene transcription start sites (TSSs) in a 40 kb window. 
+These genes and their open chromatin regions were associated to the modules of DEG and DAP. 
+
+```{r procesing}
+load("../data/IFNa/clusters_RNAProt/gene-protein_granges.rda")
+load("../data/IFNa/ATAC/diffAnalysis/res_2h_granges.rda")
+res.2h.gr <- res.gr
+load("../data/IFNa/ATAC/diffAnalysis/res_24h_granges.rda")
+res.24h.gr <- res.gr
+
+## Annotate to 40kb window
+win <- 40000
+gp.prom <- promoters(gp, upstream=win/2, downstream=win/2)
+
+hits.2h <- findOverlaps(res.2h.gr, gp.prom)
+hits.24h <- findOverlaps(res.24h.gr, gp.prom)
+
+anno.2h <- cbind(data.frame(res.2h.gr)[queryHits(hits.2h),c(6,8,12:13)],
+                 data.frame(gp.prom)[subjectHits(hits.2h),c(6:11)])
+anno.24h <- cbind(data.frame(res.24h.gr)[queryHits(hits.24h),c(6,8,12:13)],
+                 data.frame(gp.prom)[subjectHits(hits.24h),c(6:11)])
+
+## Melt data.frames
+load("../data/IFNa/ATAC/diffAnalysis/res.2h.rda")
+load("../data/IFNa/ATAC/diffAnalysis/res.24h.rda")
+
+anno.2h <- dplyr::left_join(anno.2h, res.2h.df[,c(1,8:15)])
+anno.2h$log2FoldChange[is.na(anno.2h$log2FoldChange)] <- 0
+anno.2h$mean.ctrl <- unlist(apply(anno.2h[,11:14], 1, mean))
+anno.2h$mean.ifn <- unlist(apply(anno.2h[,15:18], 1, mean))
+anno.2h <- anno.2h[,c(1:10,19:20)]
+anno.2h.m <- reshape2::melt(anno.2h,
+                            id.vars=1:10,
+                            value.vars=11:12,
+                            value.name="counts",
+                            variable.name="treatment")
+anno.2h.m$treatment <- gsub("mean.", "", anno.2h.m$treatment)
+
+anno.24h <- dplyr::left_join(anno.24h, res.24h.df[,c(1,8:15)])
+anno.24h$log2FoldChange[is.na(anno.24h$log2FoldChange)] <- 0
+anno.24h$mean.ctrl <- unlist(apply(anno.24h[,11:14], 1, mean))
+anno.24h$mean.ifn <- unlist(apply(anno.24h[,15:18], 1, mean))
+anno.24h <- anno.24h[,c(1:10,19:20)]
+anno.24h.m <- reshape2::melt(anno.24h,
+                            id.vars=1:10,
+                            value.vars=11:12,
+                            value.name="counts",
+                            variable.name="treatment")
+anno.24h.m$treatment <- gsub("mean.", "", anno.24h.m$treatment)
+```
+
+The enrichment for gained open chromatin regions was then evaluated using Chi-squared tests.
+
+```{r plot-modules, fig.width=4, fig.cap="Type of OCRs associated to each RNA-Prot module."}
+files <- list.files("../data/IFNa/clusters_RNAProt/",
+                    pattern="^cluster*", full.names=TRUE)
+
+mod <- lapply(files, read.csv, stringsAsFactors=F)
+names <- pipelineNGS::getNameFromPath(files, suffix=".csv", prefix="cluster")
+
+mod.comb <- do.call(rbind, mod)
+mod.comb$cluster <- unlist(mapply(rep, names, each=sapply(mod, nrow)))
+colnames(mod.comb)[1] <- "external_gene_name"
+
+anno.2h <- dplyr::left_join(anno.2h, mod.comb[c(1,6)])
+
+chisq.test(table(anno.2h$cluster, anno.2h$type))
+
+ggplot(anno.2h[!is.na(anno.2h$cluster),], 
+       aes(cluster, ..count.., fill=type)) +
+  scale_fill_manual(values=c("gained"="dark green",
+                             "lost"="dark red",
+                             "stable"="grey"),
+                    name="Chromatin Type") +
+  geom_bar(lwd=0.7, color="black") +
+  ylab("# Regions") +
+  theme(legend.position="top",
+        axis.text.x=element_text(angle=30, hjust=1))
+```
+
+### Characterization of TF motifs found in module #2
+
+As module #2 (Rna1Prot5) showed significant enrichment of gained OCRs, a *de novo* motif analysis was performed to determine the TF motifs present in such ATAC-seq regions.
+
+```{r denovo-homer, eval=FALSE}
+library(maRge)
+
+deNovoMotifHOMER(bed="gainedATAC_RNA1Prot5.bed",
+                 path_output=file.path(out_dir, "motifs_gainedATAC-RNA1Prot5"),
+                 path_homer="~/tools/homer/")
+
+```
+
+
+
+```{r results-denovo-homer}
+htmltools::includeHTML(file.path(out_dir, "motifs_gainedATAC-RNA1Prot5/homerResults.html"))
+```
+
+

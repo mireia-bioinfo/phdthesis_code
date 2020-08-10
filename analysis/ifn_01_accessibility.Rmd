@@ -1,6 +1,5 @@
 ---
 title: "#1 Chromatin remodeling induced by IFN-α"
-subtitle: "IFN-α induces early changes in chromatin accessibility"
 author: "Mireia Ramos-Rodríguez"
 ---
 
@@ -8,7 +7,8 @@ author: "Mireia Ramos-Rodríguez"
 knitr::opts_chunk$set(warning = FALSE,
                       message = FALSE,
                       eval = TRUE,
-                      fig.height = 4)
+                      fig.height = 4,
+                      fig.width = 4)
 
 library(GenomicRanges)
 library(ggplot2)
@@ -25,6 +25,24 @@ out_dir <- "../output/ifn_01_accessibility/"
 dir.create(out_dir, F)
 ```
 
+
+***
+
+## Details
+
+- **Original publication**:
+
+  > Colli, M.L., **Ramos-Rodríguez, M.**, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. *Nat Commun* **11**, 2584 (2020). https://doi.org/10.1038/s41467-020-16327-0
+
+- **Contents**: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:
+
+  + **Results**: "Interferon-$\alpha$ induces early changes in chromatin accessibility".
+  + **Figure 1**: "Exposure of EndoC-$\beta$H1 cells to interferon-$\alpha$ promotes changes in chromatin accessibility, which are correlated with gene transcription and translation". Panel **b**.
+  + **Supplementary Figure 3**: "Gained open chromatin regions are mainly localized distally to gene transcription starting sites (TSSs), evolutionary conserved and enriched in transcription factors (TFs) binding motifs". Panels **a**, **b** and **c**.
+  + Additional quality control measures requested during the Review process.
+
+***
+
 ## Analysis of ATAC-seq data
 
 ### Quality control
@@ -35,7 +53,7 @@ Run Rscript for generating the necessary quality control measures.
 Rscript code/IFNa_QC_ATAC.R
 ```
 
-```{r atac-heatmap, fig.width=7, fig.height=8, fig.cap="Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC)."}
+```{r atac-heatmap, fig.width=5.5, fig.height=6, fig.cap="Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC)."}
 # Get RSC and NSC indexes
 # source("QC_phantom_peak.R") # Runs code to generate files
 load("../data/IFNa/ATAC/QC/QC_scores.rda")
@@ -59,7 +77,7 @@ stats$sampleID <- factor(stats$sampleID,
 lib_size <-
   ggplot(stats,
        aes("Lib Size", sampleID)) +
-  geom_tile(aes(fill=`Lib Size`), color="black", size=.7) +
+  geom_tile(aes(fill=`Lib Size`), color="black", size=.3) +
   geom_text(aes(label=round(`Lib Size`/1e6, 2))) +
   scale_fill_gradient(low="white", high="darkorchid4",
                       limits=c(0, max(stats$`Lib Size`)),
@@ -84,7 +102,7 @@ lib_size <-
 align <-
   ggplot(stats,
                 aes("% Align", sampleID)) +
-  geom_tile(aes(fill=`% Align`), color="black", size=.7) +
+  geom_tile(aes(fill=`% Align`), color="black", size=.3) +
   geom_text(aes(label=round(`% Align`, 1))) +
   scale_fill_gradient(low="white", high="darkorange3",
                       limits=c(0, max(stats$`% Align`)),
@@ -110,7 +128,7 @@ align <-
 mito <-
   ggplot(stats,
          aes("% Mito", sampleID)) +
-  geom_tile(aes(fill=`% Mito`), color="black", size=.7) +
+  geom_tile(aes(fill=`% Mito`), color="black", size=.3) +
   geom_text(aes(label=round(`% Mito`, 1))) +
   scale_fill_gradient(low="dodgerblue3", high="white",
                       limits=c(0, max(stats$`% Mito`)),
@@ -136,7 +154,7 @@ mito <-
 nsc <-
   ggplot(stats,
          aes("NSC", sampleID)) +
-  geom_tile(aes(fill=NSC), color="black", size=.7) +
+  geom_tile(aes(fill=NSC), color="black", size=.3) +
   geom_text(aes(label=round(NSC, 1))) +
   scale_fill_gradient(low="white", high="brown3",
                       limits=c(1, max(stats$NSC)),
@@ -162,7 +180,7 @@ nsc <-
 rsc <-
   ggplot(stats,
          aes("RSC", sampleID)) +
-  geom_tile(aes(fill=RSC), color="black", size=.7) +
+  geom_tile(aes(fill=RSC), color="black", size=.3) +
   geom_text(aes(label=round(RSC, 1))) +
   scale_fill_gradient(low="white", high="aquamarine4",
                       limits=c(1, max(stats$RSC)),
@@ -221,7 +239,7 @@ tss.plot <-
 tss.plot
 ```
 
-```{r atac-signal-to-noise, fig.height=4, fig.width=4, fig.cap="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks."}
+```{r atac-signal-to-noise, fig.cap="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks."}
 load("../data/IFNa/ATAC/QC/ATAC_noise.rda")
 
 stats$condition <- factor(stats$condition,
@@ -259,7 +277,7 @@ noise
   }
 ```
 
-```{r atac-genome-corr, fig.cap="ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2."}
+```{r atac-genome-corr, fig.width=6, fig.height=6, fig.cap="ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2."}
 load("../data/IFNa/ATAC/QC/ATAC_10kb_correlation_rsubread.rda")
 mat <- cor(counts$counts, method="pearson")
 mat[lower.tri(mat, diag=FALSE)] <- NA
@@ -303,7 +321,7 @@ ggplot(df,
 
 ### Differential analysis
 
-After reviewing literature and searching through different websites, the consensus pipeline that is considered to work well for ATAC-seq differential analysis consists on calling peaks with **MACS2** and then performing differential analysis with **[DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)** bioconductor package.
+The pipeline for differential analysis of ATAC-seq data consists on calling peaks with **MACS2** and then performing differential analysis with **[DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)** Bioconductor package.
 
 Once we have the peaks called for the different conditions, we can merge them to create our final region set that we will use for differential analysis. The peak calling is performed in 4 different bam files:
 
@@ -479,19 +497,19 @@ table(res.gr[res.gr$time=="2 hours"]$type, res.gr$annotation[res.gr$time=="2 hou
   knitr::kable(format="html",
                format.args = list(big.mark = ","),
                caption = "Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples (2 hours).") %>% 
-  kable_styling(full_width = FALSE) %>% 
+  kable_styling(full_width = TRUE) %>% 
   add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 
 table(res.gr[res.gr$time=="24 hours"]$type, res.gr$annotation[res.gr$time=="24 hours"]) %>% 
   knitr::kable(format="html",
                format.args = list(big.mark = ","),
                caption = "Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples (24 hours).") %>% 
-  kable_styling(full_width = FALSE) %>% 
+  kable_styling(full_width = TRUE) %>% 
   add_header_above(c("Region type" = 1, "Location respect TSS" = 2))
 ```
 
 
-```{r atac-volc-plot-ec, fig.height=4, fig.width=8}
+```{r atac-volc-plot-ec, fig.height=3, fig.width=6}
 volc_ec <- 
   ggplot(data.frame(res.gr),
        aes(log2FoldChange, -log10(padj))) +
@@ -510,7 +528,7 @@ volc_ec
 
 ## Characterization of OCRs
 
-- Distance to TSS
+### Distance to TSS
 
 ```{r tss-plot, fig.width=6, fig.cap="Distribution of OCRs according to their distance to the nearest TSS."}
 load("../data/IFNa/ATAC/diffAnalysis/res_2+24h_anno.rda")
@@ -563,7 +581,7 @@ tss.plot <-
 tss.plot
 ```
 
-- Conservation
+### Sequence conservation
 
 ```{r calculate-cons, eval=FALSE}
 library(GenomicRanges)
@@ -629,13 +647,15 @@ ggplot(g.cons) +
   theme(legend.position="top")
 ```
 
-```{r echo=FALSE, fig.cap="Mean phastCons sequence conservation scores of gained OCRs."}
-knitr::include_graphics("figure/ifn_01_accessibility.Rmd/plot-cons.png", error=FALSE)
+```{r echo=FALSE, fig.cap="Mean phastCons sequence conservation scores of gained OCRs.", fig.width=6}
+img <- "../docs/figure/ifn_01_accessibility.Rmd/plot-cons.png"
+
+ggdraw() + draw_image(img)
 ```
 
-- *de Novo* Motifs
+### *de Novo* TF Motifs
 
-**Note**: This analysis has been re-run and thus, results might slightly differ from the ones presented in the original publication, as the *de Novo* motif finding includes some randomicity in its calculations. However, the main results, that is, the finding of both inflammatory and islet-specific TFs in gained OCRs is still maintained.
+`r icon::fa("sticky-note")` **Note**: This analysis has been re-run and thus, results might slightly differ from the ones presented in the original publication, as the *de Novo* motif finding includes some randomicity in its calculations. However, the main results, that is, the finding of both inflammatory and islet-specific TFs in gained OCRs is still maintained.
 
 ```{r de-novo-motif-2h, eval=FALSE}
 library(maRge)

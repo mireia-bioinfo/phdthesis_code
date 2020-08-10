@@ -1,0 +1,39 @@
+Name,RNAseq 8h,RNAseq 24h,Prot 8h,Prot 24h
+MT1E,Up,Up,Up,Not regulated
+PDIA5,Not regulated,Up,Not regulated,Up
+FKBP11,Not regulated,Up,Not regulated,Up
+IL1RAP,Not regulated,Up,Not regulated,Up
+OCLN,Up,Up,Not regulated,Up
+IDS,Not regulated,Down,Not regulated,Down
+ANLN,Not regulated,Down,Down,Down
+DEPDC1B,Not regulated,Down,Not regulated,Down
+ASPM,Not regulated,Down,Not regulated,Down
+PRR11,Not regulated,Down,Not regulated,Down
+HMMR,Not regulated,Down,Not regulated,Down
+TPX2,Not regulated,Down,Down,Down
+CBX5,Not regulated,Down,Not regulated,Down
+IGFALS,Not regulated,Down,Not regulated,Down
+IGDCC4,Down,Down,Not regulated,Down
+OIP5,Not regulated,Down,Not regulated,Down
+TTC26,Not regulated,Down,Not regulated,Down
+ST3GAL4,Not regulated,Down,Not regulated,Down
+ECT2,Not regulated,Down,Down,Down
+ARID3A,Not regulated,Down,Not regulated,Down
+CDC20,Not regulated,Down,Not regulated,Down
+CENPF,Not regulated,Down,Down,Down
+GTDC1,Not regulated,Down,Not regulated,Down
+CIT,Not regulated,Down,Not regulated,Down
+DUSP9,Not regulated,Down,Down,Down
+TOP2A,Not regulated,Down,Not regulated,Down
+CCNB1,Not regulated,Down,Not regulated,Down
+CDCA8,Not regulated,Down,Not regulated,Down
+TRIM29,Not regulated,Down,Not regulated,Down
+KIF23,Not regulated,Down,Not regulated,Down
+NUF2,Not regulated,Down,Not regulated,Down
+CEP78,Not regulated,Down,Not regulated,Down
+CCNB2,Not regulated,Down,Not regulated,Down
+PLK1,Not regulated,Down,Not regulated,Down
+NT5DC2,Down,Down,Not regulated,Down
+KIF5C,Not regulated,Down,Not regulated,Down
+TAS1R3,Not regulated,Down,Down,Down
+TTC3,Not regulated,Down,Not regulated,Down

@@ -1,0 +1,180 @@
+Name,RNAseq 8h,RNAseq 24h,Prot 8h,Prot 24h
+ANKIB1,Up,Up,Up,Up
+LAP3,Up,Up,Up,Up
+ETV7,Up,Up,Up,Up
+NUB1,Up,Up,Up,Up
+CD44,Up,Up,Up,Up
+CDH1,Up,Not regulated,Up,Up
+EIF2AK2,Up,Up,Up,Up
+PARP12,Up,Up,Up,Up
+CDK17,Up,Up,Up,Up
+OGFR,Up,Up,Up,Up
+CASP8,Up,Up,Up,Up
+IFI35,Up,Up,Up,Up
+LAMP3,Up,Up,Up,Up
+DNAJA1,Up,Up,Up,Up
+OAS1,Up,Up,Up,Up
+APOL1,Up,Up,Up,Up
+PARP4,Up,Up,Up,Up
+EHD4,Up,Up,Up,Up
+GSDMD,Up,Up,Up,Up
+PRKD2,Up,Up,Up,Up
+DENND3,Up,Up,Up,Up
+NAPA,Up,Up,Up,Up
+PLEKHA4,Up,Up,Up,Up
+ZC3HAV1,Up,Up,Up,Up
+TRIM14,Up,Up,Up,Up
+DDX58,Up,Up,Up,Up
+DHX58,Up,Up,Up,Up
+INPP4B,Up,Up,Up,Up
+UNC93B1,Up,Up,Up,Up
+OAS3,Up,Up,Up,Up
+OAS2,Up,Up,Up,Up
+FAM46A,Up,Up,Up,Up
+IFIH1,Up,Up,Up,Up
+STAT1,Up,Up,Up,Up
+FBXO6,Up,Up,Up,Up
+CTH,Up,Up,Up,Up
+LGALS8,Up,Up,Up,Up
+GBP1,Up,Up,Up,Up
+PCDH17,Up,Up,Up,Up
+IFIT3,Up,Up,Up,Up
+IFIT2,Up,Up,Up,Up
+CD274,Up,Up,Up,Up
+ELF1,Up,Up,Up,Up
+TRIM25,Up,Up,Up,Up
+TNFSF10,Up,Up,Up,Up
+FYTTD1,Up,Not regulated,Up,Up
+NT5C3A,Up,Up,Up,Up
+OPTN,Up,Up,Up,Up
+NMI,Up,Up,Up,Up
+ZNFX1,Up,Up,Up,Up
+MT2A,Up,Up,Up,Up
+IRF1,Up,Up,Up,Not regulated
+RBCK1,Up,Up,Up,Up
+APOL2,Up,Up,Up,Up
+APOBEC3F,Up,Up,Up,Up
+LRCH2,Up,Up,Up,Up
+BST2,Up,Up,Up,Up
+HELZ2,Up,Up,Up,Up
+C19ORF66,Up,Up,Up,Up
+TRIM21,Up,Up,Up,Up
+TRIM5,Up,Up,Up,Up
+EPSTI1,Up,Up,Up,Up
+RSAD2,Up,Up,Up,Up
+CMPK2,Up,Up,Up,Up
+CYP2J2,Up,Up,Up,Up
+OASL,Up,Up,Up,Up
+TRAFD1,Up,Up,Up,Up
+SP110,Up,Up,Up,Up
+PHF11,Up,Up,Up,Up
+DAB2IP,Up,Up,Up,Up
+DDX60,Up,Up,Up,Up
+TMEM62,Up,Up,Up,Up
+PNPT1,Up,Up,Up,Up
+PARP9,Up,Up,Up,Up
+HERC5,Up,Up,Up,Up
+ETV6,Up,Up,Up,Up
+PML,Up,Up,Up,Up
+IRF8,Up,Not regulated,Up,Not regulated
+SECTM1,Up,Up,Up,Not regulated
+TNFRSF11A,Up,Not regulated,Up,Up
+MOB3C,Up,Not regulated,Up,Up
+RFX5,Up,Up,Up,Up
+RAB19,Up,Up,Up,Up
+IFIT5,Up,Up,Up,Up
+SLC25A28,Up,Up,Up,Up
+USP25,Up,Up,Up,Up
+PIK3AP1,Up,Up,Up,Up
+UBE2L6,Up,Up,Up,Up
+MX1,Up,Up,Up,Up
+ADAR,Up,Up,Up,Up
+LY6E,Up,Up,Up,Up
+KCNT2,Up,Up,Up,Up
+AZI2,Up,Up,Up,Up
+ATXN7,Up,Up,Up,Not regulated
+PPM1K,Up,Up,Up,Up
+CXCL1,Up,Up,Up,Up
+DTX3L,Up,Up,Up,Up
+STARD4,Up,Up,Up,Not regulated
+ERAP2,Up,Up,Up,Up
+HDX,Up,Up,Up,Up
+CASP7,Up,Up,Up,Up
+ABTB2,Up,Up,Up,Up
+TRANK1,Up,Up,Up,Up
+IRF2,Up,Up,Up,Not regulated
+TAP1,Up,Up,Up,Up
+VAMP5,Up,Up,Up,Up
+CXCL10,Up,Up,Up,Not regulated
+RASSF6,Up,Up,Up,Up
+TRIM56,Up,Up,Up,Up
+STAT2,Up,Up,Up,Up
+FGB,Up,Up,Up,Not regulated
+ISG20,Up,Up,Up,Up
+STARD5,Up,Up,Up,Up
+MYD88,Up,Up,Up,Up
+PARP14,Up,Up,Up,Up
+RNF213,Up,Up,Up,Up
+SAMD9L,Up,Up,Up,Up
+PARP10,Up,Up,Up,Up
+APOBEC3B,Up,Up,Up,Up
+DDX60L,Up,Up,Up,Up
+MX2,Up,Up,Up,Up
+USP18,Up,Up,Up,Up
+IFITM2,Up,Up,Up,Up
+IRF7,Up,Up,Up,Up
+IFIT1,Up,Up,Up,Up
+KATNA1,Up,Not regulated,Up,Not regulated
+ISG15,Up,Up,Up,Up
+AGRN,Up,Up,Up,Up
+PLSCR1,Up,Up,Up,Up
+CLN3,Up,Up,Up,Up
+TDRD7,Up,Up,Up,Up
+SPATS2L,Up,Up,Up,Up
+ZNF107,Up,Up,Up,Up
+CASP4,Up,Up,Up,Up
+C2CD4A,Up,Up,Up,Up
+BAZ1A,Up,Up,Up,Up
+PSMB8,Up,Up,Up,Up
+TAP2,Up,Up,Up,Up
+HLA-C,Up,Up,Up,Up
+HLA-E,Up,Up,Up,Up
+PSMB10,Up,Up,Up,Up
+SAMD9,Up,Up,Up,Up
+TREX1,Up,Up,Up,Up
+IRF9,Up,Up,Up,Up
+TAPBP,Up,Up,Up,Up
+APOBEC3G,Up,Up,Up,Up
+PSMB9,Up,Up,Up,Up
+AGO2,Down,Not regulated,Down,Not regulated
+OLFM1,Down,Down,Down,Down
+TYMP,Up,Up,Not regulated,Up
+DGKG,Up,Up,Not regulated,Up
+SP100,Up,Up,Not regulated,Up
+CEACAM1,Up,Up,Not regulated,Up
+FMR1,Up,Up,Not regulated,Up
+NBN,Up,Up,Not regulated,Up
+GNB4,Up,Up,Not regulated,Up
+RND3,Up,Up,Not regulated,Up
+MAX,Up,Up,Not regulated,Up
+RPS6KC1,Up,Up,Not regulated,Up
+STX17,Up,Up,Not regulated,Up
+GPR180,Up,Up,Not regulated,Up
+UTRN,Up,Up,Not regulated,Up
+PDIA4,Up,Up,Not regulated,Up
+WHAMM,Up,Up,Not regulated,Up
+ERAP1,Up,Up,Not regulated,Up
+PLEKHA7,Up,Up,Not regulated,Up
+GTPBP2,Up,Up,Not regulated,Up
+CNP,Up,Up,Not regulated,Up
+UBA7,Up,Up,Not regulated,Up
+RAB11FIP4,Down,Down,Not regulated,Down
+SORL1,Down,Down,Not regulated,Down
+CCDC88B,Not regulated,Down,Not regulated,Down
+CPLX1,Not regulated,Down,Down,Down
+LRRC45,Not regulated,Down,Not regulated,Down
+PI4K2B,Up,Not regulated,Not regulated,Up
+MAP2,Up,Not regulated,Not regulated,Up
+ZBTB33,Up,Not regulated,Not regulated,Up
+SPATA13,Up,Not regulated,Not regulated,Up
+MIER1,Up,Not regulated,Not regulated,Up

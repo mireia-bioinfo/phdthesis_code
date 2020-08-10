@@ -18,6 +18,8 @@ workflowr:
 knitr::include_graphics("figure/graphical_abstracts/ifn.png", error=FALSE)
 ```
 
+<mark>`r icon::fa("sticky-note")` **Note**</mark>: As this work is the result of a collaboration and Décio Eizirik's group was the lead in this project, some results shown here might not exactly coincide with the ones published in the paper, as some analyses were re-run later with modified parameters.
+
 ## Data availability
 
 The different datasets that were used in the publication can be downloaded from GEO with the following accessions: 
