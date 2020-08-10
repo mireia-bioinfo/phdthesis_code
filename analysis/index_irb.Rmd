@@ -9,5 +9,17 @@ author: "Mireia Ramos-Rodríguez"
 
 > Mularoni L., **Ramos-Rodríguez M.** and Pasquali L. The Pancreatic Islet Regulome Browser. *Front. Genet.* **8** (2017). https://doi.org/10.3389/fgene.2017.00013
 
+```{r, echo=FALSE, out.width='70%', error=FALSE}
+knitr::include_graphics("figure/graphical_abstracts/irb.png", error=FALSE)
+```
+
 # Data & Code availability
+
+The menu under the IRB topic provides access to the Islet Regulome Browser (IRB) application and its code. 
+
+1. <mark>[`plotRegulome` R package](https://mireia-bioinfo.github.io/plotRegulome)</mark>. This custom R package contains the necessary functions to download and plot the data contained in the Islet Regulome Browser.
+
+2. <mark>[IRB Shiny App code](https://github.com/mireia-bioinfo/isletregulome_shiny)</mark>. The IRB app is built using the Shiny R package. The linked github repository contains the code and scripts necessary to build the interactive web app.
+
+3. <mark>[Islet Regulome Browser](http://www.isletregulome.org)</mark>. This link provides access to the IRB web app.
 
