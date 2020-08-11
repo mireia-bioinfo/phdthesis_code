@@ -15,7 +15,8 @@ library(ggplot2)
 library(cowplot)
 library(kableExtra)
 library(dplyr)
-library(purrr)
+library(igraph)
+library(ggraph)
 
 theme_set(cowplot::theme_cowplot())
 load("../code/CYT_color_palettes.rda")
@@ -431,4 +432,546 @@ bar.chrom
 # Transcription factor analysis
 
 ## *de novo* motif analysis
+
+```{r run-denovo, eval=FALSE}
+library(maRge)
+
+deNovoMotifHOMER(bed="../data/CYT/bedfiles/IREs_endoc_fc1_padj0.05_opening_distal.bed",
+                 path_output=file.path(out_dir, "HOMER_IREs_endoc_opening_distal_mask"),
+                 other_param="-mask",
+                 path_homer="~/tools/homer/")
+
+deNovoMotifHOMER(bed="../data/CYT/bedfiles/IREs_endoc_fc1_padj0.05_primed_distal.bed",
+                 path_output=file.path(out_dir, "HOMER_IREs_endoc_primed_distal_mask"),
+                 other_param="-mask",
+                 path_homer="~/tools/homer/")
+
+deNovoMotifHOMER(bed="../data/CYT/bedfiles/IREs_endoc_fc1_padj0.05_neo_distal.bed",
+                 path_output=file.path(out_dir, "HOMER_IREs_endoc_neo_distal_mask"),
+                 other_param="-mask",
+                 path_homer="~/tools/homer/")
+```
+
+
+```{r res-denovo}
+htmltools::includeHTML(file.path(out_dir, "HOMER_IREs_endoc_opening_distal_mask/homerResults.html"))
+htmltools::includeHTML(file.path(out_dir, "HOMER_IREs_endoc_primed_distal_mask/homerResults.html"))
+```
+
+## Footprint of ISRE motif
+
+```
+Rscript code/CYT_runFootprintAnalysis.R
+```
+
+```{r, fig.height=3, fig.width=4.5}
+load(file.path(out_dir, "FOOT_ISRE_neo_distal_cov.rda"))
+cov$condition <- gsub("endoc_", "", gsub(".5Tag", "", cov$condition))
+
+df <- XML::readHTMLTable(file.path(out_dir, "HOMER_IREs_endoc_neo_distal_mask/homerResults.html"))[[1]]
+df <- df[1,]
+
+stats <- cov %>%
+  group_by(condition) %>%
+  summarise(median=median(tags5),
+            max=max(tags5),
+            cent=max/2)
+
+stats$width <- nchar(as.character(df$Motif))/4
+
+num <- 1179
+
+foot.neo <- 
+  ggplot(cov,
+       aes(Distance, tags5))+
+  geom_tile(data=stats,
+            aes(x=0, y=cent,
+                width=width, height=max),
+            color=NA, fill="grey") +
+  geom_hline(data=stats,
+             aes(yintercept=median),
+             lty=2, color="dark grey") +
+  geom_line(aes(color=condition), lwd=0.7) +
+  scale_color_manual(values=pals$treatment,
+                     name="Treatment", labels=function(x) toupper(x)) +
+  annotate("text", 100, 0, label=num) +
+  ylab("Normalized cleavage\nevents per bp") +
+  ggtitle("Neo enhancers")
+
+foot.neo
+```
+
+
+```{r, fig.height=3, fig.width=4.5}
+load(file.path(out_dir, "FOOT_ISRE_primed_distal_cov.rda"))
+cov$condition <- gsub("endoc_", "", gsub(".5Tag", "", cov$condition))
+
+df <- XML::readHTMLTable(file.path(out_dir, "HOMER_IREs_endoc_primed_distal_mask/homerResults.html"))[[1]]
+df <- df[1,]
+
+stats <- cov %>%
+  group_by(condition) %>%
+  summarise(median=median(tags5),
+            max=max(tags5),
+            cent=max/2)
+
+stats$width <- nchar(as.character(df$Motif))/4
+
+num <- 403
+
+foot.prim <- 
+  ggplot(cov,
+       aes(Distance, tags5))+
+  geom_tile(data=stats,
+            aes(x=0, y=cent,
+                width=width, height=max),
+            color=NA, fill="grey") +
+  geom_hline(data=stats,
+             aes(yintercept=median),
+             lty=2, color="dark grey") +
+  geom_line(aes(color=condition), lwd=0.7) +
+  scale_color_manual(values=pals$treatment,
+                     name="Treatment", labels=function(x) toupper(x)) +
+  annotate("text", 100, 0, label=num) +
+  ylab("Normalized cleavage\nevents per bp") +
+  ggtitle("Primed enhancers")
+
+foot.prim
+```
+
+## Overlap Primed IREs with islet regulome ChIP-seq TF data
+
+- Overlap with peaks
+
+```{r, eval=FALSE}
+load("~/data/isletRegulome_TF.rda")
+
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+re <- re[re$atac.annotation=="Distal",]
+type <- c("Neo IRE", "Primed IRE", "SRE")
+re <- re[re$subgroup2 %in% type,]
+
+## Find overlaps
+ols <- findOverlaps(re, tfs.islet)
+
+tfs <- cbind(data.frame(mcols(re))[queryHits(ols),c(1,18)],
+             data.frame(mcols(tfs.islet))[subjectHits(ols),])
+tfs <- tfs[,-3]
+
+no <- data.frame(mcols(re))[!(re$atac.GeneID %in% tfs$atac.GeneID),c(1,18)]
+no$TF <- "None"
+
+tfs <- rbind(tfs, no)
+
+tfs$TF <- factor(tfs$TF,
+                 levels=rev(unique(tfs$TF)[c(3,2,1,4,5,6)]))
+
+save(tfs,
+     file=file.path(out_dir, "IREs_fc1_padj0.05_isletSpecific_TFs_peaks.rda"))
+```
+
+```{r, fig.width=4, figh.height=4}
+load(file.path(out_dir, "IREs_fc1_padj0.05_isletSpecific_TFs_peaks.rda"))
+
+bar.tfs <- 
+  ggplot(tfs,
+       aes(subgroup2, ..count..)) +
+  geom_bar(aes(fill=TF), position="fill",
+           color="black") +
+  scale_fill_manual(values = c("FOXA2"="plum3", "MAFB"="steelblue3", "NKX2.2"="olivedrab3",
+                               "NKX6.1"="sienna3", "PDX1"="khaki3", 
+                               "None" = "grey")) +
+  coord_flip() +
+  scale_y_continuous(labels=function(x) paste0(x*100, "%"),
+                     name="Percentage of regions") +
+  scale_x_discrete(labels=function(x) paste0(x, "s")) +
+  theme(legend.position="top",
+        axis.title.y=element_blank()) +
+  guides(fill=guide_legend(nrow=2, reverse=TRUE))
+
+bar.tfs
+```
+
+- Density of reads
+
+```{r, eval=FALSE}
+## Create SAF
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+re <- re[re$atac.annotation=="Distal",]
+type <- c("Neo IRE", "Primed IRE", "SRE")
+re <- re[re$subgroup2 %in% type,]
+
+re <- resize(re, width=2e3, fix="center")
+re.bin <- unlist(tile(re, n=201))
+pos <- seq(-1000, 1000, by=10)
+re.bin$position <- rep(pos, length(re))
+re.bin$atac.GeneID <- rep(re$atac.GeneID, each=length(pos))
+re.bin$GeneID <- paste0(re.bin$atac.GeneID, "_", re.bin$position)
+
+saf <- data.frame(re.bin)[,c(1:3,6:8)]
+colnames(saf)[1:3] <- c("Chr", "Start", "End")
+saf$Strand <- "+"
+
+files <- list.files("~/data/TFsIslet_hg19/BAM",
+                    pattern="*.bam$",
+                    full.names=TRUE)
+files <- files[!grepl("CTCF", files)]
+
+counts <- Rsubread::featureCounts(files,
+                                  annot.ext=saf,
+                                  allowMultiOverlap = TRUE,
+                                  nthreads=6)
+
+names <- pipelineNGS::getNameFromPath(files, suffix=".bam")
+colnames(counts$counts) <- names
+
+mat <- preprocessCore::normalize.quantiles(counts$counts)
+colnames(mat) <- names
+rownames(mat) <- rownames(counts$counts)
+
+##
+df <- data.frame(mat)
+df$GeneID <- rownames(mat)
+
+df <- dplyr::left_join(df,
+                       saf)
+df <- dplyr::left_join(df,
+                       data.frame(mcols(re))[,c(1,18)])
+
+df <- reshape2::melt(df,
+                     id.vars=6:13,
+                     value.vars=1:5,
+                     variable.name="TF",
+                     value.name="counts")
+
+df <- df[,c(5,8:10)]
+
+tfs <- df %>%
+  group_by(position, TF, subgroup2) %>%
+  summarise(mean=mean(counts, na.rm=T))
+
+save(tfs, file=file.path(out_dir, "IREs_fc1_padj0.05_isletSpecific_TFs_bam.rda"))
+```
+
+
+```{r, fig.width=4, fig.height=4}
+load(file.path(out_dir, "IREs_fc1_padj0.05_isletSpecific_TFs_bam.rda"))
+
+tfs.dens <- 
+  ggplot(tfs,
+       aes(position, mean)) +
+  geom_smooth(aes(group=subgroup2, color=subgroup2)) +
+  scale_color_manual(values=c("olivedrab3", "#80E8C0", "dark grey"),
+                     name="") +
+  scale_y_continuous(breaks=scales::pretty_breaks(),
+                     name="Islet TFs read counts") +
+  coord_cartesian(xlim=c(-500, 500)) + 
+  xlab("Position relative to peak center (bp)") +
+  ggtitle("Islet-specific TFs occupancy") +
+  theme(legend.position=c(0.7, 0.9))
+
+tfs.dens
+```
+
+
+## Co-localization of inflammatory with islet-specific TFs at Primed IREs
+
+```
+Rscript code/CYT_colocalizationMotifs.R
+```
+
+```{r, fig.width=6, fig.height=5}
+load(file.path(out_dir, "MOT-COLOC_df.rda"))
+mot.coloc <- mot.coloc[grep("primed", mot.coloc$type),]
+
+infl <- c("ISRE", "STAT")
+isl <- c("HNF", "PDX", "NEURO", "MAF", "NKX")
+
+vert <- data.frame(Var1=unique(mot.coloc$Var1),
+                   TF_type="Other",
+                   stringsAsFactors = FALSE)
+vert$TF_type[sapply(infl, grep, toupper(vert$Var1))] <- "Inflammatory"
+vert$TF_type[sapply(isl, grep, toupper(vert$Var1))] <- "Islet"
+vert <- dplyr::left_join(vert, unique(mot.coloc[mot.coloc$Var1==mot.coloc$Var2,c(1,4)]))
+
+mot.coloc <- mot.coloc[order(mot.coloc$percentage),]
+
+igraph <- graph_from_data_frame(mot.coloc,
+                                vertices=vert)
+cols <- c("hotpink3", "goldenrod3", "grey")
+
+graphPrimed <-
+  ggraph(igraph, layout = 'linear', circular = TRUE) + 
+    geom_edge_arc(aes(edge_width=percentage, color=percentage), alpha=0.8) +
+    scale_edge_width_continuous(guide=FALSE, limits=c(0,30)) +
+    scale_edge_colour_gradient(low="white", high="grey15",
+                               name="% Overlap", limits=c(0,30)) +
+    geom_node_label(aes(label = name, fill=TF_type, size=overlaps)) +
+    scale_fill_manual(values=cols, name="Motif Type") +
+    scale_size_continuous(range=c(3,6), guide=FALSE) + 
+    theme_void() +
+    xlim(-1.3, 1.3) + ylim(-1.15, 1.15) +
+    theme(legend.position="bottom") +
+  ggtitle("Primed enhancers")
+
+graphPrimed
+```
+
+
+```{r, fig.width=6, fig.height=5}
+load(file.path(out_dir, "MOT-COLOC_df.rda"))
+mot.coloc <- mot.coloc[grep("SRE", mot.coloc$type),]
+
+infl <- c("ISRE", "STAT")
+isl <- c("HNF", "PDX", "NEURO", "MAF", "NKX")
+
+vert <- data.frame(Var1=unique(mot.coloc$Var1),
+                   TF_type="Other",
+                   stringsAsFactors = FALSE)
+vert$TF_type[sapply(infl, grep, toupper(vert$Var1))] <- "Inflammatory"
+vert$TF_type[sapply(isl, grep, toupper(vert$Var1))] <- "Islet"
+vert <- dplyr::left_join(vert, unique(mot.coloc[mot.coloc$Var1==mot.coloc$Var2,c(1,4)]))
+
+mot.coloc <- mot.coloc[order(mot.coloc$percentage),]
+
+igraph <- graph_from_data_frame(mot.coloc,
+                                vertices=vert)
+
+cols <- c("hotpink3", "goldenrod3", "grey")
+
+graphSRE <-
+  ggraph(igraph, layout = 'linear', circular = TRUE) + 
+    geom_edge_arc(aes(edge_width=percentage, color=percentage), alpha=0.8) +
+    scale_edge_width_continuous(guide=FALSE, limits=c(0,30)) +
+    scale_edge_colour_gradient(low="white", high="grey15",
+                               name="% Overlap", limits=c(0,30)) +
+    geom_node_label(aes(label = name, fill=TF_type, size=overlaps)) +
+    scale_fill_manual(values=cols, name="Motif Type") +
+    scale_size_continuous(range=c(3,6), guide=FALSE) + 
+    theme_void() +
+    xlim(-1.3, 1.3) + ylim(-1.15, 1.15) +
+    theme(legend.position="bottom") +
+  ggtitle("SREs enhancers")
+
+graphSRE
+```
+
+
+- Fisher test
+
+```{r, fig.width=4.5, fig.height=4.5}
+load(file.path(out_dir, "MOT-COLOC_df_rmRedundant.rda"))
+
+comb <- unique(mot.coloc[,c(1:2)])
+
+## fisher test
+comb$estimate <- NA
+comb$p.value <- NA
+comb$confIntMin <- NA
+comb$confIntMax <- NA
+
+for (i in 1:nrow(comb)) {
+  sel <- mot.coloc[mot.coloc$Var1==comb$Var1[i] &
+                     mot.coloc$Var2==comb$Var2[i],]
+  
+  overlapping.primed <- sel$overlaps[grepl("primed", sel$type)]
+  overlapping.stable <- sel$overlaps[grepl("SREs", sel$type)]
+  nonOverlapping.primed <- sel$total[grepl("primed", sel$type)] - overlapping.primed
+  nonOverlapping.stable <- sel$total[grepl("SREs", sel$type)] - overlapping.stable
+    
+  mat.test <- matrix(c(overlapping.primed, overlapping.stable,
+                       nonOverlapping.primed, nonOverlapping.stable),
+                     byrow=T, ncol=2)
+    
+  test <- fisher.test(mat.test)
+  
+  comb$estimate[i] <- test$estimate
+  comb$p.value[i] <- test$p.value
+  comb$confIntMin[i] <- test$conf.int[1]
+  comb$confIntMax[i] <- test$conf.int[2]
+}
+
+comb$padj <-  p.adjust(comb$p.value, method="fdr")
+
+comb$name <- paste(comb$Var1, "+", comb$Var2)
+
+comb.sel <- comb[comb$padj<=0.001,]
+comb.sel <- comb.sel[order(comb.sel$estimate),]
+
+comb.sel$name <- factor(comb.sel$name,
+                        levels=unique(comb.sel$name))
+
+comb.sel$TFtype1 <- "Other"
+comb.sel$TFtype1[unlist(sapply(infl, grep, comb.sel$Var1))] <- "Inflammatory"
+comb.sel$TFtype1[unlist(sapply(isl, grep, comb.sel$Var1))] <- "Islet"
+
+comb.sel$TFtype2 <- "Other"
+comb.sel$TFtype2[unlist(sapply(infl, grep, comb.sel$Var2))] <- "Inflammatory"
+comb.sel$TFtype2[unlist(sapply(isl, grep, comb.sel$Var2))] <- "Islet"
+
+comb.sel$combined <- FALSE
+comb.sel$combined[comb.sel$TFtype1=="Inflammatory" & comb.sel$TFtype2=="Islet"] <- TRUE
+comb.sel$combined[comb.sel$TFtype2=="Inflammatory" & comb.sel$TFtype1=="Islet"] <- TRUE
+
+comb.sel$color <- "black"
+comb.sel$color[comb.sel$combined] <- "violetred3"
+
+fisher.coloc <-
+  ggplot(comb.sel, aes(estimate, name)) + 
+  geom_point(size=3, color=comb.sel$color) +
+  geom_segment(aes(x=confIntMin, xend=confIntMax,
+                   y=name, yend=name), color=comb.sel$color) +
+  geom_vline(xintercept=1, color="dark red") +
+  # scale_color_manual(values=pals$tfs,
+  #                    name="Motif Pair Type",
+  #                    labels=function(x) Hmisc::capitalize(x)) +
+  # scale_x_log10() +
+  xlab("Odds Ratio") +
+  ylab("Motif Pairs") +
+  theme(panel.grid.major.y=element_line(color="grey", linetype=2)) +
+  guides(color=guide_legend(nrow=3))
+
+fisher.coloc
+```
+
+# DNA methylation
+
+```
+Rscript code/CYT_runMethylationAnalysis.R
+```
+
+```{r process-methylation, eval=FALSE}
+betas <- read.csv("../data/CYT/methylationEPIC/reports/differential_methylation_data/diffMethTable_site_cmp2.csv",
+                  stringsAsFactors = F)
+
+betas <- regioneR::toGRanges(betas[,c(3,4,4,2,6:18)])
+
+## Overlap with IREs
+load("../data/CYT/REs/REs_endoc_fc1_padj0.05_granges_subgroup.rda")
+re <- re[grep("Distal", re$atac.annotation),]
+
+ols <- findOverlaps(re,
+                    betas)
+
+betas.re <- cbind(data.frame(re)[queryHits(ols),c(6,21:23)],
+                  data.frame(betas)[subjectHits(ols),c(6:19)])
+
+betas.re$diffmeth.p.adj.fdr.2 <- p.adjust(betas.re$diffmeth.p.val, method="fdr")
+
+length(unique(betas.re$cgid[betas.re$mean.diff>0.2 & betas.re$diffmeth.p.adj.fdr<=0.05]))
+length(unique(betas.re$cgid[betas.re$mean.diff>0.2 & betas.re$diffmeth.p.adj.fdr.2<=0.05]))
+
+betas.re$methType <- "stable"
+betas.re$methType[betas.re$mean.diff>0.2 & betas.re$diffmeth.p.adj.fdr<=0.05] <- "lost"
+
+save(betas.re,
+     file=file.path(out_dir, "METH_betas_REs_endoc.rda"))
+
+betas <- read.csv("../data//CYT/methylationEPIC/reports/differential_methylation_data/diffMethTable_site_cmp2.csv",
+                  stringsAsFactors = F)
+
+betas <- betas[,c(3,4,4,2,6:18)]
+
+length(unique(betas$cgid[betas$mean.diff>0.2 & betas$diffmeth.p.adj.fdr<=0.05]))
+
+betas$methType <- "stable"
+betas$methType[betas$mean.diff>0.2 & betas$diffmeth.p.adj.fdr<=0.05] <- "lost"
+
+save(betas,
+     file=file.path(out_dir, "METH_betas_all_endoc.rda"))
+```
+
+
+```{r violin-plots, fig.width=4, fig.height=4}
+load(file.path(out_dir, "METH_betas_REs_endoc.rda"))
+
+betas.distr <- unique(betas.re[!grepl("Other", betas.re$subgroup2),c(1,4,5:7)])
+betas.distr <- betas.distr[!grepl("SRE", betas.distr$subgroup2),]
+betas.distr <- betas.distr[!is.na(betas.distr$subgroup2),]
+
+betas.distr <- reshape2::melt(betas.distr,
+                              id.vars=1:3,
+                              value.vars=4:5,
+                              value.name="beta",
+                              variable.name="treatment")
+betas.distr$treatment <- gsub("mean.", "", tolower(as.character(betas.distr$treatment)))
+
+sum <- betas.distr %>%
+  group_by(subgroup2, treatment) %>%
+  summarise(mean=mean(beta),
+            median=median(beta))
+
+test <- betas.distr %>%
+  group_by(subgroup2) %>%
+  summarise(pval=wilcox.test(beta[grep("ctrl", treatment)],
+                             beta[grep("cyt", treatment)],
+                             paired=F)$p.value)
+test$sym <- ""
+test$sym[test$pval<0.05] <- "*"
+test$sym[test$pval<0.01] <- "**"
+test$sym[test$pval<0.001] <- "***"
+
+violin <- 
+  ggplot(betas.distr,
+       aes(treatment, beta)) +
+  geom_violin(aes(fill=treatment)) +
+  geom_point(data=sum, 
+             aes(treatment, median), size=3) +
+  scale_fill_manual(values=pals$treatment,
+                    name="Treatment", labels=function(x) toupper(x)) +
+  geom_text(data=test,
+            aes(x=1.5,
+                y=0.9, label=sym), size=8) +
+  facet_wrap(~gsub("IRE", "enhancers", subgroup2)) +
+  scale_y_continuous(name=expression("DNA methylation "*beta*"-value"),
+                     limits=c(0,1), expand=c(0,0)) +
+  theme(legend.position="bottom",
+        axis.text.x=element_blank(),
+        axis.title.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.line.x=element_blank(),
+        strip.background=element_rect(fill="white", color="black", linetype=1,
+                                      size=0.5))
+
+violin
+```
+
+
+
+```{r, fig.width=4, fig.height=4}
+load(file.path(out_dir, "METH_betas_all_endoc.rda"))
+
+volc <- ggplot(betas, 
+       aes(-mean.diff, -log10(diffmeth.p.adj.fdr))) +
+  geom_point(aes(color=methType)) +
+  scale_color_manual(values=c(stable="grey", lost="tomato3")) +
+  geom_vline(xintercept=c(-0.2, 0.2), lty=2, color="dark grey") +
+  geom_hline(yintercept=-log10(0.05), lty=2, color="dark grey") +
+  xlab(expression(beta*cyt-beta*ctrl)) +
+  ylab(expression("DNA methlyation -log"[10]*" FDR")) +
+  theme(legend.position="none")
+
+volc
+```
+
+
+```{r, fig.height=4, fig.width=4}
+load(file.path(out_dir, "METH_betas_REs_endoc.rda"))
+
+bar <- 
+  ggplot(betas.re,#[!grepl("Other", betas.re$subgroup2),],
+       aes(methType, ..count..)) +
+  geom_bar(aes(fill=subgroup2), position="fill", color="black") +
+  scale_fill_manual(values=pals$re,
+                    name="RE type",
+                    labels=function(x) paste(gsub(" IRE", "", x), "enh")) +
+  scale_y_continuous(name="Percentage of CpGs",
+                     labels=function(x) paste0(x*100, "%")) +
+  scale_x_discrete(name="DNA methylation change",
+                   labels=c("Demethylated", "Stable")) +
+  theme(axis.text.x=element_text(angle=20, hjust=1))
+
+bar
+```
+
 
