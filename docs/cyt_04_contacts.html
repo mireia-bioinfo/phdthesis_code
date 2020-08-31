@@ -383,7 +383,7 @@ div.tocify {
       <a href="ifn_02_transcription.html">#2 Chromatin remodeling correlates with transcription changes</a>
     </li>
     <li>
-      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFNα signaling</a>
+      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFN-α signaling</a>
     </li>
     <li>
       <a href="ifn_04_modules.html">#4 mRNA and protein modules regulated by IFN-α</a>
@@ -441,9 +441,6 @@ div.tocify {
 <li>
   <a href="about.html">About</a>
 </li>
-<li>
-  <a href="license.html">License</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -476,53 +473,727 @@ div.tocify {
 </div>
 
 
+<div id="process-and-calculate-differential-contacts-at-regulatory-elements" class="section level1">
+<h1>Process and calculate differential contacts at regulatory elements</h1>
+<pre><code>Rscript code/CYT_UMI4C_processing.R</code></pre>
+<pre class="r"><code>devtools::load_all(&quot;~/tools/umi4cCatcheR/&quot;)
+library(umi4cPackage)
+conf &lt;- &quot;../data/CYT/UMI4C/conf/&quot;
+umi4cPackage::p4cLoadConfFiles(conf)
+
+df &lt;- read.delim(&quot;../data/CYT/UMI4C/UMI4C_promoters_views.tsv&quot;, stringsAsFactors=T, header=T)
+
+tracks &lt;- gtrack.ls()
+
+for (i in 1:nrow(df)) {
+  sel &lt;- tracks[grepl(df$bait[i], tracks) &amp;
+                   grepl(&quot;_m_&quot;, tracks)]
+  
+  res &lt;- process4CProfiles(treat_name=sel[2],
+                         ctrl_name=sel[1],
+                         scope=1e6,
+                         min_win_mols=50,
+                         name_bait=df$bait[i])
+  
+  diff &lt;- diffContacts(res,
+                       times_mean=20,
+                       exclude_viewpoint=3e3,
+                       adj.threshold=0.05,
+                       adj.method=&quot;none&quot;,
+                       min_mols_test=0,
+                       min_odds_ratio=1)
+
+  save(res, diff,
+       file=file.path(out_dir&quot;UMI4C_norm_results_&quot;, df$bait[i], &quot;.rda&quot;))
+}</code></pre>
+</div>
+<div id="plot-umi-4c-at-up-regulated-gene-promoters" class="section level1">
+<h1>Plot UMI-4C at up-regulated gene promoters</h1>
+<pre class="r"><code>## RE ---------------------------------------------------------------
+load(&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges_subgroup.rda&quot;)
+
+## Genes ------------------------------------------------------------
+load(&quot;../data/CYT//RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+res.gr$type[res.gr$baseMean&lt;=1] &lt;- &quot;not-expressed&quot;
+res.gr &lt;- res.gr[res.gr$gene_biotype==&quot;protein_coding&quot;,]
+
+col.df &lt;- data.frame(&quot;type&quot;=c(names(pals$differential), &quot;not-expressed&quot;),
+                     &quot;color&quot;=c(pals$differential, &quot;black&quot;),
+                     stringsAsFactors = FALSE)
+col.df$color[grep(&quot;grey&quot;, col.df$color)] &lt;- &quot;grey39&quot;
+mcols(res.gr) &lt;- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:2,10)]),
+                                      col.df)
+colnames(mcols(res.gr))[1] &lt;- &quot;ensembl_gene_id&quot;
+
+mcol.color=4
+mcol.name=2
+mcol.ensembl=1</code></pre>
+<pre class="r"><code>df &lt;- read.delim(&quot;../data/CYT/UMI4C/UMI4C_promoters_views.tsv&quot;, stringsAsFactors=T, header=T)
+
+for (i in 1:length(df$bait)) {
+  load(file.path(out_dir, paste0(&quot;UMI4C_norm_results_&quot;, df$bait[i], &quot;.rda&quot;)))
+  
+  xlim &lt;- c(df$start[i], df$end[i])
+  region &lt;- GRanges(seqnames=paste0(seqnames(res$bait)),
+                    ranges=IRanges(start=xlim[1],
+                                   end=xlim[2]))
+  
+  ### Genes ------------------
+  plot.genes &lt;- plotGenes(genes=res.gr[res.gr$type!=&quot;not-expressed&quot;,],
+                          which=region,
+                          mcol.color=mcol.color,
+                          mcol.name=mcol.name,
+                          mcol.ensembl=mcol.ensembl)
+  
+  g.plots &lt;-
+    ggplot() +
+    plot.genes +
+    xlim(xlim) +
+    scale_fill_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    scale_color_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    themeXblank() +
+    themeYblank()
+  
+  
+  ### UMI-4C ------------------
+  umi &lt;-
+    ggplot(res$norm_trend,
+           aes(start, trend)) +
+    geom_ribbon(aes(ymin=devM, ymax=devP, group=interaction(group, sample)),
+                color=NA, fill=&quot;light grey&quot;) +
+    geom_line(aes(color=sample, group=interaction(group, sample)),
+              lwd=0.7) +
+    annotate(&quot;point&quot;, x=start(res$bait), y=df$ymax[i], pch=25, fill=&quot;black&quot;,
+             size=3) +
+    annotate(&quot;text&quot;, x=start(res$bait), y=df$ymax[i]-0.2, label=df$bait[i],
+             size=3) +
+    scale_color_manual(values=c(ctrl=&quot;#1f78b4&quot;, treat=&quot;#d95f02&quot;),
+                       labels=c(&quot;CYT&quot;, &quot;CTRL&quot;), name=&quot;&quot;) +
+    scale_y_continuous(name=&quot;# UMI-4C contacts&quot;,
+                       limits=c(0, df$ymax[i]),
+                       breaks=scales::pretty_breaks(),
+                       expand=c(0,0)) +
+    xlim(xlim) +
+    theme(legend.position=&quot;right&quot;)
+  
+  ### RE ------------------
+  re.sel &lt;- as.data.frame(subsetByOverlaps(resize(re, 3e3, fix=&quot;center&quot;),
+                                           region))
+  
+  ire &lt;-
+    ggplot(re.sel) +
+    geom_rect(aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=h3k27ac.log2FoldChange)) +
+    scale_fill_gradient2(low=&quot;dark grey&quot;,
+                         mid=&quot;grey&quot;,
+                        high=&quot;dark green&quot;,
+                        name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;),
+                        breaks=scales::pretty_breaks(n=3),
+                        midpoint=0,
+                        guide = guide_colorbar(direction = &quot;horizontal&quot;,
+                                               title.position=&quot;top&quot;)) +
+    scale_x_continuous(name=paste(&quot;Coordinates&quot;, seqnames(region), &quot;(Mb)&quot;),
+                       breaks=scales::pretty_breaks(),
+                       limits=xlim,
+                       labels=function(x) round(x/1e6, 2),
+                       expand=c(0,0))
+  
+  
+  ### Get legends -----------
+  gene.leg &lt;- get_legend(g.plots)
+  umi.leg &lt;- get_legend(umi)
+  diff.leg &lt;- get_legend(diff$plot)
+  ire.leg &lt;- get_legend(ire)
+  
+  
+  legends &lt;- plot_grid(gene.leg, umi.leg, diff.leg, ire.leg, ncol=1)
+  ### Grid ------------------
+  p &lt;- 
+    plot_grid(g.plots + theme(plot.margin = margin(1,0,0,0, &quot;cm&quot;),
+                              legend.position = &quot;none&quot;),
+            umi + themeXblank() + theme(legend.position = &quot;none&quot;), 
+            diff$plot + xlim(xlim) + themeXblank() + themeYblank() + theme(legend.position = &quot;none&quot;),
+            ire + themeYblank() + theme(legend.position = &quot;none&quot;),
+            ncol=1, 
+            rel_heights = c(0.25, 0.45, 0.1, 0.2),
+            align=&quot;v&quot;)
+  
+  plot &lt;- 
+    plot_grid(p, 
+              legends,
+              ncol=2, rel_widths=c(0.7, 0.3))
+  
+  print(plot)
+}</code></pre>
+<p><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-4.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-5.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-6.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-7.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-8.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-9.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-10.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-11.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-12.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-13.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-14.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-15.png" width="672" style="display: block; margin: auto;" /><img src="figure/cyt_04_contacts.Rmd/import-pdfs-img-16.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="plot-zoom-ins" class="section level2">
+<h2>Plot zoom-ins</h2>
+<div id="tnfsf10" class="section level3">
+<h3>TNFSF10</h3>
+<pre class="r"><code>load(file.path(out_dir, &quot;UMI4C_norm_results_TNFSF10.rda&quot;))
+
+wins &lt;- as.character(diff$results$id[diff$results$sign==&quot;yes&quot;])
+
+coord &lt;- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg &lt;- GRanges(paste0(as.character(seqnames(res$bait)),
+                        &quot;:&quot;, min(coord$start), &quot;-&quot;, max(coord$end)))
+
+tracks &lt;- c(list.files(&quot;../data/CYT/ATAC/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T),
+            list.files(&quot;../data/CYT/H3K27ac/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T))
+
+tracks &lt;- tracks[!grepl(&quot;[[:digit:]]_&quot;, tracks) &amp;
+                   grepl(&quot;hi_&quot;, tracks)]</code></pre>
+<pre class="r"><code>## ATAC-seq -------------------
+sm.at &lt;- 20
+
+ctrl.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.at) &lt;- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.at) &lt;- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac &lt;- 20
+ctrl.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.ac) &lt;- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.ac) &lt;- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))</code></pre>
+<pre class="r"><code>##--------------------
+## Plot
+##--------------------
+xlims &lt;- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p &lt;-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,30),
+                     expand=c(0,0),
+                     breaks=c(0,30)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.at.p &lt;-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,30),
+                     expand=c(0,0),
+                     breaks=c(0,30)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+  
+
+ctrl.ac.p &lt;-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.ac.p &lt;-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align=&quot;v&quot;,
+          ncol=1)</code></pre>
+<p><img src="figure/cyt_04_contacts.Rmd/tnfsf-plot-1.png" width="192" style="display: block; margin: auto;" /></p>
+</div>
+<div id="gbp1" class="section level3">
+<h3>GBP1</h3>
+<div id="region-1" class="section level4">
+<h4>Region 1</h4>
+<pre class="r"><code>load(file.path(out_dir, &quot;UMI4C_norm_results_GBP1.rda&quot;))
+
+wins &lt;- as.character(diff$results$id[diff$results$sign==&quot;yes&quot;])[2]
+wins &lt;- c(wins, &quot;window_117&quot;)
+coord &lt;- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg &lt;- GRanges(paste0(as.character(seqnames(res$bait)),
+                        &quot;:&quot;, min(coord$start), &quot;-&quot;, max(coord$end)))
+
+tracks &lt;- c(list.files(&quot;../data/CYT/ATAC/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T),
+            list.files(&quot;../data/CYT/H3K27ac/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T))
+
+tracks &lt;- tracks[!grepl(&quot;[[:digit:]]_&quot;, tracks) &amp;
+                   grepl(&quot;hi_&quot;, tracks)]</code></pre>
+<pre class="r"><code>## ATAC-seq -------------------
+sm.at &lt;- 20
+
+ctrl.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.at) &lt;- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.at) &lt;- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac &lt;- 20
+ctrl.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.ac) &lt;- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.ac) &lt;- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))</code></pre>
+<pre class="r"><code>##--------------------
+## Plot
+##--------------------
+xlims &lt;- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p &lt;-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,15),
+                     expand=c(0,0),
+                     breaks=c(0,15)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.at.p &lt;-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,15),
+                     expand=c(0,0),
+                     breaks=c(0,15)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+  
+
+ctrl.ac.p &lt;-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,10),
+                     expand=c(0,0),
+                     breaks=c(0,10)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.ac.p &lt;-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,10),
+                     expand=c(0,0),
+                     breaks=c(0,10)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align=&quot;v&quot;,
+          ncol=1)</code></pre>
+<p><img src="figure/cyt_04_contacts.Rmd/gbp-1-plot-1.png" width="192" style="display: block; margin: auto;" /></p>
+</div>
+<div id="region-2" class="section level4">
+<h4>Region 2</h4>
+<pre class="r"><code>load(file.path(out_dir, &quot;UMI4C_norm_results_GBP1.rda&quot;))
+
+wins &lt;- as.character(diff$results$id[diff$results$sign==&quot;yes&quot;])[3]
+
+coord &lt;- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg &lt;- GRanges(paste0(as.character(seqnames(res$bait)),
+                        &quot;:&quot;, min(coord$start), &quot;-&quot;, max(coord$end)))
+
+tracks &lt;- c(list.files(&quot;../data/CYT/ATAC/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T),
+            list.files(&quot;../data/CYT/H3K27ac/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T))
+
+tracks &lt;- tracks[!grepl(&quot;[[:digit:]]_&quot;, tracks) &amp;
+                   grepl(&quot;hi_&quot;, tracks)]</code></pre>
+<pre class="r"><code>## ATAC-seq -------------------
+sm.at &lt;- 20
+
+ctrl.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.at) &lt;- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.at) &lt;- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac &lt;- 20
+ctrl.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.ac) &lt;- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.ac) &lt;- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))</code></pre>
+<pre class="r"><code>##--------------------
+## Plot
+##--------------------
+xlims &lt;- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p &lt;-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,40),
+                     expand=c(0,0),
+                     breaks=c(0,40)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.at.p &lt;-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,40),
+                     expand=c(0,0),
+                     breaks=c(0,40)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+  
+
+ctrl.ac.p &lt;-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.ac.p &lt;-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align=&quot;v&quot;,
+          ncol=1)</code></pre>
+<p><img src="figure/cyt_04_contacts.Rmd/gbp-2-plot-1.png" width="192" style="display: block; margin: auto;" /></p>
+</div>
+<div id="region-3" class="section level4">
+<h4>Region 3</h4>
+<pre class="r"><code>load(file.path(out_dir, &quot;UMI4C_norm_results_GBP1.rda&quot;))
+
+wins &lt;- as.character(diff$results$id[diff$results$sign==&quot;yes&quot;])[4]
+
+coord &lt;- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg &lt;- GRanges(paste0(as.character(seqnames(res$bait)),
+                        &quot;:&quot;, min(coord$start), &quot;-&quot;, max(coord$end)))
+
+tracks &lt;- c(list.files(&quot;../data/CYT/ATAC/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T),
+            list.files(&quot;../data/CYT/H3K27ac/Visualization&quot;,
+                       pattern=&quot;.bw&quot;,
+                       full.names=T))
+
+tracks &lt;- tracks[!grepl(&quot;[[:digit:]]_&quot;, tracks) &amp;
+                   grepl(&quot;hi_&quot;, tracks)]</code></pre>
+<pre class="r"><code>## ATAC-seq -------------------
+sm.at &lt;- 20
+
+ctrl.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.at) &lt;- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at &lt;- rtracklayer::import(tracks[grepl(&quot;ATAC&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.at) &lt;- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac &lt;- 20
+ctrl.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;ctrl&quot;, tracks)],
+                               which=reg)
+score(ctrl.ac) &lt;- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac &lt;- rtracklayer::import(tracks[grepl(&quot;H3K27ac&quot;, tracks) &amp; grepl(&quot;cyt&quot;, tracks)],
+                               which=reg)
+score(cyt.ac) &lt;- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))</code></pre>
+<pre class="r"><code>##--------------------
+## Plot
+##--------------------
+xlims &lt;- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p &lt;-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.at.p &lt;-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+  
+
+ctrl.ac.p &lt;-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;ctrl&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,50),
+                     expand=c(0,0),
+                     breaks=c(0,50)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+    
+
+cyt.ac.p &lt;-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment[&quot;cyt&quot;]) +
+  scale_y_continuous(name=&quot;&quot;, 
+                     limits=c(0,50),
+                     expand=c(0,0),
+                     breaks=c(0,50)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), &quot;cm&quot;))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align=&quot;v&quot;,
+          ncol=1)</code></pre>
+<p><img src="figure/cyt_04_contacts.Rmd/gbp-3-plot-1.png" width="192" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+</div>
+</div>
+<div id="distribution-of-umi-4c-contact-changes-at-promoters-of-up-regulated-genes" class="section level1">
+<h1>Distribution of UMI-4C contact changes at promoters of up-regulated genes</h1>
+<pre class="r"><code>files &lt;- list.files(out_dir,
+                    pattern=&quot;test&quot;,
+                    full.names=T)
+test.all &lt;- data.frame()
+for (i in files) {
+  load(i)
+  
+  test &lt;- test[,c(4,21,25)]
+  name &lt;- pipelineNGS::getNameFromPath(i, prefix=&quot;UMI4C_test_promoters_&quot;,
+                                       suffix=&quot;.rda&quot;)
+  test$bait &lt;- name
+  test.all &lt;- rbind(test.all, test)
+}
+
+test.all &lt;- test.all[!grepl(&quot;Other&quot;, test.all$subgroup2),]</code></pre>
+<pre class="r"><code>ggplot(test.all,
+       aes(subgroup2, log2_foldChange)) +
+  geom_hline(yintercept=0, lty=2, color=&quot;grey&quot;) + 
+  geom_boxplot(aes(color=subgroup2), notch=T, lwd=1) +
+  scale_color_manual(values=pals$re) +
+  scale_x_discrete(name=&quot;RE type&quot;, 
+                   labels=function(x) paste0(x, &quot;s&quot;)) +
+  ylab(expression(Log[2]~FC~UMI4C~contacts)) +
+  theme(legend.position=&quot;none&quot;,
+        axis.text.x=element_text(angle=30, hjust=1))</code></pre>
+<p><img src="figure/cyt_04_contacts.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
-<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 4.0.2 (2020-06-22)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 18362)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.1 LTS
 
 Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
-[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
-[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
-[5] LC_TIME=Spanish_Spain.1252    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=es_ES.UTF-8        LC_COLLATE=C              
+ [5] LC_MONETARY=es_ES.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=es_ES.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=es_ES.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] parallel  stats4    stats     graphics  grDevices utils     datasets 
 [8] methods   base     
 
 other attached packages:
- [1] purrr_0.3.4          dplyr_1.0.0          kableExtra_1.1.0    
- [4] cowplot_1.0.0        ggplot2_3.3.2        GenomicRanges_1.41.5
- [7] GenomeInfoDb_1.25.8  IRanges_2.23.10      S4Vectors_0.27.12   
-[10] BiocGenerics_0.35.4  workflowr_1.6.2     
+ [1] umi4cCatcheR_0.0.0.9000 RColorBrewer_1.1-2      GenomicRanges_1.41.5   
+ [4] GenomeInfoDb_1.25.8     IRanges_2.23.10         S4Vectors_0.27.12      
+ [7] BiocGenerics_0.35.4     cowplot_1.0.0           ggplot2_3.3.2          
+[10] dplyr_1.0.1             workflowr_1.6.2        
 
 loaded via a namespace (and not attached):
- [1] tidyselect_1.1.0       xfun_0.16              colorspace_1.4-1      
- [4] vctrs_0.3.2            generics_0.0.2         viridisLite_0.3.0     
- [7] htmltools_0.5.0        yaml_2.2.1             rlang_0.4.7           
-[10] later_1.1.0.1          pillar_1.4.6           glue_1.4.1            
-[13] withr_2.2.0            GenomeInfoDbData_1.2.3 lifecycle_0.2.0       
-[16] stringr_1.4.0          zlibbioc_1.35.0        munsell_0.5.0         
-[19] gtable_0.3.0           rvest_0.3.6            evaluate_0.14         
-[22] knitr_1.29             httpuv_1.5.4           Rcpp_1.0.5            
-[25] readr_1.3.1            promises_1.1.1         backports_1.1.8       
-[28] scales_1.1.1           webshot_0.5.2          XVector_0.29.3        
-[31] fs_1.4.2               hms_0.5.3              digest_0.6.25         
-[34] stringi_1.4.6          rprojroot_1.3-2        grid_4.0.0            
-[37] tools_4.0.0            bitops_1.0-6           magrittr_1.5          
-[40] RCurl_1.98-1.2         tibble_3.0.3           crayon_1.3.4          
-[43] pkgconfig_2.0.3        ellipsis_0.3.1         xml2_1.3.2            
-[46] httr_1.4.2             rmarkdown_2.3          rstudioapi_0.11       
-[49] R6_2.4.1               git2r_0.27.1           compiler_4.0.0        </code></pre>
+ [1] Biobase_2.49.0              pkgload_1.1.0              
+ [3] assertthat_0.2.1            pdftools_2.3.1             
+ [5] askpass_1.1                 GenomeInfoDbData_1.2.3     
+ [7] Rsamtools_2.5.3             yaml_2.2.1                 
+ [9] remotes_2.2.0               sessioninfo_1.1.1          
+[11] qpdf_1.1                    lattice_0.20-41            
+[13] pillar_1.4.6                backports_1.1.8            
+[15] glue_1.4.1                  digest_0.6.25              
+[17] promises_1.1.1              XVector_0.29.3             
+[19] colorspace_1.4-1            Matrix_1.2-18              
+[21] htmltools_0.5.0             httpuv_1.5.4               
+[23] XML_3.99-0.5                pkgconfig_2.0.3            
+[25] devtools_2.3.1              magick_2.4.0               
+[27] bookdown_0.20               zlibbioc_1.35.0            
+[29] purrr_0.3.4                 scales_1.1.1               
+[31] processx_3.4.3              later_1.1.0.1              
+[33] BiocParallel_1.23.2         git2r_0.27.1               
+[35] tibble_3.0.3                farver_2.0.3               
+[37] generics_0.0.2              usethis_1.6.1              
+[39] ellipsis_0.3.1              SummarizedExperiment_1.19.6
+[41] withr_2.2.0                 cli_2.0.2                  
+[43] magrittr_1.5                crayon_1.3.4               
+[45] memoise_1.1.0               evaluate_0.14              
+[47] ps_1.3.3                    fs_1.5.0                   
+[49] fansi_0.4.1                 pkgbuild_1.1.0             
+[51] tools_4.0.2                 prettyunits_1.1.1          
+[53] matrixStats_0.56.0          lifecycle_0.2.0            
+[55] stringr_1.4.0               munsell_0.5.0              
+[57] DelayedArray_0.15.7         callr_3.4.3                
+[59] Biostrings_2.57.2           compiler_4.0.2             
+[61] rlang_0.4.7                 grid_4.0.2                 
+[63] RCurl_1.98-1.2              rstudioapi_0.11            
+[65] labeling_0.3                bitops_1.0-6               
+[67] rmarkdown_2.3               testthat_2.3.2             
+[69] gtable_0.3.0                R6_2.4.1                   
+[71] zoo_1.8-8                   GenomicAlignments_1.25.3   
+[73] gridExtra_2.3               knitr_1.29                 
+[75] rtracklayer_1.49.4          rprojroot_1.3-2            
+[77] desc_1.2.0                  stringi_1.4.6              
+[79] Rcpp_1.0.5                  vctrs_0.3.2                
+[81] tidyselect_1.1.0            xfun_0.16                  </code></pre>
+</div>
 </div>
 
 

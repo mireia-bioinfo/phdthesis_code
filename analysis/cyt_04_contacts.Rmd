@@ -10,13 +10,13 @@ knitr::opts_chunk$set(warning = FALSE,
                       eval = TRUE,
                       fig.height = 4)
 
-library(GenomicRanges)
+library(dplyr)
 library(ggplot2)
 library(cowplot)
-library(kableExtra)
-library(dplyr)
-library(purrr)
-
+library(GenomicRanges)
+library(RColorBrewer)
+devtools::load_all("~/tools/umi4cCatcheR")
+source("../code/UMI4C_functions.R")
 theme_set(cowplot::theme_cowplot())
 load("../code/CYT_color_palettes.rda")
 
@@ -24,3 +24,705 @@ load("../code/CYT_color_palettes.rda")
 out_dir <- "../output/cyt_04_contacts/"
 dir.create(out_dir, F)
 ```
+
+# Process and calculate differential contacts at regulatory elements
+
+```
+Rscript code/CYT_UMI4C_processing.R
+```
+
+```{r diff-analysis, eval=FALSE}
+devtools::load_all("~/tools/umi4cCatcheR/")
+library(umi4cPackage)
+conf <- "../data/CYT/UMI4C/conf/"
+umi4cPackage::p4cLoadConfFiles(conf)
+
+df <- read.delim("../data/CYT/UMI4C/UMI4C_promoters_views.tsv", stringsAsFactors=T, header=T)
+
+tracks <- gtrack.ls()
+
+for (i in 1:nrow(df)) {
+  sel <- tracks[grepl(df$bait[i], tracks) &
+                   grepl("_m_", tracks)]
+  
+  res <- process4CProfiles(treat_name=sel[2],
+                         ctrl_name=sel[1],
+                         scope=1e6,
+                         min_win_mols=50,
+                         name_bait=df$bait[i])
+  
+  diff <- diffContacts(res,
+                       times_mean=20,
+                       exclude_viewpoint=3e3,
+                       adj.threshold=0.05,
+                       adj.method="none",
+                       min_mols_test=0,
+                       min_odds_ratio=1)
+
+  save(res, diff,
+       file=file.path(out_dir"UMI4C_norm_results_", df$bait[i], ".rda"))
+}
+```
+
+# Plot UMI-4C at up-regulated gene promoters
+
+```{r load-data}
+## RE ---------------------------------------------------------------
+load("../data/CYT/REs/REs_hi_fc1_padj0.05_granges_subgroup.rda")
+
+## Genes ------------------------------------------------------------
+load("../data/CYT//RNA/diffAnalysis/RNA_hi_GRangesBatch.rda")
+res.gr$type[res.gr$baseMean<=1] <- "not-expressed"
+res.gr <- res.gr[res.gr$gene_biotype=="protein_coding",]
+
+col.df <- data.frame("type"=c(names(pals$differential), "not-expressed"),
+                     "color"=c(pals$differential, "black"),
+                     stringsAsFactors = FALSE)
+col.df$color[grep("grey", col.df$color)] <- "grey39"
+mcols(res.gr) <- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:2,10)]),
+                                      col.df)
+colnames(mcols(res.gr))[1] <- "ensembl_gene_id"
+
+mcol.color=4
+mcol.name=2
+mcol.ensembl=1
+```
+
+```{r, fig.width=5, fig.height=4, eval=FALSE}
+df <- read.delim("../data/CYT/UMI4C/UMI4C_promoters_views.tsv", stringsAsFactors=T, header=T)
+
+for (i in 1:length(df$bait)) {
+  load(file.path(out_dir, paste0("UMI4C_norm_results_", df$bait[i], ".rda")))
+  
+  xlim <- c(df$start[i], df$end[i])
+  region <- GRanges(seqnames=paste0(seqnames(res$bait)),
+                    ranges=IRanges(start=xlim[1],
+                                   end=xlim[2]))
+  
+  ### Genes ------------------
+  plot.genes <- plotGenes(genes=res.gr[res.gr$type!="not-expressed",],
+                          which=region,
+                          mcol.color=mcol.color,
+                          mcol.name=mcol.name,
+                          mcol.ensembl=mcol.ensembl)
+  
+  g.plots <-
+    ggplot() +
+    plot.genes +
+    xlim(xlim) +
+    scale_fill_manual(values=pals$differential,
+                       name="Gene expression",
+                       labels=c(gained="Up-regulated",
+                                lost="Down-regulated",
+                                stable="Equal-regulated")) + 
+    scale_color_manual(values=pals$differential,
+                       name="Gene expression",
+                       labels=c(gained="Up-regulated",
+                                lost="Down-regulated",
+                                stable="Equal-regulated")) + 
+    themeXblank() +
+    themeYblank()
+  
+  
+  ### UMI-4C ------------------
+  umi <-
+    ggplot(res$norm_trend,
+           aes(start, trend)) +
+    geom_ribbon(aes(ymin=devM, ymax=devP, group=interaction(group, sample)),
+                color=NA, fill="light grey") +
+    geom_line(aes(color=sample, group=interaction(group, sample)),
+              lwd=0.7) +
+    annotate("point", x=start(res$bait), y=df$ymax[i], pch=25, fill="black",
+             size=3) +
+    annotate("text", x=start(res$bait), y=df$ymax[i]-0.2, label=df$bait[i],
+             size=3) +
+    scale_color_manual(values=c(ctrl="#1f78b4", treat="#d95f02"),
+                       labels=c("CYT", "CTRL"), name="") +
+    scale_y_continuous(name="# UMI-4C contacts",
+                       limits=c(0, df$ymax[i]),
+                       breaks=scales::pretty_breaks(),
+                       expand=c(0,0)) +
+    xlim(xlim) +
+    theme(legend.position="right")
+  
+  ### RE ------------------
+  re.sel <- as.data.frame(subsetByOverlaps(resize(re, 3e3, fix="center"),
+                                           region))
+  
+  ire <-
+    ggplot(re.sel) +
+    geom_rect(aes(xmin=start, xmax=end, ymin=0, ymax=1, fill=h3k27ac.log2FoldChange)) +
+    scale_fill_gradient2(low="dark grey",
+                         mid="grey",
+                        high="dark green",
+                        name=expression("H3K27ac "*log[2]*" FC"),
+                        breaks=scales::pretty_breaks(n=3),
+                        midpoint=0,
+                        guide = guide_colorbar(direction = "horizontal",
+                                               title.position="top")) +
+    scale_x_continuous(name=paste("Coordinates", seqnames(region), "(Mb)"),
+                       breaks=scales::pretty_breaks(),
+                       limits=xlim,
+                       labels=function(x) round(x/1e6, 2),
+                       expand=c(0,0))
+  
+  
+  ### Get legends -----------
+  gene.leg <- get_legend(g.plots)
+  umi.leg <- get_legend(umi)
+  diff.leg <- get_legend(diff$plot)
+  ire.leg <- get_legend(ire)
+  
+  
+  legends <- plot_grid(gene.leg, umi.leg, diff.leg, ire.leg, ncol=1)
+  ### Grid ------------------
+  p <- 
+    plot_grid(g.plots + theme(plot.margin = margin(1,0,0,0, "cm"),
+                              legend.position = "none"),
+            umi + themeXblank() + theme(legend.position = "none"), 
+            diff$plot + xlim(xlim) + themeXblank() + themeYblank() + theme(legend.position = "none"),
+            ire + themeYblank() + theme(legend.position = "none"),
+            ncol=1, 
+            rel_heights = c(0.25, 0.45, 0.1, 0.2),
+            align="v")
+  
+  plot <- 
+    plot_grid(p, 
+              legends,
+              ncol=2, rel_widths=c(0.7, 0.3))
+  
+  print(plot)
+}
+```
+
+```{r import-pdfs-img, echo=FALSE}
+files <- list.files(file.path(out_dir), pattern="*.pdf", full.names=TRUE)
+files <- files[grepl("FIG_", files) & !grepl("_rs", files)]
+
+for (f in files) {
+  im <- magick::image_read_pdf(f, density=100)
+  print(ggdraw() + draw_image(im))
+}
+```
+
+
+## Plot zoom-ins
+
+### TNFSF10
+
+```{r tnfsf-load}
+load(file.path(out_dir, "UMI4C_norm_results_TNFSF10.rda"))
+
+wins <- as.character(diff$results$id[diff$results$sign=="yes"])
+
+coord <- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg <- GRanges(paste0(as.character(seqnames(res$bait)),
+                        ":", min(coord$start), "-", max(coord$end)))
+
+tracks <- c(list.files("../data/CYT/ATAC/Visualization",
+                       pattern=".bw",
+                       full.names=T),
+            list.files("../data/CYT/H3K27ac/Visualization",
+                       pattern=".bw",
+                       full.names=T))
+
+tracks <- tracks[!grepl("[[:digit:]]_", tracks) &
+                   grepl("hi_", tracks)]
+```
+
+```{r tnfsf-bw}
+## ATAC-seq -------------------
+sm.at <- 20
+
+ctrl.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.at) <- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.at) <- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac <- 20
+ctrl.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.ac) <- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.ac) <- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))
+```
+
+
+```{r tnfsf-plot, fig.width=2, fig.height=3}
+##--------------------
+## Plot
+##--------------------
+xlims <- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p <-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,30),
+                     expand=c(0,0),
+                     breaks=c(0,30)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.at.p <-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,30),
+                     expand=c(0,0),
+                     breaks=c(0,30)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+  
+
+ctrl.ac.p <-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.ac.p <-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align="v",
+          ncol=1)
+```
+
+### GBP1
+#### Region 1
+
+```{r gbp-1-load}
+load(file.path(out_dir, "UMI4C_norm_results_GBP1.rda"))
+
+wins <- as.character(diff$results$id[diff$results$sign=="yes"])[2]
+wins <- c(wins, "window_117")
+coord <- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg <- GRanges(paste0(as.character(seqnames(res$bait)),
+                        ":", min(coord$start), "-", max(coord$end)))
+
+tracks <- c(list.files("../data/CYT/ATAC/Visualization",
+                       pattern=".bw",
+                       full.names=T),
+            list.files("../data/CYT/H3K27ac/Visualization",
+                       pattern=".bw",
+                       full.names=T))
+
+tracks <- tracks[!grepl("[[:digit:]]_", tracks) &
+                   grepl("hi_", tracks)]
+```
+
+```{r gbp-1-bw}
+## ATAC-seq -------------------
+sm.at <- 20
+
+ctrl.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.at) <- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.at) <- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac <- 20
+ctrl.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.ac) <- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.ac) <- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))
+```
+
+```{r gbp-1-plot, fig.width=2, fig.height=3}
+##--------------------
+## Plot
+##--------------------
+xlims <- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p <-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,15),
+                     expand=c(0,0),
+                     breaks=c(0,15)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.at.p <-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,15),
+                     expand=c(0,0),
+                     breaks=c(0,15)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+  
+
+ctrl.ac.p <-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,10),
+                     expand=c(0,0),
+                     breaks=c(0,10)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.ac.p <-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,10),
+                     expand=c(0,0),
+                     breaks=c(0,10)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align="v",
+          ncol=1)
+```
+
+
+#### Region 2
+
+```{r gbp-2-load}
+load(file.path(out_dir, "UMI4C_norm_results_GBP1.rda"))
+
+wins <- as.character(diff$results$id[diff$results$sign=="yes"])[3]
+
+coord <- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg <- GRanges(paste0(as.character(seqnames(res$bait)),
+                        ":", min(coord$start), "-", max(coord$end)))
+
+tracks <- c(list.files("../data/CYT/ATAC/Visualization",
+                       pattern=".bw",
+                       full.names=T),
+            list.files("../data/CYT/H3K27ac/Visualization",
+                       pattern=".bw",
+                       full.names=T))
+
+tracks <- tracks[!grepl("[[:digit:]]_", tracks) &
+                   grepl("hi_", tracks)]
+```
+
+```{r gbp-2-bw} 
+## ATAC-seq -------------------
+sm.at <- 20
+
+ctrl.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.at) <- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.at) <- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac <- 20
+ctrl.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.ac) <- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.ac) <- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))
+```
+
+```{r gbp-2-plot, fig.width=2, fig.height=3}
+##--------------------
+## Plot
+##--------------------
+xlims <- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p <-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,40),
+                     expand=c(0,0),
+                     breaks=c(0,40)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.at.p <-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,40),
+                     expand=c(0,0),
+                     breaks=c(0,40)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+  
+
+ctrl.ac.p <-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.ac.p <-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align="v",
+          ncol=1)
+```
+
+#### Region 3
+
+```{r gbp-3-load}
+load(file.path(out_dir, "UMI4C_norm_results_GBP1.rda"))
+
+wins <- as.character(diff$results$id[diff$results$sign=="yes"])[4]
+
+coord <- diff$results[diff$results$id %in% wins, c(8:9,1)]
+reg <- GRanges(paste0(as.character(seqnames(res$bait)),
+                        ":", min(coord$start), "-", max(coord$end)))
+
+tracks <- c(list.files("../data/CYT/ATAC/Visualization",
+                       pattern=".bw",
+                       full.names=T),
+            list.files("../data/CYT/H3K27ac/Visualization",
+                       pattern=".bw",
+                       full.names=T))
+
+tracks <- tracks[!grepl("[[:digit:]]_", tracks) &
+                   grepl("hi_", tracks)]
+```
+
+```{r gbp-3-bw}
+## ATAC-seq -------------------
+sm.at <- 20
+
+ctrl.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.at) <- zoo::rollmean(score(ctrl.at), sm.at,
+                                fill=c(NA, NA, NA))
+
+cyt.at <- rtracklayer::import(tracks[grepl("ATAC", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.at) <- zoo::rollmean(score(cyt.at), sm.at,
+                               fill=c(NA, NA, NA))
+
+## H3K27ac -------------------
+sm.ac <- 20
+ctrl.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("ctrl", tracks)],
+                               which=reg)
+score(ctrl.ac) <- zoo::rollmean(score(ctrl.ac), sm.ac,
+                                fill=c(NA, NA, NA))
+
+cyt.ac <- rtracklayer::import(tracks[grepl("H3K27ac", tracks) & grepl("cyt", tracks)],
+                               which=reg)
+score(cyt.ac) <- zoo::rollmean(score(cyt.ac), sm.ac,
+                               fill=c(NA, NA, NA))
+```
+
+```{r gbp-3-plot, fig.width=2, fig.height=3}
+##--------------------
+## Plot
+##--------------------
+xlims <- c(start(ranges(reg)),
+           end(ranges(reg)))
+
+ctrl.at.p <-
+  ggplot(data.frame(ctrl.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.at.p <-
+  ggplot(data.frame(cyt.at)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,60),
+                     expand=c(0,0),
+                     breaks=c(0,60)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+  
+
+ctrl.ac.p <-
+  ggplot(data.frame(ctrl.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["ctrl"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,50),
+                     expand=c(0,0),
+                     breaks=c(0,50)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+    
+
+cyt.ac.p <-
+  ggplot(data.frame(cyt.ac)) +
+  geom_area(aes(x=start,
+                y=score),
+            fill=pals$treatment["cyt"]) +
+  scale_y_continuous(name="", 
+                     limits=c(0,50),
+                     expand=c(0,0),
+                     breaks=c(0,50)) +
+  xlim(xlims) +
+  themeXblank() +
+  theme(plot.margin=unit(c(0.5,0,0,0), "cm"))
+
+plot_grid(ctrl.at.p,
+          cyt.at.p,
+          ctrl.ac.p,
+          cyt.ac.p,
+          align="v",
+          ncol=1)
+```
+
+# Distribution of UMI-4C contact changes at promoters of up-regulated genes
+
+```{r load-tests, eval=FALSE}
+files <- list.files(out_dir,
+                    pattern="test",
+                    full.names=T)
+test.all <- data.frame()
+for (i in files) {
+  load(i)
+  
+  test <- test[,c(4,21,25)]
+  name <- pipelineNGS::getNameFromPath(i, prefix="UMI4C_test_promoters_",
+                                       suffix=".rda")
+  test$bait <- name
+  test.all <- rbind(test.all, test)
+}
+
+test.all <- test.all[!grepl("Other", test.all$subgroup2),]
+```
+
+```{r plot-tests, fig.width=3, fig.height=4, eval=FALSE}
+ggplot(test.all,
+       aes(subgroup2, log2_foldChange)) +
+  geom_hline(yintercept=0, lty=2, color="grey") + 
+  geom_boxplot(aes(color=subgroup2), notch=T, lwd=1) +
+  scale_color_manual(values=pals$re) +
+  scale_x_discrete(name="RE type", 
+                   labels=function(x) paste0(x, "s")) +
+  ylab(expression(Log[2]~FC~UMI4C~contacts)) +
+  theme(legend.position="none",
+        axis.text.x=element_text(angle=30, hjust=1))
+```
+
+```{r, echo=FALSE}
+f <- magick::image_read_pdf(file.path(out_dir, "c_distribution_umis.pdf"), density=100)
+ggdraw() + draw_image(f)
+```
+
+
