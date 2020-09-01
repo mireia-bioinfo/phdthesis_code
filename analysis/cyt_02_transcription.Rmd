@@ -25,6 +25,23 @@ out_dir <- "../output/cyt_02_transcription/"
 dir.create(out_dir, F)
 ```
 
+***
+
+## Details
+
+- **Original publication**:
+
+> **Ramos-Rodríguez, M.**, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. *Nat Genet.* **51**, 1588–1595 (2019) https://doi.org/10.1038/s41588-019-0524-6
+
+- **Contents**: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:
+
+  + **Results**: "Chromatin changes link to variation in transcription and translation".
+  + **Figure 1**: "Proinflammatory cytokine exposure causes profound remodeling of the $\beta$-cell regulatory landscape". Panels **c** to **e**.
+  + **Extended Data Figure 1**: "Chromatin characterization of human pancreatic β cells exposed to pro-inflammatory cytokines". Panel **a**.
+  + **Extended Data Figure 2**: "Exposure to pro-inflammatory cytokines drives changes in the transcriptome and proteome of pancreatic $\beta$ cells". Panels **a** to **c** and **e** to **f**.
+
+***
+
 ## Analysis of RNA-seq data
 
 ### Quality control

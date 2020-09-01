@@ -26,6 +26,22 @@ out_dir <- "../output/cyt_03_subclassification/"
 dir.create(out_dir, F)
 ```
 
+***
+
+# Details
+
+- **Original publication**:
+
+> **Ramos-Rodríguez, M.**, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. *Nat Genet.* **51**, 1588–1595 (2019) https://doi.org/10.1038/s41588-019-0524-6
+
+- **Contents**: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:
+
+  + **Results**: "Primed and neo-regulatory elements mediate cytokine response".
+  + **Figure 2**: "The β-cell response to proinflammatory cytokines unveils neo and primed IREs". Panels **c** to **f**.
+  + **Extended Data Figure 3**: "Characterization of $\beta$-cell IREs". Panels **a** to **k**.
+
+***
+
 # Subclassification of IREs
 
 To determine which IREs were not accessible in control conditions, we call peaks from merged control BAM file with a relaxed threshold: *P*<0.05.

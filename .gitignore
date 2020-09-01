@@ -15,3 +15,5 @@ output/cyt_03_subclassification/HOMER_IREs*
 *.bw
 *.pdf
 workdir/
+*.bed
+*.txt.gz

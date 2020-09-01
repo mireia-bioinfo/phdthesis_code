@@ -25,6 +25,22 @@ out_dir <- "../output/cyt_04_contacts/"
 dir.create(out_dir, F)
 ```
 
+***
+
+# Details
+
+- **Original publication**:
+
+> **Ramos-Rodríguez, M.**, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. *Nat Genet.* **51**, 1588–1595 (2019) https://doi.org/10.1038/s41588-019-0524-6
+
+- **Contents**: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:
+
+  + **Results**: "Changes in islet 3D chromatin structure".
+  + **Figure 3**: "Cytokine exposure induces changes in human islet 3D chromatin structure". Panels **a** to **c**.
+  + **Extended Data Figure 5**: "3D chromatin changes induced by exposure of human islets to pro-inflammatory cytokines". Panels **b** to **d**.
+
+***
+
 # Process and calculate differential contacts at regulatory elements
 
 ```

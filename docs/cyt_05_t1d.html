@@ -383,7 +383,7 @@ div.tocify {
       <a href="ifn_02_transcription.html">#2 Chromatin remodeling correlates with transcription changes</a>
     </li>
     <li>
-      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFNα signaling</a>
+      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFN-α signaling</a>
     </li>
     <li>
       <a href="ifn_04_modules.html">#4 mRNA and protein modules regulated by IFN-α</a>
@@ -441,9 +441,6 @@ div.tocify {
 <li>
   <a href="about.html">About</a>
 </li>
-<li>
-  <a href="license.html">License</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -477,53 +474,1188 @@ div.tocify {
 </div>
 
 
+<div id="methods" class="section level1">
+<h1>Methods</h1>
+<ul>
+<li>Data was downloaded from the <a href="https://www.ebi.ac.uk/gwas/">GWAS catalog</a> by selecting trait <strong>Type i diabetes mellitus</strong> with child traits. Date: 2019-04-18</li>
+<li>Only SNPs with <code>DISEASE.TRAIT=="Type 1 diabetes"</code> were kept.</li>
+<li>Proxies were obtained using <code>proxysnps</code> are package, which obtains proxies using <em>1,000 Genomes phase 3</em>, <em>EUR</em> population and <code>window_size=2.5e5</code>. Only proxies with LD &gt;= 0.5 were kept.</li>
+<li>Locus were determined creating a window from the most upstream to the most downstream SNP. Overlapping loci were merged.</li>
+</ul>
+<pre><code>Rscript code/CYT_create_LD0.8.R
+Rscript code/CYT_create_T1D_loci_public.R
+Rscript code/CYT_create_T2D_loci_public.R
+Rscript code/CYT_rm_common_T1D_T2D.R</code></pre>
+<pre class="r"><code>load(&quot;../data/CYT/T1D_GWAS/T1D_LD0.8_risk_loci_granges.rda&quot;)
+
+df &lt;- data.frame(loci)
+df$seqnames &lt;- factor(df$seqnames, levels=rev(paste0(&quot;chr&quot;, c(1:22, &quot;X&quot;, &quot;Y&quot;))))
+
+width &lt;- 
+  ggplot(df,
+       aes(width)) +
+  geom_density() +
+  scale_x_continuous(labels=scales::comma,
+                     name=&quot;Locus width (bp)&quot;)
+
+counts &lt;- 
+  ggplot(df,
+       aes(seqnames)) +
+  geom_dotplot(aes(fill=seqnames)) +
+  coord_flip() +
+  xlab(&quot;Chromosome&quot;) + 
+  ylab(&quot;Proportion of loci&quot;) +
+  theme(legend.position=&quot;none&quot;)
+
+plot_grid(counts, width, ncol=2, rel_widths=c(.35, .65))</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-1-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="variant-set-enrichment-analysis-vse" class="section level1">
+<h1>Variant Set Enrichment Analysis (VSE)</h1>
+<div id="t1d-gwas-data-minus-loci-common-with-t2d" class="section level2">
+<h2>T1D GWAS data minus loci common with T2D</h2>
+<pre class="r"><code>re &lt;- list.files(&quot;../data/CYT/bedfiles&quot;,
+                 pattern=&quot;*.bed&quot;,
+                 full.names=T)
+re &lt;- re[!grepl(&quot;distal&quot;, re)]
+re &lt;- re[grepl(&quot;padj0.05&quot;, re) &amp;
+           grepl(&quot;hi&quot;, re)]
+
+samples &lt;- data.frame(X=1:length(re),
+                      SampleID=pipelineNGS::getNameFromPath(re, suffix=&quot;.bed&quot;),
+                      Peaks=re)
+samples$SampleID &lt;- gsub(&quot;_fc1_padj0.05&quot;, &quot;&quot;, samples$SampleID)
+
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_VSE_MRVS_500.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_VSE_AVS.rda&quot;)
+seqlevelsStyle(t1d.avs) &lt;- &quot;Ensembl&quot;
+
+t1d.vse &lt;- variantSetEnrichment.mod(t1d.avs, t1d.mrvs.500, samples)
+save(t1d.vse, file=file.path(out_dir, &quot;T1Drm_hi_vse_result.rda&quot;))</code></pre>
+<pre class="r"><code>load(file.path(out_dir, &quot;T1Drm_hi_vse_result.rda&quot;))
+
+t1d.vse.res &lt;- VSESummary.mod(t1d.vse,
+                                method=&quot;bonferroni&quot;)
+knitr::kable(t1d.vse.res)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+region
+</th>
+<th style="text-align:right;">
+avs
+</th>
+<th style="text-align:right;">
+enrichment
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+<th style="text-align:right;">
+p.adjusted
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+IREs_hi
+</td>
+<td style="text-align:left;">
+IREs_hi
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+4.617614
+</td>
+<td style="text-align:right;">
+0.0000015
+</td>
+<td style="text-align:right;">
+0.0000030
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SREs_hi
+</td>
+<td style="text-align:left;">
+SREs_hi
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+1.139202
+</td>
+<td style="text-align:right;">
+0.1290808
+</td>
+<td style="text-align:right;">
+0.2581615
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>VSEplot.mod(t1d.vse, 
+            method=&quot;bonferroni&quot;, 
+            pch = 20, 
+            cex = 1, 
+            padj = 0.05, 
+            main = &quot;T1D in HI&quot;)</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-3-1.png" width="288" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>re &lt;- list.files(&quot;../data/CYT/bedfiles&quot;,
+                 pattern=&quot;*.bed&quot;,
+                 full.names=T)
+re &lt;- re[!grepl(&quot;distal&quot;, re) &amp; !grepl(&quot;k270.8&quot;, re)]
+re &lt;- re[grepl(&quot;padj0.05&quot;, re) &amp;
+           grepl(&quot;endoc&quot;, re)]
+
+samples &lt;- data.frame(X=1:length(re),
+                      SampleID=pipelineNGS::getNameFromPath(re, suffix=&quot;.bed&quot;),
+                      Peaks=re)
+samples$SampleID &lt;- gsub(&quot;_fc1_padj0.05&quot;, &quot;&quot;, samples$SampleID)
+
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_VSE_MRVS_500.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_VSE_AVS.rda&quot;)
+seqlevelsStyle(t1d.avs) &lt;- &quot;Ensembl&quot;
+
+t1d.vse &lt;- variantSetEnrichment.mod(t1d.avs, t1d.mrvs.500, samples)
+save(t1d.vse, file=file.path(out_dir, &quot;T1Drm_endoc_vse_result.rda&quot;))</code></pre>
+<pre class="r"><code>load(file.path(out_dir, &quot;T1Drm_endoc_vse_result.rda&quot;))
+
+t1d.vse.res &lt;- VSESummary.mod(t1d.vse,
+                                method=&quot;bonferroni&quot;)
+knitr::kable(t1d.vse.res)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+region
+</th>
+<th style="text-align:right;">
+avs
+</th>
+<th style="text-align:right;">
+enrichment
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+<th style="text-align:right;">
+p.adjusted
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+IREs_endoc
+</td>
+<td style="text-align:left;">
+IREs_endoc
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+3.140784
+</td>
+<td style="text-align:right;">
+0.0007120
+</td>
+<td style="text-align:right;">
+0.0014240
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SREs_endoc
+</td>
+<td style="text-align:left;">
+SREs_endoc
+</td>
+<td style="text-align:right;">
+33
+</td>
+<td style="text-align:right;">
+1.810616
+</td>
+<td style="text-align:right;">
+0.0342564
+</td>
+<td style="text-align:right;">
+0.0685129
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>VSEplot.mod(t1d.vse, 
+            method=&quot;bonferroni&quot;, 
+            pch = 20, 
+            cex = 1, 
+            padj = 0.05, 
+            main = &quot;T1D in EndoC&quot;)</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-5-1.png" width="288" style="display: block; margin: auto;" /></p>
+</div>
+<div id="t2d-gwas-data-minus-loci-common-with-t1d" class="section level2">
+<h2>T2D GWAS data minus loci common with T1D</h2>
+<pre class="r"><code>re &lt;- list.files(&quot;../data/CYT/bedfiles&quot;,
+                 pattern=&quot;*.bed&quot;,
+                 full.names=T)
+re &lt;- re[!grepl(&quot;distal&quot;, re)]
+re &lt;- re[grepl(&quot;padj0.05&quot;, re) &amp;
+           grepl(&quot;hi&quot;, re)]
+
+samples &lt;- data.frame(X=1:length(re),
+                      SampleID=pipelineNGS::getNameFromPath(re, suffix=&quot;.bed&quot;),
+                      Peaks=re)
+samples$SampleID &lt;- gsub(&quot;_fc1_padj0.05&quot;, &quot;&quot;, samples$SampleID)
+
+load(&quot;../data/CYT/T1D_GWAS/T2Drm_VSE_MRVS_500.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T2Drm_VSE_AVS.rda&quot;)
+seqlevelsStyle(t2d.avs) &lt;- &quot;Ensembl&quot;
+
+t2d.vse &lt;- variantSetEnrichment.mod(t2d.avs, t2d.mrvs.500, samples)
+save(t2d.vse, file=file.path(out_dir, &quot;T2Drm_hi_vse_result.rda&quot;))</code></pre>
+<pre class="r"><code>load(file.path(out_dir, &quot;T2Drm_hi_vse_result.rda&quot;))
+
+t2d.vse.res &lt;- VSESummary.mod(t2d.vse,
+                                method=&quot;bonferroni&quot;)
+knitr::kable(t2d.vse.res)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+region
+</th>
+<th style="text-align:right;">
+avs
+</th>
+<th style="text-align:right;">
+enrichment
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+<th style="text-align:right;">
+p.adjusted
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+IREs_hi
+</td>
+<td style="text-align:left;">
+IREs_hi
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+-0.3737613
+</td>
+<td style="text-align:right;">
+0.6490075
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SREs_hi
+</td>
+<td style="text-align:left;">
+SREs_hi
+</td>
+<td style="text-align:right;">
+216
+</td>
+<td style="text-align:right;">
+5.4742895
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>VSEplot.mod(t2d.vse, 
+            method=&quot;bonferroni&quot;, 
+            pch = 20, 
+            cex = 1, 
+            padj = 0.05, 
+            main = &quot;T2D in HI&quot;)</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-7-1.png" width="288" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>re &lt;- list.files(&quot;../data/CYT/bedfiles&quot;,
+                 pattern=&quot;*.bed&quot;,
+                 full.names=T)
+re &lt;- re[!grepl(&quot;distal&quot;, re) &amp; !grepl(&quot;k270.8&quot;, re)]
+re &lt;- re[grepl(&quot;padj0.05&quot;, re) &amp;
+           grepl(&quot;endoc&quot;, re)]
+
+samples &lt;- data.frame(X=1:length(re),
+                      SampleID=pipelineNGS::getNameFromPath(re, suffix=&quot;.bed&quot;),
+                      Peaks=re)
+samples$SampleID &lt;- gsub(&quot;_fc1_padj0.05&quot;, &quot;&quot;, samples$SampleID)
+
+load(&quot;../data/CYT/T1D_GWAS/T2Drm_VSE_MRVS_500.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T2Drm_VSE_AVS.rda&quot;)
+seqlevelsStyle(t2d.avs) &lt;- &quot;Ensembl&quot;
+
+t2d.vse &lt;- variantSetEnrichment.mod(t2d.avs, t2d.mrvs.500, samples)
+save(t2d.vse, file=file.path(out_dir, &quot;T2Drm_endoc_vse_result.rda&quot;))</code></pre>
+<pre class="r"><code>load(file.path(out_dir, &quot;T2Drm_endoc_vse_result.rda&quot;))
+
+t2d.vse.res &lt;- VSESummary.mod(t2d.vse,
+                                method=&quot;bonferroni&quot;)
+knitr::kable(t2d.vse.res)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+region
+</th>
+<th style="text-align:right;">
+avs
+</th>
+<th style="text-align:right;">
+enrichment
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+<th style="text-align:right;">
+p.adjusted
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+IREs_endoc
+</td>
+<td style="text-align:left;">
+IREs_endoc
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+0.6608974
+</td>
+<td style="text-align:right;">
+0.2572423
+</td>
+<td style="text-align:right;">
+0.5144847
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SREs_endoc
+</td>
+<td style="text-align:left;">
+SREs_endoc
+</td>
+<td style="text-align:right;">
+174
+</td>
+<td style="text-align:right;">
+4.5283477
+</td>
+<td style="text-align:right;">
+0.0000029
+</td>
+<td style="text-align:right;">
+0.0000059
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>VSEplot.mod(t2d.vse, 
+            method=&quot;bonferroni&quot;, 
+            pch = 20, 
+            cex = 1, 
+            padj = 0.05, 
+            main = &quot;T2D in EndoC&quot;)</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-9-1.png" width="288" style="display: block; margin: auto;" />
+# Views of example T1D loci with variants overlapping IREs</p>
+</div>
+<div id="il7r-locus" class="section level2">
+<h2>IL7R locus</h2>
+<pre class="r"><code>## SNPs ----------------
+rsids &lt;- c(&quot;rs11954020&quot;, &quot;rs6897932&quot;)
+
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_LD0.8_VSE_AVS.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_risk_proxies_granges.rda&quot;)
+t1d.dat &lt;- data.frame(mcols(proxies))[,c(1,5)]
+t1d.dat &lt;- t1d.dat[t1d.dat$R.squared&gt;=0.8,]
+
+snp &lt;- unlist(t1d.avs)
+snp &lt;- data.frame(snp[snp$idTag %in% rsids,])
+
+snp$type &lt;- &quot;proxy&quot;
+snp$type[snp$idTag==snp$idLd] &lt;- &quot;leading&quot;
+snp$lab &lt;- &quot;&quot;
+snp$lab[snp$idLd %in% c(rsids, &quot;rs34143578&quot;, &quot;rs6890853&quot;, &quot;rs10214273&quot;)] &lt;- snp$idLd[snp$idLd %in% c(rsids, &quot;rs34143578&quot;, &quot;rs6890853&quot;, &quot;rs10214273&quot;)]
+
+snp &lt;- dplyr::left_join(snp,
+                        t1d.dat,
+                        by=c(&quot;idLd&quot;=&quot;ID&quot;))
+
+snp$type &lt;- factor(snp$type, levels=c(&quot;proxy&quot;, &quot;leading&quot;))
+snp &lt;- snp[order(snp$type),]
+
+win &lt;- GRanges(paste0(unique(snp$seqnames), &quot;:&quot;, min(snp$start), &quot;-&quot;, max(snp$start)))
+xlims &lt;- c(min(snp$start), max(snp$start))
+
+## RE --------------------
+load(&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges_subgroup.rda&quot;)
+re.sel &lt;- subsetByOverlaps(re, win)
+re.sel &lt;- resize(re.sel, width=1e3, fix=&quot;center&quot;)
+re.sel &lt;- data.frame(re.sel)
+
+## Genes -------------------
+load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+res.gr$type[res.gr$baseMean&lt;=1] &lt;- &quot;not-expressed&quot;
+res.gr &lt;- res.gr[res.gr$gene_biotype==&quot;protein_coding&quot;,]
+
+col.df &lt;- data.frame(&quot;type&quot;=c(names(pals$differential), &quot;not-expressed&quot;),
+                     &quot;color&quot;=c(pals$differential, &quot;black&quot;),
+                     stringsAsFactors = FALSE)
+col.df$color[grep(&quot;grey&quot;, col.df$color)] &lt;- &quot;grey39&quot;
+mcols(res.gr) &lt;- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:2,10)]),
+                                      col.df)
+colnames(mcols(res.gr))[1] &lt;- &quot;ensembl_gene_id&quot;
+
+mcol.color=4
+mcol.name=2
+mcol.ensembl=1</code></pre>
+<pre class="r"><code>## Plot snps ------------------
+snp.plot &lt;- 
+  ggplot(snp,
+       aes(start, R.squared)) +
+  geom_vline(xintercept=snp$start[snp$type==&quot;proxy&quot; &amp; snp$lab!=&quot;&quot;],
+             lty=2, color=&quot;grey&quot;) +
+  geom_point(aes(shape=type, size=R.squared, fill=idTag)) +
+  scale_shape_manual(values=c(21, 23), name=&quot;Type of variant&quot;) +
+  scale_size_continuous(guide=F) +
+  scale_fill_discrete(name=&quot;Leading variant&quot;) +
+  ggrepel::geom_text_repel(aes(label=lab)) +
+  scale_y_continuous(name=expression(R^2),
+                     limits=c(0.8,1),
+                     expand=c(0,0)) +
+  xlim(xlims) +
+  themeXblank()
+
+## Plot REs ---------------------
+re.plot &lt;- 
+  ggplot(re.sel) +
+  geom_rect(aes(xmin=start, xmax=end,
+                ymin=0, ymax=1, fill=h3k27ac.log2FoldChange)) +
+  scale_fill_gradient2(low=&quot;dark grey&quot;,
+                         mid=&quot;grey&quot;,
+                        high=&quot;dark green&quot;,
+                        name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;),
+                        breaks=scales::pretty_breaks(n=3),
+                        midpoint=0,
+                        guide = guide_colorbar(direction = &quot;horizontal&quot;,
+                                               title.position=&quot;top&quot;)) +
+  xlim(xlims) +
+  themeYblank() +
+  themeXblank()
+
+## Plot genes ------------------
+plot.genes &lt;- plotGenes(genes=res.gr[res.gr$type!=&quot;not-expressed&quot;,],
+                          which=win,
+                          mcol.color=mcol.color,
+                          mcol.name=mcol.name,
+                          mcol.ensembl=mcol.ensembl)
+
+g.plots &lt;-
+    ggplot() +
+    plot.genes +
+    scale_x_continuous(name=paste(&quot;Coordinates&quot;, seqnames(win), &quot;(Mb)&quot;),
+                       breaks=scales::pretty_breaks(),
+                       limits=xlims,
+                       labels=function(x) round(x/1e6, 2),
+                       expand=c(0,0)) +
+    scale_fill_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    scale_color_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    themeYblank()
+
+## Create legend --------------
+snps.leg &lt;- get_legend(snp.plot)
+re.leg &lt;- get_legend(re.plot)
+gene.leg &lt;- get_legend(g.plots)
+  
+legends &lt;- plot_grid(snps.leg, re.leg, gene.leg, ncol=1)
+
+## Plot all -------------------
+main &lt;- 
+  plot_grid(snp.plot + theme(legend.position=&quot;none&quot;,
+                             plot.margin=margin(1,0,0,0, &quot;cm&quot;)), 
+          re.plot + theme(legend.position=&quot;none&quot;), 
+          g.plots + theme(legend.position=&quot;none&quot;),
+          ncol=1, align=&quot;v&quot;, rel_heights=c(0.65, 0.1, 0.25))
+
+plot_grid(main, legends, rel_widths=c(0.7, 0.3))</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-11-1.png" width="576" style="display: block; margin: auto;" /></p>
+</div>
+<div id="fgf2" class="section level2">
+<h2>FGF2</h2>
+<pre class="r"><code>## SNPs ----------------
+rsids &lt;- c(&quot;rs3024505&quot;)
+
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_LD0.8_VSE_AVS.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_risk_proxies_granges.rda&quot;)
+t1d.dat &lt;- data.frame(mcols(proxies))[,c(1,5)]
+t1d.dat &lt;- t1d.dat[t1d.dat$R.squared&gt;=0.8,]
+
+snp &lt;- unlist(t1d.avs)
+snp &lt;- data.frame(snp[snp$idTag %in% rsids,])
+
+snp$type &lt;- &quot;proxy&quot;
+snp$type[snp$idTag==snp$idLd] &lt;- &quot;leading&quot;
+snp$lab &lt;- &quot;&quot;
+snp$lab[snp$idLd %in% c(rsids, &quot;rs3024493&quot;)] &lt;- snp$idLd[snp$idLd %in% c(rsids, &quot;rs3024493&quot;)]
+
+snp &lt;- dplyr::left_join(snp,
+                        t1d.dat,
+                        by=c(&quot;idLd&quot;=&quot;ID&quot;))
+
+snp$type &lt;- factor(snp$type, levels=c(&quot;proxy&quot;, &quot;leading&quot;))
+snp &lt;- snp[order(snp$type),]
+
+win &lt;- GRanges(paste0(unique(snp$seqnames), &quot;:&quot;, min(snp$start), &quot;-&quot;, max(snp$start)))
+win &lt;- resize(win, width=81e3, fix=&quot;start&quot;)
+xlims &lt;- c(start(win), end(win))
+
+## RE --------------------
+load(&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges_subgroup.rda&quot;)
+re.sel &lt;- subsetByOverlaps(re, win)
+re.sel &lt;- resize(re.sel, width=1e3, fix=&quot;center&quot;)
+re.sel &lt;- data.frame(re.sel)
+
+## Genes -------------------
+load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+res.gr$type[res.gr$baseMean&lt;=1] &lt;- &quot;not-expressed&quot;
+res.gr &lt;- res.gr[res.gr$gene_biotype==&quot;protein_coding&quot;,]
+
+col.df &lt;- data.frame(&quot;type&quot;=c(names(pals$differential), &quot;not-expressed&quot;),
+                     &quot;color&quot;=c(pals$differential, &quot;black&quot;),
+                     stringsAsFactors = FALSE)
+col.df$color[grep(&quot;grey&quot;, col.df$color)] &lt;- &quot;grey39&quot;
+mcols(res.gr) &lt;- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:2,10)]),
+                                      col.df)
+colnames(mcols(res.gr))[1] &lt;- &quot;ensembl_gene_id&quot;
+
+mcol.color=4
+mcol.name=2
+mcol.ensembl=1</code></pre>
+<pre class="r"><code>## Plot snps ------------------
+snp.plot &lt;- 
+  ggplot(snp,
+       aes(start, R.squared)) +
+  geom_vline(xintercept=snp$start[snp$type==&quot;proxy&quot; &amp; snp$lab!=&quot;&quot;],
+             lty=2, color=&quot;grey&quot;) +
+  geom_point(aes(shape=type, size=R.squared, fill=idTag)) +
+  scale_shape_manual(values=c(21, 23), name=&quot;Type of variant&quot;) +
+  scale_size_continuous(guide=F) +
+  scale_fill_discrete(name=&quot;Leading variant&quot;) +
+  ggrepel::geom_text_repel(aes(label=lab)) +
+  scale_y_continuous(name=expression(R^2),
+                     limits=c(0.8,1),
+                     expand=c(0,0)) +
+  xlim(xlims) +
+  themeXblank()
+
+## Plot REs ---------------------
+re.plot &lt;- 
+  ggplot(re.sel) +
+  geom_rect(aes(xmin=start, xmax=end,
+                ymin=0, ymax=1, fill=h3k27ac.log2FoldChange)) +
+  scale_fill_gradient2(low=&quot;dark grey&quot;,
+                         mid=&quot;grey&quot;,
+                        high=&quot;dark green&quot;,
+                        name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;),
+                        breaks=scales::pretty_breaks(n=3),
+                        midpoint=0,
+                        guide = guide_colorbar(direction = &quot;horizontal&quot;,
+                                               title.position=&quot;top&quot;)) +
+  xlim(xlims) +
+  themeYblank() +
+  themeXblank()
+
+## Plot genes ------------------
+plot.genes &lt;- plotGenes(genes=res.gr[res.gr$type!=&quot;not-expressed&quot;,],
+                          which=win,
+                          mcol.color=mcol.color,
+                          mcol.name=mcol.name,
+                          mcol.ensembl=mcol.ensembl)
+
+g.plots &lt;-
+    ggplot() +
+    plot.genes +
+    scale_x_continuous(name=paste(&quot;Coordinates&quot;, seqnames(win), &quot;(Mb)&quot;),
+                       breaks=scales::pretty_breaks(),
+                       limits=xlims,
+                       labels=function(x) round(x/1e6, 2),
+                       expand=c(0,0)) +
+    scale_fill_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    scale_color_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    themeYblank()
+
+## Create legend --------------
+snps.leg &lt;- get_legend(snp.plot)
+re.leg &lt;- get_legend(re.plot)
+gene.leg &lt;- get_legend(g.plots)
+  
+legends &lt;- plot_grid(snps.leg, re.leg, gene.leg, ncol=1)
+
+## Plot all -------------------
+main &lt;- 
+  plot_grid(snp.plot + theme(legend.position=&quot;none&quot;,
+                             plot.margin=margin(1,0,0,0, &quot;cm&quot;)), 
+          re.plot + theme(legend.position=&quot;none&quot;), 
+          g.plots + theme(legend.position=&quot;none&quot;),
+          ncol=1, align=&quot;v&quot;, rel_heights=c(0.65, 0.1, 0.25))
+
+plot_grid(main, legends, rel_widths=c(0.7, 0.3))</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-13-1.png" width="576" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggsave(&quot;view_IL19.pdf&quot;, width=6, height=4, units=&quot;in&quot;)</code></pre>
+</div>
+</div>
+<div id="ptpn2" class="section level1">
+<h1>PTPN2</h1>
+<pre class="r"><code>## SNPs ----------------
+rsids &lt;- c(&quot;rs12971201&quot;)
+
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_LD0.8_VSE_AVS.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_risk_proxies_granges.rda&quot;)
+t1d.dat &lt;- data.frame(mcols(proxies))[,c(1,5)]
+t1d.dat &lt;- t1d.dat[t1d.dat$R.squared&gt;=0.8,]
+
+snp &lt;- unlist(t1d.avs)
+snp &lt;- data.frame(snp[snp$idTag %in% rsids,])
+
+snp$type &lt;- &quot;proxy&quot;
+snp$type[snp$idTag==snp$idLd] &lt;- &quot;leading&quot;
+snp$lab &lt;- &quot;&quot;
+snp$lab[snp$idLd %in% c(rsids, &quot;rs2847281&quot;)] &lt;- snp$idLd[snp$idLd %in% c(rsids, &quot;rs2847281&quot;)]
+
+snp &lt;- dplyr::left_join(snp,
+                        t1d.dat,
+                        by=c(&quot;idLd&quot;=&quot;ID&quot;))
+
+snp$type &lt;- factor(snp$type, levels=c(&quot;proxy&quot;, &quot;leading&quot;))
+snp &lt;- snp[order(snp$type),]
+
+win &lt;- GRanges(paste0(unique(snp$seqnames), &quot;:&quot;, min(snp$start), &quot;-&quot;, max(snp$start)))
+win &lt;- resize(win, width=150e3, fix=&quot;center&quot;)
+xlims &lt;- c(start(win), end(win))
+
+## RE --------------------
+load(&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges_subgroup.rda&quot;)
+re.sel &lt;- subsetByOverlaps(re, win)
+re.sel &lt;- resize(re.sel, width=1e3, fix=&quot;center&quot;)
+re.sel &lt;- data.frame(re.sel)
+
+## Genes -------------------
+load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+res.gr$type[res.gr$baseMean&lt;=1] &lt;- &quot;not-expressed&quot;
+res.gr &lt;- res.gr[res.gr$gene_biotype==&quot;protein_coding&quot;,]
+
+col.df &lt;- data.frame(&quot;type&quot;=c(names(pals$differential), &quot;not-expressed&quot;),
+                     &quot;color&quot;=c(pals$differential, &quot;black&quot;),
+                     stringsAsFactors = FALSE)
+col.df$color[grep(&quot;grey&quot;, col.df$color)] &lt;- &quot;grey39&quot;
+mcols(res.gr) &lt;- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:2,10)]),
+                                      col.df)
+colnames(mcols(res.gr))[1] &lt;- &quot;ensembl_gene_id&quot;
+
+mcol.color=4
+mcol.name=2
+mcol.ensembl=1</code></pre>
+<pre class="r"><code>## Plot snps ------------------
+snp.plot &lt;- 
+  ggplot(snp,
+       aes(start, R.squared)) +
+  geom_vline(xintercept=snp$start[snp$type==&quot;proxy&quot; &amp; snp$lab!=&quot;&quot;],
+             lty=2, color=&quot;grey&quot;) +
+  geom_point(aes(shape=type, size=R.squared, fill=idTag)) +
+  scale_shape_manual(values=c(21, 23), name=&quot;Type of variant&quot;) +
+  scale_size_continuous(guide=F) +
+  scale_fill_discrete(name=&quot;Leading variant&quot;) +
+  ggrepel::geom_text_repel(aes(label=lab)) +
+  scale_y_continuous(name=expression(R^2),
+                     limits=c(0.8,1),
+                     expand=c(0,0)) +
+  xlim(xlims) +
+  themeXblank()
+
+## Plot REs ---------------------
+re.plot &lt;- 
+  ggplot(re.sel) +
+  geom_rect(aes(xmin=start, xmax=end,
+                ymin=0, ymax=1, fill=h3k27ac.log2FoldChange)) +
+  scale_fill_gradient2(low=&quot;dark grey&quot;,
+                         mid=&quot;grey&quot;,
+                        high=&quot;dark green&quot;,
+                        name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;),
+                        breaks=scales::pretty_breaks(n=3),
+                        midpoint=0,
+                        guide = guide_colorbar(direction = &quot;horizontal&quot;,
+                                               title.position=&quot;top&quot;)) +
+  xlim(xlims) +
+  themeYblank() +
+  themeXblank()
+
+## Plot genes ------------------
+plot.genes &lt;- plotGenes(genes=res.gr[res.gr$type!=&quot;not-expressed&quot;,],
+                          which=win,
+                          mcol.color=mcol.color,
+                          mcol.name=mcol.name,
+                          mcol.ensembl=mcol.ensembl)
+
+g.plots &lt;-
+    ggplot() +
+    plot.genes +
+    scale_x_continuous(name=paste(&quot;Coordinates&quot;, seqnames(win), &quot;(Mb)&quot;),
+                       breaks=scales::pretty_breaks(),
+                       limits=xlims,
+                       labels=function(x) round(x/1e6, 2),
+                       expand=c(0,0)) +
+    scale_fill_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    scale_color_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    themeYblank()
+
+## Create legend --------------
+snps.leg &lt;- get_legend(snp.plot)
+re.leg &lt;- get_legend(re.plot)
+gene.leg &lt;- get_legend(g.plots)
+  
+legends &lt;- plot_grid(snps.leg, re.leg, gene.leg, ncol=1)
+
+## Plot all -------------------
+main &lt;- 
+  plot_grid(snp.plot + theme(legend.position=&quot;none&quot;,
+                             plot.margin=margin(1,0,0,0, &quot;cm&quot;)), 
+          re.plot + theme(legend.position=&quot;none&quot;), 
+          g.plots + theme(legend.position=&quot;none&quot;),
+          ncol=1, align=&quot;v&quot;, rel_heights=c(0.65, 0.1, 0.25))
+
+plot_grid(main, legends, rel_widths=c(0.7, 0.3))</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-16-1.png" width="576" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggsave(&quot;view_PTPN2.pdf&quot;, width=6, height=4, units=&quot;in&quot;)</code></pre>
+</div>
+<div id="nupr1" class="section level1">
+<h1>NUPR1</h1>
+<pre class="r"><code>## SNPs ----------------
+rsids &lt;- c(&quot;rs4788084&quot;)
+
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_LD0.8_VSE_AVS.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_risk_proxies_granges.rda&quot;)
+t1d.dat &lt;- data.frame(mcols(proxies))[,c(1,5)]
+t1d.dat &lt;- t1d.dat[t1d.dat$R.squared&gt;=0.8,]
+
+snp &lt;- unlist(t1d.avs)
+snp &lt;- data.frame(snp[snp$idTag %in% rsids,])
+
+snp$type &lt;- &quot;proxy&quot;
+snp$type[snp$idTag==snp$idLd] &lt;- &quot;leading&quot;
+snp$lab &lt;- &quot;&quot;
+snp$lab[snp$idLd %in% c(rsids, &quot;rs12446550&quot;)] &lt;- snp$idLd[snp$idLd %in% c(rsids, &quot;rs12446550&quot;)]
+
+snp &lt;- dplyr::left_join(snp,
+                        t1d.dat,
+                        by=c(&quot;idLd&quot;=&quot;ID&quot;))
+
+snp$type &lt;- factor(snp$type, levels=c(&quot;proxy&quot;, &quot;leading&quot;))
+snp &lt;- snp[order(snp$type),]
+
+win &lt;- GRanges(paste0(unique(snp$seqnames), &quot;:&quot;, min(snp$start), &quot;-&quot;, max(snp$start)))
+win &lt;- resize(win, width=80e3, fix=&quot;start&quot;)
+xlims &lt;- c(start(win), end(win))
+
+## RE --------------------
+load(&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges_subgroup.rda&quot;)
+re.sel &lt;- subsetByOverlaps(re, win)
+re.sel &lt;- resize(re.sel, width=1e3, fix=&quot;center&quot;)
+re.sel &lt;- data.frame(re.sel)
+
+## Genes -------------------
+load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+res.gr$type[res.gr$baseMean&lt;=1] &lt;- &quot;not-expressed&quot;
+res.gr &lt;- res.gr[res.gr$gene_biotype==&quot;protein_coding&quot;,]
+
+col.df &lt;- data.frame(&quot;type&quot;=c(names(pals$differential), &quot;not-expressed&quot;),
+                     &quot;color&quot;=c(pals$differential, &quot;black&quot;),
+                     stringsAsFactors = FALSE)
+col.df$color[grep(&quot;grey&quot;, col.df$color)] &lt;- &quot;grey39&quot;
+mcols(res.gr) &lt;- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:2,10)]),
+                                      col.df)
+colnames(mcols(res.gr))[1] &lt;- &quot;ensembl_gene_id&quot;
+
+mcol.color=4
+mcol.name=2
+mcol.ensembl=1</code></pre>
+<pre class="r"><code>## Plot snps ------------------
+snp.plot &lt;- 
+  ggplot(snp,
+       aes(start, R.squared)) +
+  geom_vline(xintercept=snp$start[snp$type==&quot;proxy&quot; &amp; snp$lab!=&quot;&quot;],
+             lty=2, color=&quot;grey&quot;) +
+  geom_point(aes(shape=type, size=R.squared, fill=idTag)) +
+  scale_shape_manual(values=c(21, 23), name=&quot;Type of variant&quot;) +
+  scale_size_continuous(guide=F) +
+  scale_fill_discrete(name=&quot;Leading variant&quot;) +
+  ggrepel::geom_text_repel(aes(label=lab)) +
+  scale_y_continuous(name=expression(R^2),
+                     limits=c(0.8,1),
+                     expand=c(0,0)) +
+  xlim(xlims) +
+  themeXblank()
+
+## Plot REs ---------------------
+re.plot &lt;- 
+  ggplot(re.sel) +
+  geom_rect(aes(xmin=start, xmax=end,
+                ymin=0, ymax=1, fill=h3k27ac.log2FoldChange)) +
+  scale_fill_gradient2(low=&quot;dark grey&quot;,
+                         mid=&quot;grey&quot;,
+                        high=&quot;dark green&quot;,
+                        name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;),
+                        breaks=scales::pretty_breaks(n=3),
+                        midpoint=0,
+                        guide = guide_colorbar(direction = &quot;horizontal&quot;,
+                                               title.position=&quot;top&quot;)) +
+  xlim(xlims) +
+  themeYblank() +
+  themeXblank()
+
+## Plot genes ------------------
+plot.genes &lt;- plotGenes(genes=res.gr[res.gr$type!=&quot;not-expressed&quot;,],
+                          which=win,
+                          mcol.color=mcol.color,
+                          mcol.name=mcol.name,
+                          mcol.ensembl=mcol.ensembl)
+
+g.plots &lt;-
+    ggplot() +
+    plot.genes +
+    scale_x_continuous(name=paste(&quot;Coordinates&quot;, seqnames(win), &quot;(Mb)&quot;),
+                       breaks=scales::pretty_breaks(),
+                       limits=xlims,
+                       labels=function(x) round(x/1e6, 2),
+                       expand=c(0,0)) +
+    scale_fill_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    scale_color_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    themeYblank()
+
+## Create legend --------------
+snps.leg &lt;- get_legend(snp.plot)
+re.leg &lt;- get_legend(re.plot)
+gene.leg &lt;- get_legend(g.plots)
+  
+legends &lt;- plot_grid(snps.leg, re.leg, gene.leg, ncol=1)
+
+## Plot all -------------------
+main &lt;- 
+  plot_grid(snp.plot + theme(legend.position=&quot;none&quot;,
+                             plot.margin=margin(1,0,0,0, &quot;cm&quot;)), 
+          re.plot + theme(legend.position=&quot;none&quot;), 
+          g.plots + theme(legend.position=&quot;none&quot;),
+          ncol=1, align=&quot;v&quot;, rel_heights=c(0.65, 0.1, 0.25))
+
+plot_grid(main, legends, rel_widths=c(0.7, 0.3))</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-19-1.png" width="576" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggsave(&quot;view_NUPR1.pdf&quot;, width=6, height=4, units=&quot;in&quot;)</code></pre>
+</div>
+<div id="gsdmb" class="section level1">
+<h1>GSDMB</h1>
+<pre class="r"><code>## SNPs ----------------
+rsids &lt;- c(&quot;rs12453507&quot;)
+
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_LD0.8_VSE_AVS.rda&quot;)
+load(&quot;../data/CYT/T1D_GWAS/T1Drm_risk_proxies_granges.rda&quot;)
+t1d.dat &lt;- data.frame(mcols(proxies))[proxies$topSNP %in% rsids,c(1,5)]
+t1d.dat &lt;- t1d.dat[t1d.dat$R.squared&gt;=0.8,]
+
+snp &lt;- unlist(t1d.avs)
+snp &lt;- data.frame(snp[snp$idTag %in% rsids,])
+row.gr &lt;- proxies[proxies$ID %in% rsids &amp; proxies$CHOSEN,]
+row &lt;- data.frame(seqnames=as.character(seqnames(row.gr)),
+                  start=start(row.gr), 
+                  end=end(row.gr),
+                  width=1,
+                  strand=&quot;*&quot;,
+                  idLd=row.gr$ID,
+                  idTag=row.gr$ID)
+snp &lt;- rbind(snp, row)
+
+snp$type &lt;- &quot;proxy&quot;
+snp$type[snp$idTag==snp$idLd] &lt;- &quot;leading&quot;
+snp$lab &lt;- &quot;&quot;
+snp$lab[snp$idLd %in% c(rsids, &quot;rs7219923&quot;, &quot;rs201389301&quot;)] &lt;- snp$idLd[snp$idLd %in% c(rsids, &quot;rs7219923&quot;, &quot;rs201389301&quot;)]
+
+snp &lt;- dplyr::left_join(snp,
+                        t1d.dat,
+                        by=c(&quot;idLd&quot;=&quot;ID&quot;))
+
+snp$type &lt;- factor(snp$type, levels=c(&quot;proxy&quot;, &quot;leading&quot;))
+snp &lt;- snp[order(snp$type),]
+
+win &lt;- GRanges(paste0(unique(snp$seqnames), &quot;:&quot;, min(snp$start), &quot;-&quot;, max(snp$start)))
+win &lt;- resize(win, width=30e3, fix=&quot;end&quot;)
+xlims &lt;- c(start(win), end(win))
+
+## RE --------------------
+load(&quot;../data/CYT/REs/REs_hi_fc1_padj0.05_granges_subgroup.rda&quot;)
+re.sel &lt;- subsetByOverlaps(re, win)
+re.sel &lt;- resize(re.sel, width=1e3, fix=&quot;center&quot;)
+re.sel &lt;- data.frame(re.sel)
+
+## Genes -------------------
+load(&quot;../data/CYT/RNA/diffAnalysis/RNA_hi_GRangesBatch.rda&quot;)
+res.gr$type[res.gr$baseMean&lt;=1] &lt;- &quot;not-expressed&quot;
+res.gr &lt;- res.gr[res.gr$gene_biotype==&quot;protein_coding&quot;,]
+
+col.df &lt;- data.frame(&quot;type&quot;=c(names(pals$differential), &quot;not-expressed&quot;),
+                     &quot;color&quot;=c(pals$differential, &quot;black&quot;),
+                     stringsAsFactors = FALSE)
+col.df$color[grep(&quot;grey&quot;, col.df$color)] &lt;- &quot;grey39&quot;
+mcols(res.gr) &lt;- dplyr::left_join(data.frame(mcols(res.gr)[,c(1:2,10)]),
+                                      col.df)
+colnames(mcols(res.gr))[1] &lt;- &quot;ensembl_gene_id&quot;
+
+mcol.color=4
+mcol.name=2
+mcol.ensembl=1</code></pre>
+<pre class="r"><code>## Plot snps ------------------
+snp.plot &lt;- 
+  ggplot(snp,
+       aes(start, R.squared)) +
+  geom_vline(xintercept=snp$start[snp$type==&quot;proxy&quot; &amp; snp$lab!=&quot;&quot;],
+             lty=2, color=&quot;grey&quot;) +
+  geom_point(aes(shape=type, size=R.squared, fill=idTag)) +
+  scale_shape_manual(values=c(21, 23), name=&quot;Type of variant&quot;) +
+  scale_size_continuous(guide=F) +
+  scale_fill_discrete(name=&quot;Leading variant&quot;) +
+  ggrepel::geom_text_repel(aes(label=lab)) +
+  scale_y_continuous(name=expression(R^2),
+                     limits=c(0.8,1),
+                     expand=c(0,0)) +
+  xlim(xlims) +
+  themeXblank()
+
+## Plot REs ---------------------
+re.plot &lt;- 
+  ggplot(re.sel) +
+  geom_rect(aes(xmin=start, xmax=end,
+                ymin=0, ymax=1, fill=h3k27ac.log2FoldChange)) +
+  scale_fill_gradient2(low=&quot;dark grey&quot;,
+                         mid=&quot;grey&quot;,
+                        high=&quot;dark green&quot;,
+                        name=expression(&quot;H3K27ac &quot;*log[2]*&quot; FC&quot;),
+                        breaks=scales::pretty_breaks(n=3),
+                        midpoint=0,
+                        limits=c(0,2.5),
+                        guide = guide_colorbar(direction = &quot;horizontal&quot;,
+                                               title.position=&quot;top&quot;)) +
+  xlim(xlims) +
+  themeYblank() +
+  themeXblank()
+
+## Plot genes ------------------
+plot.genes &lt;- plotGenes(genes=res.gr[res.gr$type!=&quot;not-expressed&quot;,],
+                          which=win,
+                          mcol.color=mcol.color,
+                          mcol.name=mcol.name,
+                          mcol.ensembl=mcol.ensembl)
+
+g.plots &lt;-
+    ggplot() +
+    plot.genes +
+    scale_x_continuous(name=paste(&quot;Coordinates&quot;, seqnames(win), &quot;(Mb)&quot;),
+                       breaks=scales::pretty_breaks(),
+                       limits=xlims,
+                       labels=function(x) round(x/1e6, 2),
+                       expand=c(0,0)) +
+    scale_fill_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    scale_color_manual(values=pals$differential,
+                       name=&quot;Gene expression&quot;,
+                       labels=c(gained=&quot;Up-regulated&quot;,
+                                lost=&quot;Down-regulated&quot;,
+                                stable=&quot;Equal-regulated&quot;)) + 
+    themeYblank()
+
+## Create legend --------------
+snps.leg &lt;- get_legend(snp.plot)
+re.leg &lt;- get_legend(re.plot)
+gene.leg &lt;- get_legend(g.plots)
+  
+legends &lt;- plot_grid(snps.leg, re.leg, gene.leg, ncol=1)
+
+## Plot all -------------------
+main &lt;- 
+  plot_grid(snp.plot + theme(legend.position=&quot;none&quot;,
+                             plot.margin=margin(1,0,0,0, &quot;cm&quot;)), 
+          re.plot + theme(legend.position=&quot;none&quot;), 
+          g.plots + theme(legend.position=&quot;none&quot;),
+          ncol=1, align=&quot;v&quot;, rel_heights=c(0.65, 0.1, 0.25))
+
+plot_grid(main, legends, rel_widths=c(0.7, 0.3), scale=c(1,0.5))</code></pre>
+<p><img src="figure/cyt_05_t1d.Rmd/unnamed-chunk-22-1.png" width="576" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
-<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 4.0.2 (2020-06-22)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 18362)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.1 LTS
 
 Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
-[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
-[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
-[5] LC_TIME=Spanish_Spain.1252    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=es_ES.UTF-8        LC_COLLATE=C              
+ [5] LC_MONETARY=es_ES.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=es_ES.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=es_ES.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] parallel  stats4    stats     graphics  grDevices utils     datasets 
 [8] methods   base     
 
 other attached packages:
- [1] purrr_0.3.4          dplyr_1.0.0          kableExtra_1.1.0    
- [4] cowplot_1.0.0        ggplot2_3.3.2        GenomicRanges_1.41.5
- [7] GenomeInfoDb_1.25.8  IRanges_2.23.10      S4Vectors_0.27.12   
-[10] BiocGenerics_0.35.4  workflowr_1.6.2     
+ [1] umi4cCatcheR_0.0.0.9000 VSE_0.99                dplyr_1.0.1            
+ [4] kableExtra_1.1.0        cowplot_1.0.0           ggplot2_3.3.2          
+ [7] GenomicRanges_1.41.5    GenomeInfoDb_1.25.8     IRanges_2.23.10        
+[10] S4Vectors_0.27.12       BiocGenerics_0.35.4     workflowr_1.6.2        
 
 loaded via a namespace (and not attached):
- [1] tidyselect_1.1.0       xfun_0.16              colorspace_1.4-1      
- [4] vctrs_0.3.2            generics_0.0.2         viridisLite_0.3.0     
- [7] htmltools_0.5.0        yaml_2.2.1             rlang_0.4.7           
-[10] later_1.1.0.1          pillar_1.4.6           glue_1.4.1            
-[13] withr_2.2.0            GenomeInfoDbData_1.2.3 lifecycle_0.2.0       
-[16] stringr_1.4.0          zlibbioc_1.35.0        munsell_0.5.0         
-[19] gtable_0.3.0           rvest_0.3.6            evaluate_0.14         
-[22] knitr_1.29             httpuv_1.5.4           Rcpp_1.0.5            
-[25] readr_1.3.1            promises_1.1.1         backports_1.1.8       
-[28] scales_1.1.1           webshot_0.5.2          XVector_0.29.3        
-[31] fs_1.4.2               hms_0.5.3              digest_0.6.25         
-[34] stringi_1.4.6          rprojroot_1.3-2        grid_4.0.0            
-[37] tools_4.0.0            bitops_1.0-6           magrittr_1.5          
-[40] RCurl_1.98-1.2         tibble_3.0.3           crayon_1.3.4          
-[43] pkgconfig_2.0.3        ellipsis_0.3.1         xml2_1.3.2            
-[46] httr_1.4.2             rmarkdown_2.3          rstudioapi_0.11       
-[49] R6_2.4.1               git2r_0.27.1           compiler_4.0.0        </code></pre>
+  [1] colorspace_1.4-1            ellipsis_0.3.1             
+  [3] rio_0.5.16                  rprojroot_1.3-2            
+  [5] XVector_0.29.3              fs_1.5.0                   
+  [7] rstudioapi_0.11             farver_2.0.3               
+  [9] remotes_2.2.0               bit64_4.0.2                
+ [11] ggrepel_0.8.2               AnnotationDbi_1.51.3       
+ [13] fansi_0.4.1                 xml2_1.3.2                 
+ [15] knitr_1.29                  pkgload_1.1.0              
+ [17] Rsamtools_2.5.3             dbplyr_1.4.4               
+ [19] readr_1.3.1                 compiler_4.0.2             
+ [21] httr_1.4.2                  backports_1.1.8            
+ [23] Matrix_1.2-18               assertthat_0.2.1           
+ [25] cli_2.0.2                   later_1.1.0.1              
+ [27] htmltools_0.5.0             prettyunits_1.1.1          
+ [29] tools_4.0.2                 igraph_1.2.5               
+ [31] gtable_0.3.0                glue_1.4.1                 
+ [33] GenomeInfoDbData_1.2.3      rappdirs_0.3.1             
+ [35] Rcpp_1.0.5                  Biobase_2.49.0             
+ [37] carData_3.0-4               cellranger_1.1.0           
+ [39] vctrs_0.3.2                 Biostrings_2.57.2          
+ [41] rtracklayer_1.49.4          xfun_0.16                  
+ [43] stringr_1.4.0               ps_1.3.3                   
+ [45] openxlsx_4.1.5              testthat_2.3.2             
+ [47] rvest_0.3.6                 lifecycle_0.2.0            
+ [49] devtools_2.3.1              XML_3.99-0.5               
+ [51] zlibbioc_1.35.0             scales_1.1.1               
+ [53] BSgenome_1.57.5             hms_0.5.3                  
+ [55] promises_1.1.1              SummarizedExperiment_1.19.6
+ [57] yaml_2.2.1                  curl_4.3                   
+ [59] memoise_1.1.0               gridExtra_2.3              
+ [61] biomaRt_2.45.2              RSQLite_2.2.0              
+ [63] stringi_1.4.6               highr_0.8                  
+ [65] desc_1.2.0                  pkgbuild_1.1.0             
+ [67] zip_2.0.4                   BiocParallel_1.23.2        
+ [69] rlang_0.4.7                 pkgconfig_2.0.3            
+ [71] bitops_1.0-6                matrixStats_0.56.0         
+ [73] lattice_0.20-41             evaluate_0.14              
+ [75] purrr_0.3.4                 GenomicAlignments_1.25.3   
+ [77] labeling_0.3                bit_4.0.4                  
+ [79] processx_3.4.3              tidyselect_1.1.0           
+ [81] magrittr_1.5                bookdown_0.20              
+ [83] R6_2.4.1                    generics_0.0.2             
+ [85] DBI_1.1.0                   DelayedArray_0.15.7        
+ [87] pillar_1.4.6                haven_2.3.1                
+ [89] foreign_0.8-80              withr_2.2.0                
+ [91] abind_1.4-5                 RCurl_1.98-1.2             
+ [93] tibble_3.0.3                crayon_1.3.4               
+ [95] car_3.0-8                   BiocFileCache_1.13.1       
+ [97] rmarkdown_2.3               progress_1.2.2             
+ [99] usethis_1.6.1               grid_4.0.2                 
+[101] readxl_1.3.1                data.table_1.13.0          
+[103] blob_1.2.1                  callr_3.4.3                
+[105] git2r_0.27.1                forcats_0.5.0              
+[107] digest_0.6.25               webshot_0.5.2              
+[109] httpuv_1.5.4                regioneR_1.21.1            
+[111] openssl_1.4.2               munsell_0.5.0              
+[113] viridisLite_0.3.0           askpass_1.1                
+[115] sessioninfo_1.1.1          </code></pre>
+</div>
 </div>
 
 
