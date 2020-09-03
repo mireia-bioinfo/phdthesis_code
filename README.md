@@ -1,9 +1,5 @@
 # Code and Analysis from my PhD Thesis
 
-⚠️ **Warning: Site under construction** ⚠️
-
-![](https://media.giphy.com/media/KbpqVt1N8HLKUCtgeM/giphy.gif)
-
 This repository contains a [workflowr][] project that gathers all scripts and analyses performed during my PhD thesis. 
 Results have been gathered in three different publications:
 

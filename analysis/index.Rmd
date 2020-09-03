@@ -11,9 +11,6 @@ workflowr:
   sessioninfo: "" 
 ---
 
-### <mark>`r icon::fa("exclamation-triangle")` Site under construction `r icon::fa("exclamation-triangle")`</mark>
-
-***
 
 This website contains a compendium of the code and analyses developed to obtain the results summarized in my PhD thesis (*see [About](about.html) for more information*).
 

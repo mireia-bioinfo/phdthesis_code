@@ -20,10 +20,15 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-5.3.1/css/fontawesome-all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -256,7 +261,73 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
 
 
 
@@ -266,6 +337,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -302,7 +383,7 @@ $(document).ready(function () {
       <a href="ifn_02_transcription.html">#2 Chromatin remodeling correlates with transcription changes</a>
     </li>
     <li>
-      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFNα signaling</a>
+      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFN-α signaling</a>
     </li>
     <li>
       <a href="ifn_04_modules.html">#4 mRNA and protein modules regulated by IFN-α</a>
@@ -360,9 +441,6 @@ $(document).ready(function () {
 <li>
   <a href="about.html">About</a>
 </li>
-<li>
-  <a href="license.html">License</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -379,6 +457,14 @@ $(document).ready(function () {
 
 <div class="fluid-row" id="header">
 
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">β-cells cis-regulatory networks and type 1 diabetes</h1>
@@ -388,28 +474,30 @@ $(document).ready(function () {
 </div>
 
 
-<div class="section level3">
-<h3><mark><i class="fas  fa-exclamation-triangle "></i> Site under construction <i class="fas  fa-exclamation-triangle "></i></mark></h3>
-<hr />
 <p>This website contains a compendium of the code and analyses developed to obtain the results summarized in my PhD thesis (<em>see <a href="about.html">About</a> for more information</em>).</p>
-</div>
 <div id="results" class="section level2">
 <h2>Results</h2>
 <p>Results are structured in three main publications that correspond to the following menu items:</p>
 <ol style="list-style-type: decimal">
-<li><mark><strong>IFN-<span class="math inline">\(\alpha\)</span></strong> to model early insulitis</mark>. In this publication, we modeled <strong>early insulitis</strong> by exposing human <span class="math inline">\(\beta\)</span> cells to IFN-<span class="math inline">\(\alpha\)</span> at different time points (2, 8 and 24 hours). We assayed and integrated multi-omic data to pinpoint the key players in inducing the <span class="math inline">\(\beta\)</span>-cell interferon signature. Finally, we selected some potential drug interventions to reverse this signature in human islets and <span class="math inline">\(\beta\)</span> cells.</li>
+<li><mark><strong>IFN-<span class="math inline">\(\alpha\)</span></strong> to model early insulitis</mark>. In this publication, we modeled <strong>early insulitis</strong> by exposing human <span class="math inline">\(\beta\)</span> cells to IFN-<span class="math inline">\(\alpha\)</span> at different time points (2, 8 and 24 hours).
+We assayed and integrated multi-omic data to pinpoint the key players in inducing the <span class="math inline">\(\beta\)</span>-cell interferon signature.
+Finally, we selected some potential drug interventions to reverse this signature in human islets and <span class="math inline">\(\beta\)</span> cells.</li>
 </ol>
 <blockquote>
 <p>Colli, M.L., <strong>Ramos-Rodríguez, M.</strong>, Nakayasu, E.S. et al. An integrated multi-omics approach identifies the landscape of interferon-α-mediated responses of human pancreatic beta cells. <em>Nat Commun</em> <strong>11</strong>, 2584 (2020). <a href="https://doi.org/10.1038/s41467-020-16327-0" class="uri">https://doi.org/10.1038/s41467-020-16327-0</a></p>
 </blockquote>
 <ol start="2" style="list-style-type: decimal">
-<li><mark><strong>IFN-<span class="math inline">\(\gamma\)</span> + IL-1<span class="math inline">\(\beta\)</span></strong> to model late insulitis</mark>. Similarly to the above, in this article we published multi-omics data obtained by exposing for 48 hours human pancreatic islets and human <span class="math inline">\(\beta\)</span> cells to IFN-<span class="math inline">\(\gamma\)</span> and IL-1<span class="math inline">\(\beta\)</span>. By integrating the generated data, we were able to dissect <span class="math inline">\(\beta\)</span>-cell regulatory networks, possibly responding to a <strong>late insulitis</strong> stage. Moreover, we observed an enrichment of T1D-associated SNPs in regulatory elements that were induced by the cytokine exposure. We validated the functional role for two of these variants, by showing that the T1D risk alleles alter the cytokine-responsive enhancer activity in <span class="math inline">\(\beta\)</span> cells.</li>
+<li><mark><strong>IFN-<span class="math inline">\(\gamma\)</span> + IL-1<span class="math inline">\(\beta\)</span></strong> to model late insulitis</mark>. Similarly to the above, in this article we published multi-omics data obtained by exposing for 48 hours human pancreatic islets and human <span class="math inline">\(\beta\)</span> cells to IFN-<span class="math inline">\(\gamma\)</span> and IL-1<span class="math inline">\(\beta\)</span>.
+By integrating the generated data, we were able to dissect <span class="math inline">\(\beta\)</span>-cell regulatory networks, possibly responding to a <strong>late insulitis</strong> stage.
+Moreover, we observed an enrichment of T1D-associated SNPs in regulatory elements that were induced by the cytokine exposure.
+We validated the functional role for two of these variants, by showing that the T1D risk alleles alter the cytokine-responsive enhancer activity in <span class="math inline">\(\beta\)</span> cells.</li>
 </ol>
 <blockquote>
 <p><strong>Ramos-Rodríguez, M.</strong>, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. <em>Nat Genet.</em> <strong>51</strong>, 1588–1595 (2019) <a href="https://doi.org/10.1038/s41588-019-0524-6" class="uri">https://doi.org/10.1038/s41588-019-0524-6</a></p>
 </blockquote>
 <ol start="3" style="list-style-type: decimal">
-<li><mark>The Islet Regulome Browser (<strong>IRB</strong>)</mark>. This last publication describes the implementation of the Islet Regulome Browser, an interactive online application that provides access and an integrated visualization to many genomic datasets relevant to the pancreatic islet community. The Islet Regulome Browser was developed with the aim of facilitating access and exploration of complex genomic data to scientists with no bioinformatic background.</li>
+<li><mark>The Islet Regulome Browser (<strong>IRB</strong>)</mark>. This last publication describes the implementation of the Islet Regulome Browser, an interactive online application that provides access and an integrated visualization to many genomic datasets relevant to the pancreatic islet community.
+The Islet Regulome Browser was developed with the aim of facilitating access and exploration of complex genomic data to scientists with no bioinformatic background.</li>
 </ol>
 <blockquote>
 <p>Mularoni L., <strong>Ramos-Rodríguez M.</strong> and Pasquali L. The Pancreatic Islet Regulome Browser. <em>Front. Genet.</em> <strong>8</strong> (2017). <a href="https://doi.org/10.3389/fgene.2017.00013" class="uri">https://doi.org/10.3389/fgene.2017.00013</a></p>
@@ -430,6 +518,8 @@ footer is added to webpages before the MathJax javascript. -->
 </script>
 
 
+</div>
+</div>
 
 </div>
 
@@ -461,7 +551,38 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
