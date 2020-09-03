@@ -1084,6 +1084,8 @@ plot <-
     plot_grid(p, 
               legends,
               ncol=2, rel_widths=c(0.7, 0.3))
+
+plot
 ```
 
 ### Zoom ins
