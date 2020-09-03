@@ -1,4 +1,6 @@
-# Code and Analysis from my PhD Thesis
+# Code and Analysis from the PhD Thesis
+
+> Ramos-Rodríguez, M. (2020). *$\beta$-cells cis-regulatory networks and type 1 diabetes* (Unpublished doctoral dissertation). Universitat de Barcelona, Barcelona, Spain.
 
 This repository contains a [workflowr][] project that gathers all scripts and analyses performed during my PhD thesis. 
 Results have been gathered in three different publications:
