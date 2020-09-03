@@ -384,7 +384,7 @@ div.tocify {
       <a href="ifn_02_transcription.html">#2 Chromatin remodeling correlates with transcription changes</a>
     </li>
     <li>
-      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFNα signaling</a>
+      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFN-α signaling</a>
     </li>
     <li>
       <a href="ifn_04_modules.html">#4 mRNA and protein modules regulated by IFN-α</a>
@@ -442,9 +442,6 @@ div.tocify {
 <li>
   <a href="about.html">About</a>
 </li>
-<li>
-  <a href="license.html">License</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -478,6 +475,26 @@ div.tocify {
 </div>
 
 
+<hr />
+<div id="details" class="section level2">
+<h2>Details</h2>
+<ul>
+<li><strong>Original publication</strong>:</li>
+</ul>
+<blockquote>
+<p><strong>Ramos-Rodríguez, M.</strong>, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. <em>Nat Genet.</em> <strong>51</strong>, 1588–1595 (2019) <a href="https://doi.org/10.1038/s41588-019-0524-6" class="uri">https://doi.org/10.1038/s41588-019-0524-6</a></p>
+</blockquote>
+<ul>
+<li><p><strong>Contents</strong>: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:</p>
+<ul>
+<li><strong>Results</strong>: “Chromatin changes link to variation in transcription and translation”.</li>
+<li><strong>Figure 1</strong>: “Proinflammatory cytokine exposure causes profound remodeling of the <span class="math inline">\(\beta\)</span>-cell regulatory landscape”. Panels <strong>c</strong> to <strong>e</strong>.</li>
+<li><strong>Extended Data Figure 1</strong>: “Chromatin characterization of human pancreatic β cells exposed to pro-inflammatory cytokines”. Panel <strong>a</strong>.</li>
+<li><strong>Extended Data Figure 2</strong>: “Exposure to pro-inflammatory cytokines drives changes in the transcriptome and proteome of pancreatic <span class="math inline">\(\beta\)</span> cells”. Panels <strong>a</strong> to <strong>c</strong> and <strong>e</strong> to <strong>f</strong>.</li>
+</ul></li>
+</ul>
+<hr />
+</div>
 <div id="analysis-of-rna-seq-data" class="section level2">
 <h2>Analysis of RNA-seq data</h2>
 <div id="quality-control" class="section level3">
@@ -538,11 +555,48 @@ c.cyt.RNA &lt;-
 
 cor.rep.RNA &lt;- plot_grid(c.ctrl.RNA, c.cyt.RNA)
 cor.rep.RNA</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:rna-genome-corr"></span>
 <img src="figure/cyt_02_transcription.Rmd/rna-genome-corr-1.png" alt="RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
 <p class="caption">
-RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+Figure 1: RNA-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-rna-genome-corr-1">
+Past versions of rna-genome-corr-1.png
+</button>
+</p>
+<div id="fig-rna-genome-corr-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_02_transcription.Rmd/rna-genome-corr-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div id="differential-analysis" class="section level3">
@@ -565,7 +619,7 @@ as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %&gt;%
   add_header_above(c(&quot; &quot; = 1, &quot;Gene Biotype&quot; = 2))</code></pre>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Number of genes classified according to significance and biotype in RNA-seq EndoC samples.
+<span id="tab:rna-tab-ec">Table 1: </span>Number of genes classified according to significance and biotype in RNA-seq EndoC samples.
 </caption>
 <thead>
 <tr>
@@ -650,7 +704,7 @@ as.data.frame(table(res.gr$type, res.gr$gene_biotype))  %&gt;%
   add_header_above(c(&quot; &quot; = 1, &quot;Gene Biotype&quot; = 2))</code></pre>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Number of genes classified according to significance and biotype in RNA-seq HI samples.
+<span id="tab:rna-tab-hi">Table 2: </span>Number of genes classified according to significance and biotype in RNA-seq HI samples.
 </caption>
 <thead>
 <tr>
@@ -724,11 +778,48 @@ stable
 <pre class="r"><code>plot_grid(volc_ec, 
           volc_hi,
           ncol=2)</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-1"></span>
 <img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-1-1.png" alt="Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red." width="672" />
 <p class="caption">
-Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red.
+Figure 2: Volcano plots showing RNA-seq genes in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Up-regulated genes are represented in green and down-regulated genes are shown in red.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
+Past versions of unnamed-chunk-1-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-1-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_02_transcription.Rmd/unnamed-chunk-1-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <pre class="r"><code>load(&quot;../data/CYT/RNA/diffAnalysis/RNA_endoc_GRangesBatch.rda&quot;)
 ec &lt;- res.gr
@@ -755,11 +846,48 @@ ggplot(df,
   scale_x_discrete(name=expression(&quot;EndoC-&quot;*beta*&quot;H1 region type&quot;),
                    labels=c(&quot;Up-regulated&quot;, &quot;Down-regulated&quot;, &quot;Equal-regulated&quot;)) +
   coord_cartesian(ylim=c(-4,6))</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-2"></span>
 <img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-2-1.png" alt="Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds." width="384" />
 <p class="caption">
-Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
+Figure 3: Boxplot of HI log2FC at genes classified as up-, down- or equal-regulated in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
+Past versions of unnamed-chunk-2-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_02_transcription.Rmd/unnamed-chunk-2-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -787,11 +915,48 @@ gained   lost stable
   theme(legend.position=&quot;none&quot;)
 
 volc.rna</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:volc-plot-prot"></span>
 <img src="figure/cyt_02_transcription.Rmd/volc-plot-prot-1.png" alt="Volcano plot showing detected proteins classified as more abundant (green) or less abundant (red) after cytokine exposure in EndoC cells." width="384" />
 <p class="caption">
-Volcano plot showing detected proteins classified as more abundant (green) or less abundant (red) after cytokine exposure in EndoC cells.
+Figure 4: Volcano plot showing detected proteins classified as more abundant (green) or less abundant (red) after cytokine exposure in EndoC cells.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-volc-plot-prot-1">
+Past versions of volc-plot-prot-1.png
+</button>
+</p>
+<div id="fig-volc-plot-prot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a649a86268f82fafaf13b489b17370105becd695/docs/figure/cyt_02_transcription.Rmd/volc-plot-prot-1.png" target="_blank">a649a86</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div id="protein-protein-interaction-network" class="section level3">
@@ -841,6 +1006,43 @@ cor.prot &lt;-
 
 cor.prot</code></pre>
 <p><img src="figure/cyt_02_transcription.Rmd/plot-cor-rna-prot-1.png" width="384" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-plot-cor-rna-prot-1">
+Past versions of plot-cor-rna-prot-1.png
+</button>
+</p>
+<div id="fig-plot-cor-rna-prot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a649a86268f82fafaf13b489b17370105becd695/docs/figure/cyt_02_transcription.Rmd/plot-cor-rna-prot-1.png" target="_blank">a649a86</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="correlation-res-and-mrnaprotein" class="section level2">
 <h2>Correlation REs and mRNA/Protein</h2>
@@ -925,6 +1127,43 @@ cor.rna &lt;-
 
 cor.rna</code></pre>
 <p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-4-1.png" width="336" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a649a86268f82fafaf13b489b17370105becd695/docs/figure/cyt_02_transcription.Rmd/unnamed-chunk-4-1.png" target="_blank">a649a86</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>nums &lt;- anno.group.all %&gt;%
   group_by(win, group) %&gt;%
   summarise(num=length(log2FoldChange))
@@ -944,6 +1183,43 @@ group.rna &lt;-
 
 group.rna</code></pre>
 <p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-5-1.png" width="336" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a649a86268f82fafaf13b489b17370105becd695/docs/figure/cyt_02_transcription.Rmd/unnamed-chunk-5-1.png" target="_blank">a649a86</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="protein" class="section level3">
 <h3>Protein</h3>
@@ -967,6 +1243,43 @@ prot.distr &lt;-
 
 prot.distr</code></pre>
 <p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-6-1.png" width="336" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a649a86268f82fafaf13b489b17370105becd695/docs/figure/cyt_02_transcription.Rmd/unnamed-chunk-6-1.png" target="_blank">a649a86</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>anno.prot.all$type &lt;- factor(anno.prot.all$type, levels=c(&quot;IRE&quot;, &quot;SRE&quot;))
 
 prot.bar &lt;- 
@@ -987,38 +1300,81 @@ prot.bar &lt;-
 
 prot.bar</code></pre>
 <p><img src="figure/cyt_02_transcription.Rmd/unnamed-chunk-7-1.png" width="336" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a649a86268f82fafaf13b489b17370105becd695/docs/figure/cyt_02_transcription.Rmd/unnamed-chunk-7-1.png" target="_blank">a649a86</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
-<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 4.0.2 (2020-06-22)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 18362)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.1 LTS
 
 Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
-[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
-[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
-[5] LC_TIME=Spanish_Spain.1252    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=es_ES.UTF-8        LC_COLLATE=C              
+ [5] LC_MONETARY=es_ES.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=es_ES.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=es_ES.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] parallel  stats4    stats     graphics  grDevices utils     datasets 
 [8] methods   base     
 
 other attached packages:
- [1] purrr_0.3.4          dplyr_1.0.0          kableExtra_1.1.0    
+ [1] purrr_0.3.4          dplyr_1.0.1          kableExtra_1.1.0    
  [4] cowplot_1.0.0        ggplot2_3.3.2        GenomicRanges_1.41.5
  [7] GenomeInfoDb_1.25.8  IRanges_2.23.10      S4Vectors_0.27.12   
 [10] BiocGenerics_0.35.4  workflowr_1.6.2     
 
 loaded via a namespace (and not attached):
  [1] Biobase_2.49.0              httr_1.4.2                 
- [3] splines_4.0.0               bit64_0.9-7.1              
+ [3] splines_4.0.2               bit64_4.0.2                
  [5] viridisLite_0.3.0           highr_0.8                  
  [7] blob_1.2.1                  GenomeInfoDbData_1.2.3     
  [9] ggrepel_0.8.2               yaml_2.2.1                 
@@ -1029,35 +1385,36 @@ loaded via a namespace (and not attached):
 [19] XVector_0.29.3              rvest_0.3.6                
 [21] colorspace_1.4-1            plyr_1.8.6                 
 [23] htmltools_0.5.0             httpuv_1.5.4               
-[25] Matrix_1.2-18               DESeq2_1.29.7              
+[25] Matrix_1.2-18               DESeq2_1.29.8              
 [27] XML_3.99-0.5                pkgconfig_2.0.3            
-[29] genefilter_1.71.0           zlibbioc_1.35.0            
-[31] xtable_1.8-4                scales_1.1.1               
-[33] webshot_0.5.2               later_1.1.0.1              
-[35] BiocParallel_1.23.2         git2r_0.27.1               
-[37] tibble_3.0.3                annotate_1.67.0            
-[39] farver_2.0.3                generics_0.0.2             
-[41] ellipsis_0.3.1              withr_2.2.0                
-[43] SummarizedExperiment_1.19.6 survival_3.2-3             
-[45] magrittr_1.5                crayon_1.3.4               
-[47] memoise_1.1.0               evaluate_0.14              
-[49] fs_1.4.2                    xml2_1.3.2                 
-[51] tools_4.0.0                 hms_0.5.3                  
-[53] lifecycle_0.2.0             matrixStats_0.56.0         
-[55] stringr_1.4.0               locfit_1.5-9.4             
-[57] munsell_0.5.0               DelayedArray_0.15.7        
-[59] AnnotationDbi_1.51.3        compiler_4.0.0             
-[61] rlang_0.4.7                 grid_4.0.0                 
-[63] RCurl_1.98-1.2              rstudioapi_0.11            
-[65] labeling_0.3                bitops_1.0-6               
-[67] rmarkdown_2.3               gtable_0.3.0               
-[69] DBI_1.1.0                   reshape2_1.4.4             
-[71] R6_2.4.1                    knitr_1.29                 
-[73] bit_1.1-15.2                rprojroot_1.3-2            
-[75] readr_1.3.1                 stringi_1.4.6              
-[77] Rcpp_1.0.5                  geneplotter_1.67.0         
-[79] vctrs_0.3.2                 tidyselect_1.1.0           
-[81] xfun_0.16                  </code></pre>
+[29] genefilter_1.71.0           bookdown_0.20              
+[31] zlibbioc_1.35.0             xtable_1.8-4               
+[33] scales_1.1.1                webshot_0.5.2              
+[35] whisker_0.4                 later_1.1.0.1              
+[37] BiocParallel_1.23.2         git2r_0.27.1               
+[39] tibble_3.0.3                annotate_1.67.0            
+[41] farver_2.0.3                generics_0.0.2             
+[43] ellipsis_0.3.1              withr_2.2.0                
+[45] SummarizedExperiment_1.19.6 survival_3.2-3             
+[47] magrittr_1.5                crayon_1.3.4               
+[49] memoise_1.1.0               evaluate_0.14              
+[51] fs_1.5.0                    xml2_1.3.2                 
+[53] tools_4.0.2                 hms_0.5.3                  
+[55] lifecycle_0.2.0             matrixStats_0.56.0         
+[57] stringr_1.4.0               locfit_1.5-9.4             
+[59] munsell_0.5.0               DelayedArray_0.15.7        
+[61] AnnotationDbi_1.51.3        compiler_4.0.2             
+[63] rlang_0.4.7                 grid_4.0.2                 
+[65] RCurl_1.98-1.2              rstudioapi_0.11            
+[67] labeling_0.3                bitops_1.0-6               
+[69] rmarkdown_2.3               gtable_0.3.0               
+[71] DBI_1.1.0                   reshape2_1.4.4             
+[73] R6_2.4.1                    knitr_1.29                 
+[75] bit_4.0.4                   rprojroot_1.3-2            
+[77] readr_1.3.1                 stringi_1.4.6              
+[79] Rcpp_1.0.5                  geneplotter_1.67.0         
+[81] vctrs_0.3.2                 tidyselect_1.1.0           
+[83] xfun_0.16                  </code></pre>
 </div>
 </div>
 </div>

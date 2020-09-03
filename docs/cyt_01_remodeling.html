@@ -384,7 +384,7 @@ div.tocify {
       <a href="ifn_02_transcription.html">#2 Chromatin remodeling correlates with transcription changes</a>
     </li>
     <li>
-      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFNα signaling</a>
+      <a href="ifn_03_footprint.html">#3 IRF1, STAT1 and STAT2 are key regulators of IFN-α signaling</a>
     </li>
     <li>
       <a href="ifn_04_modules.html">#4 mRNA and protein modules regulated by IFN-α</a>
@@ -442,9 +442,6 @@ div.tocify {
 <li>
   <a href="about.html">About</a>
 </li>
-<li>
-  <a href="license.html">License</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -478,6 +475,25 @@ div.tocify {
 </div>
 
 
+<hr />
+<div id="details" class="section level2">
+<h2>Details</h2>
+<ul>
+<li><strong>Original publication</strong>:</li>
+</ul>
+<blockquote>
+<p><strong>Ramos-Rodríguez, M.</strong>, Raurell-Vila, H., Colli, M.L. et al. The impact of proinflammatory cytokines on the β-cell regulatory landscape provides insights into the genetics of type 1 diabetes. <em>Nat Genet.</em> <strong>51</strong>, 1588–1595 (2019) <a href="https://doi.org/10.1038/s41588-019-0524-6" class="uri">https://doi.org/10.1038/s41588-019-0524-6</a></p>
+</blockquote>
+<ul>
+<li><p><strong>Contents</strong>: Analyses and figures contained in this document correspond to the following figures/sections of the original publication:</p>
+<ul>
+<li><strong>Results</strong>: “Proinflammatory cytokines impact the β-cell chromatin landscape”.</li>
+<li><strong>Figure 1</strong>: “Proinflammatory cytokine exposure causes profound remodeling of the <span class="math inline">\(\beta\)</span>-cell regulatory landscape”. Panel <strong>b</strong>.</li>
+<li><strong>Extended Data Figure 1</strong>: “Chromatin characterization of human pancreatic β cells exposed to pro-inflammatory cytokines”. Panels <strong>a</strong> to <strong>g</strong>.</li>
+</ul></li>
+</ul>
+<hr />
+</div>
 <div id="analysis-of-atac-seq-data" class="section level2">
 <h2>Analysis of ATAC-seq data</h2>
 <div id="quality-control" class="section level3">
@@ -632,11 +648,81 @@ qc &lt;-
   plot_grid(heat, leg, nrow=2, rel_heights = c(0.7, 0.3))
 
 qc</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:atac-heatmap"></span>
 <img src="figure/cyt_01_remodeling.Rmd/atac-heatmap-1.png" alt="Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC)." width="672" />
 <p class="caption">
-Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC).
+Figure 1: Sumary of per-replicate sequencing metrics, showing total library sizes, percentage of aligned reads, percentage of mitochondrial aligned reads, normalized strand cross-correlation coefficient (NSC) and relative strand cross-correlation coefficient (RSC).
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-atac-heatmap-1">
+Past versions of atac-heatmap-1.png
+</button>
+</p>
+<div id="fig-atac-heatmap-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/atac-heatmap-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/atac-heatmap-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/dd5fce0f64cab88d9023da95584ae7beff3dab9d/docs/figure/cyt_01_remodeling.Rmd/atac-heatmap-1.png" target="_blank">dd5fce0</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/6fe9619c3b971b790f65b7deaccd696cc3d58d32/docs/figure/cyt_01_remodeling.Rmd/atac-heatmap-1.png" target="_blank">6fe9619</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-04-24
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_tss_enrichment.rda&quot;)
 # tss &lt;- ungroup(tss)
@@ -659,11 +745,81 @@ tss.plot &lt;-
   ylab(&quot;Mean ATAC-seq read counts&quot;) + xlab(&quot;Position relative to TSS (bp)&quot;)
 
 tss.plot</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:atac-tss-enrichment"></span>
 <img src="figure/cyt_01_remodeling.Rmd/atac-tss-enrichment-1.png" alt="Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions." width="576" />
 <p class="caption">
-Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions.
+Figure 2: Enrichment of ATAC-seq reads around protein-coding TSS compared to a randomized set of regions.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-atac-tss-enrichment-1">
+Past versions of atac-tss-enrichment-1.png
+</button>
+</p>
+<div id="fig-atac-tss-enrichment-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/atac-tss-enrichment-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/atac-tss-enrichment-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/dd5fce0f64cab88d9023da95584ae7beff3dab9d/docs/figure/cyt_01_remodeling.Rmd/atac-tss-enrichment-1.png" target="_blank">dd5fce0</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/6fe9619c3b971b790f65b7deaccd696cc3d58d32/docs/figure/cyt_01_remodeling.Rmd/atac-tss-enrichment-1.png" target="_blank">6fe9619</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-04-24
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <pre class="r"><code>load(&quot;../data/CYT/ATAC/QC/ATAC_noise.rda&quot;)
 # stats &lt;- ungroup(stats)
@@ -692,11 +848,81 @@ noise &lt;-
         axis.title.x=element_blank())
 
 noise</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:atac-signal-to-noise"></span>
 <img src="figure/cyt_01_remodeling.Rmd/atac-signal-to-noise-1.png" alt="Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks." width="384" />
 <p class="caption">
-Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks.
+Figure 3: Signal-to-noise ratios of ATAC-seq reads located at called peaks vs reads outside peaks.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-atac-signal-to-noise-1">
+Past versions of atac-signal-to-noise-1.png
+</button>
+</p>
+<div id="fig-atac-signal-to-noise-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/atac-signal-to-noise-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/atac-signal-to-noise-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/dd5fce0f64cab88d9023da95584ae7beff3dab9d/docs/figure/cyt_01_remodeling.Rmd/atac-signal-to-noise-1.png" target="_blank">dd5fce0</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/6fe9619c3b971b790f65b7deaccd696cc3d58d32/docs/figure/cyt_01_remodeling.Rmd/atac-signal-to-noise-1.png" target="_blank">6fe9619</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-04-24
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <pre><code>Rscript code/QC_CORR_genome.R data/CYT/ATAC/BAM/ data/CYT/ATAC/QC/</code></pre>
 <pre class="r"><code> get_upper_tri &lt;- function(cormat){
@@ -755,11 +981,70 @@ c.cyt.atac &lt;-
 
 cor.rep.atac &lt;- plot_grid(c.ctrl.atac, c.cyt.atac)
 cor.rep.atac</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:atac-genome-corr"></span>
 <img src="figure/cyt_01_remodeling.Rmd/atac-genome-corr-1.png" alt="ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
 <p class="caption">
-ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+Figure 4: ATAC-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-atac-genome-corr-1">
+Past versions of atac-genome-corr-1.png
+</button>
+</p>
+<div id="fig-atac-genome-corr-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/atac-genome-corr-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/dd5fce0f64cab88d9023da95584ae7beff3dab9d/docs/figure/cyt_01_remodeling.Rmd/atac-genome-corr-1.png" target="_blank">dd5fce0</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/6fe9619c3b971b790f65b7deaccd696cc3d58d32/docs/figure/cyt_01_remodeling.Rmd/atac-genome-corr-1.png" target="_blank">6fe9619</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-04-24
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div id="differential-analysis" class="section level3">
@@ -777,7 +1062,7 @@ table(res.gr$type, res.gr$annotation) %&gt;%
   add_header_above(c(&quot;Region type&quot; = 1, &quot;Location respect TSS&quot; = 2))</code></pre>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples.
+<span id="tab:atac-tab-ec">Table 1: </span>Number of regions classified according to significance and distance to TSS in ATAC-seq EndoC samples.
 </caption>
 <thead>
 <tr>
@@ -860,7 +1145,7 @@ table(res.gr$type, res.gr$annotation) %&gt;%
   add_header_above(c(&quot;Region type&quot; = 1, &quot;Location respect TSS&quot; = 2))</code></pre>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Number of regions classified according to significance and distance to TSS in ATAC-seq HI samples.
+<span id="tab:atac-tab-hi">Table 2: </span>Number of regions classified according to significance and distance to TSS in ATAC-seq HI samples.
 </caption>
 <thead>
 <tr>
@@ -936,11 +1221,81 @@ stable
 <pre class="r"><code>plot_grid(volc_ec, 
           volc_hi,
           ncol=2)</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-1"></span>
 <img src="figure/cyt_01_remodeling.Rmd/unnamed-chunk-1-1.png" alt="Volcano plots showing the open chromatin sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red." width="672" />
 <p class="caption">
-Volcano plots showing the open chromatin sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red.
+Figure 5: Volcano plots showing the open chromatin sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
+Past versions of unnamed-chunk-1-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-1-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/unnamed-chunk-1-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/unnamed-chunk-1-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/dd5fce0f64cab88d9023da95584ae7beff3dab9d/docs/figure/cyt_01_remodeling.Rmd/unnamed-chunk-1-1.png" target="_blank">dd5fce0</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/6fe9619c3b971b790f65b7deaccd696cc3d58d32/docs/figure/cyt_01_remodeling.Rmd/unnamed-chunk-1-1.png" target="_blank">6fe9619</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-04-24
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <pre class="r"><code>## Load regions
 load(&quot;../data/CYT/ATAC/diffAnalysis/ATAC_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
@@ -972,11 +1327,59 @@ ggplot(df,
   scale_x_discrete(name=expression(&quot;EndoC-&quot;*beta*&quot;H1 region type&quot;),
                    labels=function(x) Hmisc::capitalize(x)) +
   coord_cartesian(ylim=c(-2,3))</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:atac-comp-hi-ec"></span>
 <img src="figure/cyt_01_remodeling.Rmd/atac-comp-hi-ec-1.png" alt="Boxplot of HI log2FC at ATAC-seq regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds." width="384" />
 <p class="caption">
-Boxplot of HI log2FC at ATAC-seq regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
+Figure 6: Boxplot of HI log2FC at ATAC-seq regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-atac-comp-hi-ec-1">
+Past versions of atac-comp-hi-ec-1.png
+</button>
+</p>
+<div id="fig-atac-comp-hi-ec-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/atac-comp-hi-ec-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/atac-comp-hi-ec-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -1032,11 +1435,70 @@ c.cyt.H3K27ac &lt;-
 
 cor.rep.H3K27ac &lt;- plot_grid(c.ctrl.H3K27ac, c.cyt.H3K27ac)
 cor.rep.H3K27ac</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:k27-genome-corr"></span>
 <img src="figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" alt="H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2." width="672" />
 <p class="caption">
-H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
+Figure 7: H3K27ac ChIP-seq correlation using the number of reads in a 10kb binned genome normalized with DESeq2.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-k27-genome-corr-1">
+Past versions of k27-genome-corr-1.png
+</button>
+</p>
+<div id="fig-k27-genome-corr-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/dd5fce0f64cab88d9023da95584ae7beff3dab9d/docs/figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" target="_blank">dd5fce0</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/6fe9619c3b971b790f65b7deaccd696cc3d58d32/docs/figure/cyt_01_remodeling.Rmd/k27-genome-corr-1.png" target="_blank">6fe9619</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-04-24
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div id="differential-analysis-1" class="section level3">
@@ -1054,7 +1516,7 @@ table(res.gr$type, res.gr$annotation) %&gt;%
   add_header_above(c(&quot;Region type&quot; = 1, &quot;Location respect TSS&quot; = 2))</code></pre>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Number of regions classified according to significance and distance to TSS in H3K27ac EndoC samples.
+<span id="tab:k27-tab-ec">Table 3: </span>Number of regions classified according to significance and distance to TSS in H3K27ac EndoC samples.
 </caption>
 <thead>
 <tr>
@@ -1137,7 +1599,7 @@ table(res.gr$type, res.gr$annotation) %&gt;%
   add_header_above(c(&quot;Region type&quot; = 1, &quot;Location respect TSS&quot; = 2))</code></pre>
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Number of regions classified according to significance and distance to TSS in H3K27ac HI samples.
+<span id="tab:k27-tab-hi">Table 4: </span>Number of regions classified according to significance and distance to TSS in H3K27ac HI samples.
 </caption>
 <thead>
 <tr>
@@ -1213,11 +1675,59 @@ stable
 <pre class="r"><code>plot_grid(volc_ec, 
           volc_hi,
           ncol=2)</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:unnamed-chunk-2"></span>
 <img src="figure/cyt_01_remodeling.Rmd/unnamed-chunk-2-1.png" alt="Volcano plots showing the enriched H3K27ac sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red." width="672" />
 <p class="caption">
-Volcano plots showing the enriched H3K27ac sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red.
+Figure 8: Volcano plots showing the enriched H3K27ac sites in EndoC and human islet (HI) samples. The horizontal line denotes the FDR adjusted P-value threshold set at 0.05 and the vertical lines the log2 fold-change thresholds, at -1 and 1. Gained regions are represented in green and lost regions are shown in red.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
+Past versions of unnamed-chunk-2-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/unnamed-chunk-2-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/unnamed-chunk-2-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <pre class="r"><code>## Load regions
 load(&quot;../data/CYT/H3K27ac/diffAnalysis/H3K27ac_endoc_fc1_padj0.05_GRangesBatch.rda&quot;)
@@ -1249,11 +1759,59 @@ ggplot(df,
   theme(legend.position=&quot;none&quot;,
         strip.background = element_rect(fill=&quot;white&quot;, linetype=1, size=.5, color=&quot;black&quot;)) + 
   coord_cartesian(ylim=c(-2,3))</code></pre>
-<div class="figure" style="text-align: center">
+<div class="figure" style="text-align: center"><span id="fig:k37-comp-hi-ec"></span>
 <img src="figure/cyt_01_remodeling.Rmd/k37-comp-hi-ec-1.png" alt="Boxplot of HI log2FC at H3K27ac regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds." width="384" />
 <p class="caption">
-Boxplot of HI log2FC at H3K27ac regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
+Figure 9: Boxplot of HI log2FC at H3K27ac regions classified as gained, lost or stable in EndoC cells. Horizontal dashed lines show the upper and lower log2 FC thresholds.
 </p>
+</div>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-k37-comp-hi-ec-1">
+Past versions of k37-comp-hi-ec-1.png
+</button>
+</p>
+<div id="fig-k37-comp-hi-ec-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/k37-comp-hi-ec-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/a43977a5f0ec874ca0844529b124ec3b06878c03/docs/figure/cyt_01_remodeling.Rmd/k37-comp-hi-ec-1.png" target="_blank">a43977a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -1317,6 +1875,43 @@ ggplot(re.df,
   scale_x_continuous(limits=c(-3,6),
                      name=expression(&quot;ATAC-seq &quot;*log[2]*&quot; FC&quot;))</code></pre>
 <p><img src="figure/cyt_01_remodeling.Rmd/plot-cor-res-ec-1.png" width="384" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-plot-cor-res-ec-1">
+Past versions of plot-cor-res-ec-1.png
+</button>
+</p>
+<div id="fig-plot-cor-res-ec-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/plot-cor-res-ec-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="in-human-islets" class="section level3">
 <h3>In human islets</h3>
@@ -1376,6 +1971,43 @@ ggplot(re.df,
   scale_x_continuous(limits=c(-3,6),
                      name=expression(&quot;ATAC-seq &quot;*log[2]*&quot; FC&quot;))</code></pre>
 <p><img src="figure/cyt_01_remodeling.Rmd/plot-cor-res-hi-1.png" width="384" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-plot-cor-res-hi-1">
+Past versions of plot-cor-res-hi-1.png
+</button>
+</p>
+<div id="fig-plot-cor-res-hi-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/plot-cor-res-hi-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="clustering" class="section level3">
 <h3>Clustering</h3>
@@ -1497,6 +2129,43 @@ heat &lt;- Heatmap(sampleDistMatrix+1,
   
 draw(heat, heatmap_legend_side = &quot;bottom&quot;, annotation_legend_side = &quot;right&quot;)</code></pre>
 <p><img src="figure/cyt_01_remodeling.Rmd/atac-heatmap-ires-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-atac-heatmap-ires-1">
+Past versions of atac-heatmap-ires-1.png
+</button>
+</p>
+<div id="fig-atac-heatmap-ires-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/atac-heatmap-ires-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>load(file.path(out_dir, &quot;IREs_H3K27ac_clustering_rld.rda&quot;))
 
 rld$batch[1] &lt;- &quot;endoc3&quot;
@@ -1526,6 +2195,43 @@ heat &lt;- Heatmap(sampleDistMatrix+1,
   
 draw(heat, heatmap_legend_side = &quot;bottom&quot;, annotation_legend_side = &quot;right&quot;)</code></pre>
 <p><img src="figure/cyt_01_remodeling.Rmd/k27-heatmap-ires-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-k27-heatmap-ires-1">
+Past versions of k27-heatmap-ires-1.png
+</button>
+</p>
+<div id="fig-k27-heatmap-ires-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/k27-heatmap-ires-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 <div id="characterization-of-ires-in-endoc-betah1" class="section level2">
@@ -1580,6 +2286,54 @@ tss.plot &lt;-
 
 tss.plot</code></pre>
 <p><img src="figure/cyt_01_remodeling.Rmd/tss-plot-1.png" width="384" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-tss-plot-1">
+Past versions of tss-plot-1.png
+</button>
+</p>
+<div id="fig-tss-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/tss-plot-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/37f843a75d1caba2ec03638fb074f0a4ddd77423/docs/figure/cyt_01_remodeling.Rmd/tss-plot-1.png" target="_blank">37f843a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>scope=1e3
 bin=50
 
@@ -1612,6 +2366,54 @@ cons.plot &lt;-
 
 cons.plot</code></pre>
 <p><img src="figure/cyt_01_remodeling.Rmd/plot-cons-1.png" width="336" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-plot-cons-1">
+Past versions of plot-cons-1.png
+</button>
+</p>
+<div id="fig-plot-cons-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/2b4820d5f4ca98f750acbed4abf32f1d8550d86a/docs/figure/cyt_01_remodeling.Rmd/plot-cons-1.png" target="_blank">2b4820d</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-06
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/mireia-bioinfo/phdthesis_code/blob/37f843a75d1caba2ec03638fb074f0a4ddd77423/docs/figure/cyt_01_remodeling.Rmd/plot-cons-1.png" target="_blank">37f843a</a>
+</td>
+<td>
+Mireia Ramos
+</td>
+<td>
+2020-05-05
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>library(maRge)
 
 out_homer &lt;- file.path(out_dir, &quot;HOMER_IREs_endoc_fc1_padj0.05_mask/&quot;)
@@ -1622,7 +2424,7 @@ deNovoMotifHOMER(bed=paste0(&quot;../data/CYT/bedfiles/IREs_endoc_fc1_padj0.05.b
                  path_homer=&quot;~/tools/homer/&quot;)</code></pre>
 <pre class="r"><code>htmltools::includeHTML(file.path(out_dir, &quot;HOMER_IREs_endoc_fc1_padj0.05_mask/homerResults.html&quot;))</code></pre>
 <BODY>
-<H3>Homer <i>de novo</i> Motif Results (HOMER_IREs_endoc_fc1_padj0.05_mask//)</H3>
+<H4>Homer <i>de novo</i> Motif Results (HOMER_IREs_endoc_fc1_padj0.05_mask//)</H4>
 <A HREF="knownResults.html">Known Motif Enrichment Results</A><BR/>
 <A HREF="geneOntology.html">Gene Ontology Enrichment Results</A><BR/>
 If Homer is having trouble matching a motif to a known motif, try copy/pasting the matrix file into
@@ -4024,31 +4826,37 @@ Total background sequences = 46739<BR/>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
-<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 4.0.2 (2020-06-22)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 18362)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.1 LTS
 
 Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
-[1] LC_COLLATE=Spanish_Spain.1252  LC_CTYPE=Spanish_Spain.1252   
-[3] LC_MONETARY=Spanish_Spain.1252 LC_NUMERIC=C                  
-[5] LC_TIME=Spanish_Spain.1252    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=es_ES.UTF-8        LC_COLLATE=C              
+ [5] LC_MONETARY=es_ES.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=es_ES.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=es_ES.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
  [1] grid      parallel  stats4    stats     graphics  grDevices utils    
  [8] datasets  methods   base     
 
 other attached packages:
- [1] DESeq2_1.29.7               SummarizedExperiment_1.19.6
+ [1] DESeq2_1.29.8               SummarizedExperiment_1.19.6
  [3] DelayedArray_0.15.7         matrixStats_0.56.0         
  [5] Matrix_1.2-18               Biobase_2.49.0             
- [7] ComplexHeatmap_2.5.3        dplyr_1.0.0                
+ [7] ComplexHeatmap_2.5.5        dplyr_1.0.1                
  [9] kableExtra_1.1.0            cowplot_1.0.0              
 [11] ggplot2_3.3.2               GenomicRanges_1.41.5       
 [13] GenomeInfoDb_1.25.8         IRanges_2.23.10            
@@ -4056,39 +4864,39 @@ other attached packages:
 [17] workflowr_1.6.2            
 
 loaded via a namespace (and not attached):
- [1] bitops_1.0-6           fs_1.4.2               bit64_0.9-7.1         
- [4] webshot_0.5.2          RColorBrewer_1.1-2     httr_1.4.2            
- [7] rprojroot_1.3-2        tools_4.0.0            backports_1.1.8       
-[10] R6_2.4.1               rpart_4.1-15           Hmisc_4.4-0           
-[13] DBI_1.1.0              colorspace_1.4-1       nnet_7.3-14           
-[16] GetoptLong_1.0.2       withr_2.2.0            gridExtra_2.3         
-[19] tidyselect_1.1.0       bit_1.1-15.2           compiler_4.0.0        
-[22] git2r_0.27.1           rvest_0.3.6            htmlTable_2.0.1       
-[25] xml2_1.3.2             labeling_0.3           checkmate_2.0.0       
-[28] scales_1.1.1           readr_1.3.1            genefilter_1.71.0     
-[31] stringr_1.4.0          digest_0.6.25          foreign_0.8-80        
-[34] rmarkdown_2.3          XVector_0.29.3         jpeg_0.1-8.1          
-[37] base64enc_0.1-3        pkgconfig_2.0.3        htmltools_0.5.0       
-[40] limma_3.45.9           highr_0.8              htmlwidgets_1.5.1     
-[43] rlang_0.4.7            GlobalOptions_0.1.2    rstudioapi_0.11       
-[46] RSQLite_2.2.0          shape_1.4.4            generics_0.0.2        
-[49] farver_2.0.3           BiocParallel_1.23.2    acepack_1.4.1         
-[52] RCurl_1.98-1.2         magrittr_1.5           Formula_1.2-3         
-[55] GenomeInfoDbData_1.2.3 Rcpp_1.0.5             munsell_0.5.0         
-[58] lifecycle_0.2.0        stringi_1.4.6          yaml_2.2.1            
-[61] zlibbioc_1.35.0        plyr_1.8.6             blob_1.2.1            
-[64] promises_1.1.1         crayon_1.3.4           lattice_0.20-41       
-[67] splines_4.0.0          annotate_1.67.0        circlize_0.4.10       
-[70] hms_0.5.3              locfit_1.5-9.4         knitr_1.29            
-[73] pillar_1.4.6           rjson_0.2.20           reshape2_1.4.4        
-[76] geneplotter_1.67.0     XML_3.99-0.5           glue_1.4.1            
-[79] evaluate_0.14          latticeExtra_0.6-29    data.table_1.13.0     
-[82] png_0.1-7              vctrs_0.3.2            httpuv_1.5.4          
-[85] gtable_0.3.0           purrr_0.3.4            clue_0.3-57           
-[88] xfun_0.16              xtable_1.8-4           later_1.1.0.1         
-[91] survival_3.2-3         viridisLite_0.3.0      tibble_3.0.3          
-[94] AnnotationDbi_1.51.3   memoise_1.1.0          cluster_2.1.0         
-[97] ellipsis_0.3.1        </code></pre>
+ [1] colorspace_1.4-1       rjson_0.2.20           ellipsis_0.3.1        
+ [4] rprojroot_1.3-2        circlize_0.4.10        htmlTable_2.0.1       
+ [7] XVector_0.29.3         GlobalOptions_0.1.2    base64enc_0.1-3       
+[10] fs_1.5.0               clue_0.3-57            rstudioapi_0.11       
+[13] farver_2.0.3           bit64_4.0.2            AnnotationDbi_1.51.3  
+[16] xml2_1.3.2             splines_4.0.2          geneplotter_1.67.0    
+[19] knitr_1.29             Formula_1.2-3          annotate_1.67.0       
+[22] cluster_2.1.0          png_0.1-7              readr_1.3.1           
+[25] compiler_4.0.2         httr_1.4.2             backports_1.1.8       
+[28] limma_3.45.9           later_1.1.0.1          htmltools_0.5.0       
+[31] tools_4.0.2            gtable_0.3.0           glue_1.4.1            
+[34] GenomeInfoDbData_1.2.3 reshape2_1.4.4         Rcpp_1.0.5            
+[37] vctrs_0.3.2            xfun_0.16              stringr_1.4.0         
+[40] rvest_0.3.6            lifecycle_0.2.0        XML_3.99-0.5          
+[43] zlibbioc_1.35.0        scales_1.1.1           hms_0.5.3             
+[46] promises_1.1.1         RColorBrewer_1.1-2     yaml_2.2.1            
+[49] memoise_1.1.0          gridExtra_2.3          rpart_4.1-15          
+[52] latticeExtra_0.6-29    stringi_1.4.6          RSQLite_2.2.0         
+[55] highr_0.8              genefilter_1.71.0      checkmate_2.0.0       
+[58] BiocParallel_1.23.2    shape_1.4.4            rlang_0.4.7           
+[61] pkgconfig_2.0.3        bitops_1.0-6           evaluate_0.14         
+[64] lattice_0.20-41        purrr_0.3.4            htmlwidgets_1.5.1     
+[67] labeling_0.3           bit_4.0.4              tidyselect_1.1.0      
+[70] plyr_1.8.6             magrittr_1.5           bookdown_0.20         
+[73] R6_2.4.1               magick_2.4.0           generics_0.0.2        
+[76] Hmisc_4.4-1            DBI_1.1.0              pillar_1.4.6          
+[79] whisker_0.4            foreign_0.8-80         withr_2.2.0           
+[82] survival_3.2-3         RCurl_1.98-1.2         nnet_7.3-14           
+[85] tibble_3.0.3           crayon_1.3.4           rmarkdown_2.3         
+[88] jpeg_0.1-8.1           GetoptLong_1.0.2       locfit_1.5-9.4        
+[91] data.table_1.13.0      blob_1.2.1             git2r_0.27.1          
+[94] digest_0.6.25          webshot_0.5.2          xtable_1.8-4          
+[97] httpuv_1.5.4           munsell_0.5.0          viridisLite_0.3.0     </code></pre>
 </div>
 </div>
 

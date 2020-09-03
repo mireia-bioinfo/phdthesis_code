@@ -1362,12 +1362,12 @@ score(cyt.ac) <- zoo::rollmean(score(cyt.ac), sm.ac,
 ## RNA-seq
 sm.rna <- 20
 
-ctrl.rna <- rtracklayer::import("../data/CYT/RNA/visualization/RNA_hi_ctrl.bw",
+ctrl.rna <- rtracklayer::import("../data/CYT/RNA/Visualization/RNA_hi_ctrl.bw",
                                which=gene)
 score(ctrl.rna) <- zoo::rollmean(score(ctrl.rna), sm.rna,
                                 fill=c(NA, NA, NA))
 
-cyt.rna <- rtracklayer::import("../data/CYT/RNA/visualization/RNA_hi_cyt.bw",
+cyt.rna <- rtracklayer::import("../data/CYT/RNA/Visualization/RNA_hi_cyt.bw",
                                which=gene)
 score(cyt.rna) <- zoo::rollmean(score(cyt.rna), sm.rna,
                                fill=c(NA, NA, NA))
@@ -1729,11 +1729,13 @@ plot <-
     plot_grid(p, 
               legends,
               ncol=2, rel_widths=c(0.7, 0.3))
+
+plot
 ```
 
 
 ## Zoom ins
-```{r}
+```{r, eval=FALSE}
 win <- 8e2
 snp <- GRanges("chr16:11351211")
 snp <- resize(snp, width=win, fix="center")
@@ -1802,7 +1804,7 @@ uk$lab[uk$ID=="rs193778"] <- uk$ID[uk$ID=="rs193778"]
 
 
 
-```{r, fig.width=3, fig.height=5}
+```{r, fig.width=3, fig.height=5, eval=FALSE}
 ##-------------------------------
 ## Plot tracks
 ##-------------------------------

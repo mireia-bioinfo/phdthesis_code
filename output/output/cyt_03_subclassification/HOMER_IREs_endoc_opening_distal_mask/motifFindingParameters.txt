@@ -1,0 +1,1 @@
+cmd = ../../data/bedfiles/IREs_endoc_fc1_Opening_distal.bed hg19 HOMER_IREs_endoc_fc1_opening_distal_mask/ -p 6 -size given -mask -bits

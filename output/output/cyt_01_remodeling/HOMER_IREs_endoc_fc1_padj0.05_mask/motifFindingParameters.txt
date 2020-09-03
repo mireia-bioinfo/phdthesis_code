@@ -1,0 +1,1 @@
+cmd = ../../data/bedfiles/IREs_endoc_fc1_padj0.05.bed hg19 HOMER_IREs_endoc_fc1_padj0.05_mask/ -p 6 -size given -mask -bits
